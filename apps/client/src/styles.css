@@ -305,6 +305,10 @@ button.quiet {
 .cont-member:hover {
   background: rgba(255, 255, 255, 0.07);
 }
+.cont-member.active {
+  border-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+}
 .cont-dot {
   width: 10px;
   height: 10px;

@@ -4,7 +4,6 @@ import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 import { getBoard, type GameState, type TerritoryId } from "@risk3d/engine";
 import { NEUTRAL_COLOR } from "./players.js";
-import { HAVE_COLOR, NEED_COLOR } from "./continents.js";
 
 const MODEL_URL = "/transparent_country_globe_gameboard.glb";
 const TARGET_RADIUS = 1.2;
@@ -119,14 +118,26 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
     root.position.copy(sphere.center).multiplyScalar(-s);
     root.scale.setScalar(s);
 
-    // One surface label anchor per territory (mean of its member vertices).
+    // One surface anchor per territory (mean of its member vertices), plus one
+    // per continent (for rotate-to-continent). Keyed distinctly (region names vs
+    // continent ids), both looked up by focus.
     const centroidDirs = new Map<string, THREE.Vector3>();
+    const toDir = (v: THREE.Vector3) => v.clone().sub(sphere.center).normalize().multiplyScalar(TARGET_RADIUS * 1.03);
+    const contSum = new Map<string, THREE.Vector3>();
+    const contCount = new Map<string, number>();
     for (const [territory, acc] of sum) {
-      const centre = acc.clone().multiplyScalar(1 / (counts.get(territory) || 1));
-      centroidDirs.set(territory, centre.sub(sphere.center).normalize().multiplyScalar(TARGET_RADIUS * 1.03));
+      const n = counts.get(territory) || 1;
+      centroidDirs.set(territory, toDir(acc.clone().multiplyScalar(1 / n)));
+      const cont = board.territories[territory]?.continent;
+      if (!cont) continue;
+      let cs = contSum.get(cont);
+      if (!cs) contSum.set(cont, (cs = new THREE.Vector3()));
+      cs.add(acc);
+      contCount.set(cont, (contCount.get(cont) ?? 0) + n);
     }
+    for (const [cont, acc] of contSum) centroidDirs.set(cont, toDir(acc.clone().multiplyScalar(1 / (contCount.get(cont) || 1))));
     return { group: g, meshesByTerritory: byTerritory, centroids: centroidDirs };
-  }, [scene, countryToTerritory]);
+  }, [scene, countryToTerritory, board]);
 
   const ownerColor = useMemo(() => {
     const m = new Map<string, string>();
@@ -153,9 +164,10 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
     const owner = playableHere ? r.game.territories[territory]?.owner : null;
     const base = !playableHere ? INERT_COLOR : owner ? (r.ownerColor.get(owner) ?? NEUTRAL_COLOR) : NEUTRAL_COLOR;
 
+    // Highlighting a continent keeps members' true owner colours and dims
+    // everything else hard, so real ownership stays visible (spotlight, not recolour).
     const hl = r.highlightContinent;
-    const isMember = !!hl && playableHere && r.game.board.territories[territory]?.continent === hl;
-    const dimNonMember = !!hl && playableHere && !isMember;
+    const dimNonMember = !!hl && playableHere && r.game.board.territories[territory]?.continent !== hl;
 
     let emissive = "#000000";
     let intensity = 0;
@@ -164,12 +176,11 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
       else if (r.selection === territory) [emissive, intensity] = ["#38bdf8", 0.6];
       else if (r.validTargets.has(territory)) [emissive, intensity] = ["#ff8844", 0.5];
       else if (r.hovered === territory) [emissive, intensity] = ["#ffffff", 0.3];
-      else if (isMember) [emissive, intensity] = owner === r.game.activePlayer ? [HAVE_COLOR, 0.4] : [NEED_COLOR, 0.75];
     }
     for (const mesh of meshes) {
       const mat = mesh.material as THREE.MeshStandardMaterial;
       mat.color.set(base);
-      if (dimNonMember) mat.color.multiplyScalar(0.32);
+      if (dimNonMember) mat.color.multiplyScalar(0.15);
       mat.emissive.set(emissive);
       mat.emissiveIntensity = intensity;
     }

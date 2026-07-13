@@ -29,6 +29,31 @@ export function App() {
     );
   }
 
+  const focusOn = (id: string) => setFocus((cur) => ({ id, n: (cur?.n ?? 0) + 1 }));
+  // Click a continent: highlight + rotate to it + de-select any selected country.
+  const toggleContinent = (id: string) => {
+    if (highlightContinent === id) {
+      setHighlightContinent(null);
+      return;
+    }
+    setHighlightContinent(id);
+    hs.clearSource();
+    focusOn(id);
+  };
+  // Click a country in the list: select it (open its dialog) + rotate to it.
+  const selectRegion = (id: string) => {
+    hs.clickTerritory(id);
+    focusOn(id);
+  };
+  // Click a country on the globe: select it + reflect its continent in the list (symmetry).
+  const pickCountry = (id: string) => {
+    hs.clickTerritory(id);
+    setHighlightContinent(hs.game!.board.territories[id]?.continent ?? null);
+  };
+
+  if (import.meta.env.DEV)
+    (window as unknown as { __app: unknown }).__app = { pickCountry, toggleContinent, selectRegion };
+
   return (
     <>
       <Hud hs={hs} hovered={hovered} />
@@ -38,8 +63,9 @@ export function App() {
       <ContinentsPanel
         game={hs.game}
         highlight={highlightContinent}
-        onToggle={(id) => setHighlightContinent((cur) => (cur === id ? null : id))}
-        onFocusCountry={(id) => setFocus((cur) => ({ id, n: (cur?.n ?? 0) + 1 }))}
+        selection={hs.selection}
+        onToggle={toggleContinent}
+        onSelectRegion={selectRegion}
       />
 
       <Canvas camera={{ position: [0, 0, 4], fov: 45 }} dpr={[1, 2]}>
@@ -58,7 +84,7 @@ export function App() {
             highlightContinent={highlightContinent}
             focus={focus}
             onHover={setHovered}
-            onPick={hs.clickTerritory}
+            onPick={pickCountry}
           />
         </Suspense>
 

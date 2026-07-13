@@ -5,11 +5,12 @@ import { CONTINENT_COLORS } from "./continents.js";
 interface Props {
   game: GameState;
   highlight: string | null;
+  selection: TerritoryId | null;
   onToggle: (id: string) => void;
-  onFocusCountry: (id: TerritoryId) => void;
+  onSelectRegion: (id: TerritoryId) => void;
 }
 
-export function ContinentsPanel({ game, highlight, onToggle, onFocusCountry }: Props) {
+export function ContinentsPanel({ game, highlight, selection, onToggle, onSelectRegion }: Props) {
   const me = game.activePlayer;
   const continents = Object.values(game.board.continents);
   const ownerName = (id: string | null) => game.players.find((p) => p.id === id)?.name ?? "—";
@@ -55,7 +56,7 @@ export function ContinentsPanel({ game, highlight, onToggle, onFocusCountry }: P
                   const mine = st.owner === me;
                   return (
                     <li key={t}>
-                      <button className="cont-member" onClick={() => onFocusCountry(t)} title={`${t} — held by ${ownerName(st.owner)} — ${st.armies} armies (click to rotate here)`}>
+                      <button className={`cont-member${selection === t ? " active" : ""}`} onClick={() => onSelectRegion(t)} title={`${t} — held by ${ownerName(st.owner)} — ${st.armies} armies (click to select & rotate here)`}>
                         <span className="cont-dot" style={{ background: ownerColor(st.owner) }} />
                         <span className={`cont-mname${mine ? "" : " need"}`}>{t}</span>
                         <span className="cont-marmy">{st.armies}</span>
