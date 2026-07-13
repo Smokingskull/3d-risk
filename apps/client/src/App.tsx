@@ -65,7 +65,7 @@ export function App() {
       />
 
       <Canvas camera={{ position: [0, 0, 4], fov: 45 }} dpr={[1, 2]}>
-        <color attach="background" args={["#05070d"]} />
+        <color attach="background" args={["#101417"]} />
         {/* Mostly-flat ambient keeps colours bright; a gentle hemisphere + key
             light add a subtle top-lit gradient so countries read as slightly raised. */}
         <ambientLight intensity={0.8} />
