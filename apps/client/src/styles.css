@@ -183,6 +183,163 @@ button.quiet {
   font-size: 12px;
 }
 
+/* ---- combat modal (centre-screen battle dialog) ---- */
+.combat-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  background: rgba(3, 5, 10, 0.55);
+  backdrop-filter: blur(3px);
+}
+.combat {
+  width: 520px;
+  max-width: calc(100vw - 32px);
+  padding: 22px 24px;
+  border-radius: 16px;
+  background: rgba(14, 20, 34, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  color: #e8ecf4;
+}
+.combat-title {
+  font-size: 18px;
+  text-align: center;
+  margin-bottom: 18px;
+  color: #cdd8ee;
+}
+.combat-arena {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: start;
+  gap: 12px;
+}
+.combat-side {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.combat-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+}
+.combat-name {
+  font-size: 14px;
+  font-weight: 600;
+  max-width: 170px;
+}
+.combat-armies {
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1;
+}
+.combat-vs {
+  text-align: center;
+  font-size: 22px;
+  color: #8fa3c8;
+  padding-top: 20px;
+}
+.combat-odds {
+  margin-top: 8px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #6ea8ff;
+}
+.combat-odds span {
+  display: block;
+  font-size: 10px;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6f7f9e;
+}
+.dice-row {
+  display: flex;
+  gap: 8px;
+  min-height: 44px;
+  margin-top: 8px;
+  justify-content: center;
+}
+.dice-hint {
+  font-size: 11px;
+  color: #6f7f9e;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  align-self: center;
+}
+.die {
+  width: 40px;
+  height: 40px;
+  padding: 5px;
+  border-radius: 9px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  place-items: center;
+  background: #f4f6fb;
+  box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+}
+.die-atk {
+  background: #ffe9ec;
+}
+.die-def {
+  background: #e9f0ff;
+}
+.die .pip {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: transparent;
+}
+.die .pip.on {
+  background: #1a1f2b;
+}
+.die-atk .pip.on {
+  background: #b3123a;
+}
+.die-def .pip.on {
+  background: #1c3f8f;
+}
+.die-dim {
+  opacity: 0.4;
+  filter: grayscale(0.6);
+}
+.die-rolling {
+  animation: die-shake 0.18s infinite;
+}
+@keyframes die-shake {
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  50% { transform: translateY(-3px) rotate(4deg); }
+}
+.combat-result {
+  text-align: center;
+  min-height: 22px;
+  margin: 16px 0 4px;
+  font-size: 14px;
+}
+.combat-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.occupy {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.occupy input[type="range"] {
+  accent-color: #6ea8ff;
+}
+
 /* ---- tutorial tips (bottom-left, clear of the centred globe) ---- */
 .tutorial {
   position: fixed;

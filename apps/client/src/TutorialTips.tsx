@@ -9,7 +9,7 @@ const TIPS: Record<string, { title: string; body: string }> = {
   },
   attack: {
     title: "Attack",
-    body: "Click one of your territories with 2+ armies, then click a highlighted enemy neighbour to roll the dice. Keep attacking while the odds favour you, then press “End attack”.",
+    body: "Click one of your territories with 2+ armies, then a highlighted enemy neighbour to open the battle. There you can roll once, or “Attack till resolved”, and see the dice and your win chance. Press “End attack” on the panel when you're done.",
   },
   occupy: {
     title: "You conquered a territory!",

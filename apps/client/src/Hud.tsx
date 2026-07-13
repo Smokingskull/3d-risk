@@ -70,7 +70,7 @@ export function Hud({ hs, hovered }: { hs: Hotseat; hovered: string | null }) {
         </p>
       )}
 
-      {!isCpu && game.phase === "attack" && !pending && (
+      {!isCpu && !hs.engagement && game.phase === "attack" && !pending && (
         <div className="row">
           <button onClick={hs.endAttack}>End attack →</button>
           <span className="hint">
@@ -78,7 +78,7 @@ export function Hud({ hs, hovered }: { hs: Hotseat; hovered: string | null }) {
           </span>
         </div>
       )}
-      {!isCpu && game.phase === "attack" && pending && (
+      {!isCpu && !hs.engagement && game.phase === "attack" && pending && (
         <div className="row">
           <span>
             Captured {pending.to} — move armies in:

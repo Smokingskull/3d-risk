@@ -6,12 +6,16 @@ import { Hud } from "./Hud.js";
 import { StartMenu } from "./StartMenu.js";
 import { RulesPage } from "./RulesPage.js";
 import { TutorialTips } from "./TutorialTips.js";
+import { CombatModal } from "./CombatModal.js";
 import { useHotseat } from "./game/useHotseat.js";
 
 export function App() {
   const hs = useHotseat();
   const [hovered, setHovered] = useState<string | null>(null);
   const [view, setView] = useState<"menu" | "rules">("menu");
+
+  // Dev-only test hook so headless checks can drive the game deterministically.
+  if (import.meta.env.DEV) (window as unknown as { __risk: typeof hs }).__risk = hs;
 
   if (!hs.game) {
     return view === "rules" ? (
@@ -25,6 +29,7 @@ export function App() {
     <>
       <Hud hs={hs} hovered={hovered} />
       <TutorialTips hs={hs} />
+      <CombatModal hs={hs} />
 
       <Canvas camera={{ position: [0, 0, 4], fov: 45 }} dpr={[1, 2]}>
         <color attach="background" args={["#05070d"]} />
