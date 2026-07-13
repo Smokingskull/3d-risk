@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { Text, useGLTF } from "@react-three/drei";
 import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
+import { mergeGeometries, mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { getBoard, type GameState, type TerritoryId } from "@risk3d/engine";
 import { NEUTRAL_COLOR } from "./players.js";
 
@@ -95,25 +96,12 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
       const country = CANONICAL_BY_SANITIZED.get(raw) ?? raw;
       const territory = countryToTerritory.get(country) ?? country;
 
-      mesh.material = new THREE.MeshStandardMaterial({ color: new THREE.Color(NEUTRAL_COLOR), roughness: 0.85, side: THREE.DoubleSide });
+      if (!mesh.geometry.getAttribute("normal")) mesh.geometry.computeVertexNormals();
+      mesh.material = new THREE.MeshStandardMaterial({ color: new THREE.Color(NEUTRAL_COLOR), roughness: 0.8, side: THREE.DoubleSide });
       mesh.userData.territory = territory;
       const list = byTerritory.get(territory) ?? [];
       list.push(mesh);
       byTerritory.set(territory, list);
-
-      // Boundary outline (hidden until this territory is selected) — a border
-      // just above the surface, so selection reads as an edge, not a fill.
-      const seg = new THREE.LineSegments(
-        new THREE.EdgesGeometry(mesh.geometry, 35),
-        new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true }),
-      );
-      seg.visible = false;
-      seg.scale.setScalar(1.004);
-      seg.renderOrder = 3;
-      mesh.add(seg);
-      const segs = outlines.get(territory) ?? [];
-      segs.push(seg);
-      outlines.set(territory, segs);
 
       const pos = mesh.geometry.getAttribute("position");
       const acc = sum.get(territory) ?? new THREE.Vector3();
@@ -125,6 +113,30 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
       sum.set(territory, acc);
       counts.set(territory, (counts.get(territory) ?? 0) + pos.count);
     });
+
+    // One outline per territory = its OUTER boundary only. Merge + weld all member
+    // country geometries so shared internal borders become interior edges (dropped
+    // by EdgesGeometry); only the region's coastline survives. Non-interactive
+    // (raycast disabled) so it never intercepts clicks.
+    for (const [territory, meshes] of byTerritory) {
+      const geos = meshes.map((m) => {
+        const src = m.geometry.index ? m.geometry.toNonIndexed() : m.geometry;
+        const g = new THREE.BufferGeometry();
+        g.setAttribute("position", src.getAttribute("position").clone());
+        return g;
+      });
+      const merged = mergeVertices(geos.length === 1 ? geos[0] : mergeGeometries(geos, false)!);
+      const seg = new THREE.LineSegments(
+        new THREE.EdgesGeometry(merged, 30),
+        new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true }),
+      );
+      seg.visible = false;
+      seg.scale.setScalar(1.004);
+      seg.renderOrder = 3;
+      seg.raycast = () => {};
+      root.add(seg);
+      outlines.set(territory, [seg]);
+    }
 
     const sphere = new THREE.Sphere().setFromPoints(points);
     const s = TARGET_RADIUS / (sphere.radius || 1);
@@ -184,16 +196,14 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
     const hl = r.highlightContinent;
     const dimNonMember = !!hl && playableHere && r.game.board.territories[territory]?.continent !== hl;
 
-    // A picked territory (attack source or the open dialog) is shown as a border
-    // outline only — not a flood fill. Other cues (targets, hover) still fill.
-    const borderColor = r.selectedFrom === territory ? "#fff27a" : r.selection === territory ? "#38bdf8" : null;
+    // Picked territory (attack source / open dialog) and hover are shown as a
+    // border outline only — not a flood fill. Attack targets still fill.
+    const borderColor =
+      r.selectedFrom === territory ? "#fff27a" : r.selection === territory ? "#38bdf8" : r.hovered === territory ? "#ffffff" : null;
 
     let emissive = "#000000";
     let intensity = 0;
-    if (playableHere && !borderColor) {
-      if (r.validTargets.has(territory)) [emissive, intensity] = ["#ff8844", 0.5];
-      else if (r.hovered === territory) [emissive, intensity] = ["#ffffff", 0.3];
-    }
+    if (playableHere && !borderColor && r.validTargets.has(territory)) [emissive, intensity] = ["#ff8844", 0.5];
     for (const mesh of meshes) {
       const mat = mesh.material as THREE.MeshStandardMaterial;
       mat.color.set(base);

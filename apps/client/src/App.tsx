@@ -73,9 +73,12 @@ export function App() {
 
       <Canvas camera={{ position: [0, 0, 4], fov: 45 }} dpr={[1, 2]}>
         <color attach="background" args={["#05070d"]} />
-        <ambientLight intensity={0.9} />
-        <directionalLight position={[5, 3, 5]} intensity={1.1} />
-        <directionalLight position={[-5, -2, -3]} intensity={0.3} />
+        {/* Mostly-flat ambient keeps colours bright; a gentle hemisphere + key
+            light add a subtle top-lit gradient so countries read as slightly raised. */}
+        <ambientLight intensity={0.8} />
+        <hemisphereLight args={["#dbe6ff", "#2a3242", 0.35]} />
+        <directionalLight position={[5, 4, 5]} intensity={0.7} />
+        <directionalLight position={[-5, -2, -3]} intensity={0.25} />
         <Stars radius={120} depth={40} count={3000} factor={4} fade speed={0.5} />
 
         <Suspense fallback={null}>
