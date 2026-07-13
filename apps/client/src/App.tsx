@@ -29,7 +29,10 @@ export function App() {
     );
   }
 
-  const focusOn = (id: string) => setFocus((cur) => ({ id, n: (cur?.n ?? 0) + 1 }));
+  const focusOn = (id: string) => {
+    if (!hs.autoRotate) return; // auto-rotate disabled → never rotate the globe
+    setFocus((cur) => ({ id, n: (cur?.n ?? 0) + 1 }));
+  };
   // Click a continent: highlight + rotate to it + de-select any selected country.
   const toggleContinent = (id: string) => {
     if (highlightContinent === id) {

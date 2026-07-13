@@ -12,13 +12,16 @@ function toSpec(choice: SeatChoice): SeatSpec {
 }
 
 interface StartMenuProps {
-  onStart: (mode: BoardMode, seats: SeatSpec[], tutorial: boolean) => void;
+  onStart: (mode: BoardMode, seats: SeatSpec[], tutorial: boolean, names: string[]) => void;
   onShowRules: () => void;
 }
+
+const defaultName = (i: number) => `Player ${i + 1}`;
 
 export function StartMenu({ onStart, onShowRules }: StartMenuProps) {
   const [mode, setMode] = useState<BoardMode>("classic");
   const [seats, setSeats] = useState<SeatChoice[]>(["human", "medium", "medium"]);
+  const [names, setNames] = useState<string[]>([0, 1, 2].map(defaultName));
   const [tutorial, setTutorial] = useState(true);
 
   const setCount = (n: number) => {
@@ -27,9 +30,14 @@ export function StartMenu({ onStart, onShowRules }: StartMenuProps) {
       while (next.length < n) next.push("medium");
       return next;
     });
+    setNames((prev) => {
+      const next = prev.slice(0, n);
+      while (next.length < n) next.push(defaultName(next.length));
+      return next;
+    });
   };
-  const setSeat = (i: number, c: SeatChoice) =>
-    setSeats((prev) => prev.map((s, idx) => (idx === i ? c : s)));
+  const setSeat = (i: number, c: SeatChoice) => setSeats((prev) => prev.map((s, idx) => (idx === i ? c : s)));
+  const setName = (i: number, v: string) => setNames((prev) => prev.map((s, idx) => (idx === i ? v : s)));
 
   return (
     <div className="menu">
@@ -65,7 +73,14 @@ export function StartMenu({ onStart, onShowRules }: StartMenuProps) {
           {seats.map((choice, i) => (
             <div className="seat" key={i}>
               <span className="dot" style={{ background: PLAYER_COLORS[i % PLAYER_COLORS.length] }} />
-              <span className="seat-no">P{i + 1}</span>
+              <input
+                className="seat-name"
+                value={names[i] ?? ""}
+                maxLength={18}
+                placeholder={defaultName(i)}
+                onChange={(e) => setName(i, e.target.value)}
+                aria-label={`Name for player ${i + 1}`}
+              />
               <div className="segmented">
                 {CHOICES.map((c) => (
                   <button key={c} className={choice === c ? "sel" : ""} onClick={() => setSeat(i, c)}>
@@ -83,7 +98,7 @@ export function StartMenu({ onStart, onShowRules }: StartMenuProps) {
         </label>
 
         <div className="menu-actions">
-          <button className="start" onClick={() => onStart(mode, seats.map(toSpec), tutorial)}>
+          <button className="start" onClick={() => onStart(mode, seats.map(toSpec), tutorial, names)}>
             Start game
           </button>
           <button className="link" onClick={onShowRules}>

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import type { Hotseat } from "./game/useHotseat.js";
 
 /** One tip per stage. Keyed by the stage the player is currently in. */
@@ -22,12 +21,10 @@ const TIPS: Record<string, { title: string; body: string }> = {
 };
 
 export function TutorialTips({ hs }: { hs: Hotseat }) {
-  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
   const game = hs.game;
   if (!game || game.winner || !hs.tutorial || !hs.isHumanTurn) return null;
 
   const key = game.pendingOccupation ? "occupy" : game.phase;
-  if (dismissed.has(key)) return null;
   const tip = TIPS[key];
   if (!tip) return null;
 
@@ -36,9 +33,6 @@ export function TutorialTips({ hs }: { hs: Hotseat }) {
       <div className="tut-head">
         <span className="tut-badge">Tutorial</span>
         <strong>{tip.title}</strong>
-        <button className="tut-x" aria-label="Dismiss" onClick={() => setDismissed((d) => new Set(d).add(key))}>
-          ×
-        </button>
       </div>
       <p>{tip.body}</p>
       <button className="tut-off" onClick={hs.toggleTutorial}>

@@ -45,11 +45,8 @@ export function Hud({ hs, hovered }: { hs: Hotseat; hovered: string | null }) {
 
   return (
     <div className="panel">
-      <div className="turn">
-        <span className="dot" style={{ background: active.color }} />
-        <strong>{active.name}</strong>
-        <span className="phase">{PHASE_LABEL[game.phase]}</span>
-        <span className="turnno">turn {game.turn}</span>
+      <div className="panel-header">
+        <h1>Game</h1>
         <button className="collapse" aria-label={open ? "Collapse" : "Expand"} onClick={() => setOpen((o) => !o)}>
           {open ? "▾" : "▸"}
         </button>
@@ -57,6 +54,13 @@ export function Hud({ hs, hovered }: { hs: Hotseat; hovered: string | null }) {
 
       {open && (
         <>
+          <div className="turn">
+            <span className="dot" style={{ background: active.color }} />
+            <strong>{active.name}</strong>
+            <span className="phase">{PHASE_LABEL[game.phase]}</span>
+            <span className="turnno">turn {game.turn}</span>
+          </div>
+
 
       {isCpu && <div className="row cpu">🤖 {active.name} ({active.difficulty}) is planning…</div>}
 
@@ -123,6 +127,9 @@ export function Hud({ hs, hovered }: { hs: Hotseat; hovered: string | null }) {
         <div className="footer-row">
           <button className="quiet" onClick={hs.reset}>
             Quit to menu
+          </button>
+          <button className="quiet" onClick={hs.toggleAutoRotate}>
+            Auto-rotate: {hs.autoRotate ? "on" : "off"}
           </button>
           <button className="quiet" onClick={hs.toggleTutorial}>
             Tutorial: {hs.tutorial ? "on" : "off"}

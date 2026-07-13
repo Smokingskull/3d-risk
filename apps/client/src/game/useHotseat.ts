@@ -21,10 +21,10 @@ export interface Engagement {
   to: TerritoryId;
 }
 
-function buildPlayers(seats: SeatSpec[]) {
+function buildPlayers(seats: SeatSpec[], names: string[]) {
   return seats.map((seat, i) => ({
     id: `p${i + 1}`,
-    name: seat.kind === "human" ? `Player ${i + 1}` : `CPU ${i + 1}`,
+    name: names[i]?.trim() || `Player ${i + 1}`,
     color: PLAYER_COLORS[i % PLAYER_COLORS.length],
     kind: seat.kind,
     difficulty: seat.kind === "cpu" ? seat.difficulty : undefined,
@@ -50,6 +50,8 @@ export interface Hotseat {
   isHumanTurn: boolean;
   tutorial: boolean;
   toggleTutorial: () => void;
+  autoRotate: boolean;
+  toggleAutoRotate: () => void;
   // Combat engagement (the centre-screen battle dialog).
   engagement: Engagement | null;
   lastCombat: AttackedEvent | null;
@@ -69,7 +71,7 @@ export interface Hotseat {
   attackTarget: (to: TerritoryId) => void;
   fortifyMove: (to: TerritoryId, count: number) => void;
   // Lifecycle / other controls.
-  start: (mode: BoardMode, seats: SeatSpec[], tutorial: boolean) => void;
+  start: (mode: BoardMode, seats: SeatSpec[], tutorial: boolean, names: string[]) => void;
   reset: () => void;
   clickTerritory: (id: TerritoryId) => void;
   endAttack: () => void;
@@ -84,6 +86,7 @@ export function useHotseat(): Hotseat {
   const [selectedFrom, setSelectedFrom] = useState<TerritoryId | null>(null);
   const [log, setLog] = useState<GameEvent[]>([]);
   const [tutorial, setTutorial] = useState(false);
+  const [autoRotate, setAutoRotate] = useState(true);
   const [engagement, setEngagement] = useState<Engagement | null>(null);
   const [lastCombat, setLastCombat] = useState<AttackedEvent | null>(null);
   const [combatSeq, setCombatSeq] = useState(0);
@@ -143,11 +146,11 @@ export function useHotseat(): Hotseat {
     return events;
   }, []);
 
-  const start = useCallback((mode: BoardMode, seats: SeatSpec[], useTutorial: boolean) => {
+  const start = useCallback((mode: BoardMode, seats: SeatSpec[], useTutorial: boolean, names: string[]) => {
     const seed = Math.floor(Math.random() * 0x7fffffff);
     runningTurn.current = -1;
     autoRef.current = false;
-    setGame(createGame({ players: buildPlayers(seats), boardMode: mode, seed }));
+    setGame(createGame({ players: buildPlayers(seats, names), boardMode: mode, seed }));
     setSelectedFrom(null);
     setSelection(null);
     setEngagement(null);
@@ -158,6 +161,7 @@ export function useHotseat(): Hotseat {
   }, []);
 
   const toggleTutorial = useCallback(() => setTutorial((t) => !t), []);
+  const toggleAutoRotate = useCallback(() => setAutoRotate((a) => !a), []);
 
   const reset = useCallback(() => {
     runningTurn.current = -1;
@@ -346,6 +350,8 @@ export function useHotseat(): Hotseat {
     isHumanTurn,
     tutorial,
     toggleTutorial,
+    autoRotate,
+    toggleAutoRotate,
     engagement,
     lastCombat,
     combatSeq,

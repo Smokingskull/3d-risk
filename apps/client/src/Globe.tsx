@@ -79,9 +79,10 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
   }, [board]);
 
   // Prepare the scene once per board: per-territory material grouping + centroids.
-  const { group, meshesByTerritory, centroids } = useMemo(() => {
+  const { group, meshesByTerritory, outlinesByTerritory, centroids } = useMemo(() => {
     const root = scene.clone(true);
     const byTerritory = new Map<string, THREE.Mesh[]>();
+    const outlines = new Map<string, THREE.LineSegments[]>();
     const sum = new Map<string, THREE.Vector3>();
     const counts = new Map<string, number>();
     const points: THREE.Vector3[] = [];
@@ -99,6 +100,20 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
       const list = byTerritory.get(territory) ?? [];
       list.push(mesh);
       byTerritory.set(territory, list);
+
+      // Boundary outline (hidden until this territory is selected) — a border
+      // just above the surface, so selection reads as an edge, not a fill.
+      const seg = new THREE.LineSegments(
+        new THREE.EdgesGeometry(mesh.geometry, 35),
+        new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true }),
+      );
+      seg.visible = false;
+      seg.scale.setScalar(1.004);
+      seg.renderOrder = 3;
+      mesh.add(seg);
+      const segs = outlines.get(territory) ?? [];
+      segs.push(seg);
+      outlines.set(territory, segs);
 
       const pos = mesh.geometry.getAttribute("position");
       const acc = sum.get(territory) ?? new THREE.Vector3();
@@ -136,7 +151,7 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
       contCount.set(cont, (contCount.get(cont) ?? 0) + n);
     }
     for (const [cont, acc] of contSum) centroidDirs.set(cont, toDir(acc.clone().multiplyScalar(1 / (contCount.get(cont) || 1))));
-    return { group: g, meshesByTerritory: byTerritory, centroids: centroidDirs };
+    return { group: g, meshesByTerritory: byTerritory, outlinesByTerritory: outlines, centroids: centroidDirs };
   }, [scene, countryToTerritory, board]);
 
   const ownerColor = useMemo(() => {
@@ -169,12 +184,14 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
     const hl = r.highlightContinent;
     const dimNonMember = !!hl && playableHere && r.game.board.territories[territory]?.continent !== hl;
 
+    // A picked territory (attack source or the open dialog) is shown as a border
+    // outline only — not a flood fill. Other cues (targets, hover) still fill.
+    const borderColor = r.selectedFrom === territory ? "#fff27a" : r.selection === territory ? "#38bdf8" : null;
+
     let emissive = "#000000";
     let intensity = 0;
-    if (playableHere) {
-      if (r.selectedFrom === territory) [emissive, intensity] = ["#fff27a", 0.6];
-      else if (r.selection === territory) [emissive, intensity] = ["#38bdf8", 0.6];
-      else if (r.validTargets.has(territory)) [emissive, intensity] = ["#ff8844", 0.5];
+    if (playableHere && !borderColor) {
+      if (r.validTargets.has(territory)) [emissive, intensity] = ["#ff8844", 0.5];
       else if (r.hovered === territory) [emissive, intensity] = ["#ffffff", 0.3];
     }
     for (const mesh of meshes) {
@@ -183,6 +200,10 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
       if (dimNonMember) mat.color.multiplyScalar(0.15);
       mat.emissive.set(emissive);
       mat.emissiveIntensity = intensity;
+    }
+    for (const seg of outlinesByTerritory.get(territory) ?? []) {
+      seg.visible = !!borderColor;
+      if (borderColor) (seg.material as THREE.LineBasicMaterial).color.set(borderColor);
     }
   };
 

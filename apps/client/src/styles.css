@@ -59,6 +59,17 @@ button.warn {
   gap: 10px;
 }
 
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.panel-header h1 {
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #8fa3c8;
+}
 .turn {
   display: flex;
   align-items: center;
@@ -163,10 +174,19 @@ button.warn {
   align-items: center;
   gap: 8px;
 }
-.seat-no {
+.seat-name {
+  width: 110px;
+  font: inherit;
   font-size: 13px;
-  color: #8fa3c8;
-  width: 22px;
+  color: #e8ecf4;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 6px;
+  padding: 5px 8px;
+}
+.seat-name:focus {
+  outline: none;
+  border-color: #6ea8ff;
 }
 .segmented {
   display: flex;
@@ -196,6 +216,7 @@ button.warn {
   display: flex;
   justify-content: space-between;
   gap: 12px;
+  flex-wrap: wrap;
 }
 button.quiet {
   background: transparent;
