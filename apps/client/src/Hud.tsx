@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { GameEvent, GameState } from "@risk3d/engine";
 import type { Hotseat } from "./game/useHotseat.js";
+import { Icon } from "./Icon.js";
 
 function describe(e: GameEvent): string {
   switch (e.type) {
@@ -35,6 +36,12 @@ const PHASE_LABEL: Record<GameState["phase"], string> = {
   fortify: "Fortify",
 };
 
+const PHASE_ICON: Record<GameState["phase"], string> = {
+  reinforce: "target",
+  attack: "swords",
+  fortify: "shield",
+};
+
 export function Hud({ hs, hovered }: { hs: Hotseat; hovered: string | null }) {
   const game = hs.game!;
   const active = game.players.find((p) => p.id === game.activePlayer)!;
@@ -57,7 +64,10 @@ export function Hud({ hs, hovered }: { hs: Hotseat; hovered: string | null }) {
           <div className="turn">
             <span className="dot" style={{ background: active.color }} />
             <strong>{active.name}</strong>
-            <span className="phase">{PHASE_LABEL[game.phase]}</span>
+            <span className="phase">
+              <Icon name={PHASE_ICON[game.phase]} size={13} />
+              {PHASE_LABEL[game.phase]}
+            </span>
             <span className="turnno">turn {game.turn}</span>
           </div>
 
@@ -119,7 +129,8 @@ export function Hud({ hs, hovered }: { hs: Hotseat; hovered: string | null }) {
 
       {winner && (
         <div className="banner">
-          🏆 {winner.name} wins!
+          <Icon name="leaderboards" size={20} style={{ color: "#f5c842" }} />
+          {winner.name} wins!
           <button onClick={hs.reset}>New game</button>
         </div>
       )}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { conquestProbability } from "@risk3d/engine";
 import type { Hotseat } from "./game/useHotseat.js";
+import { Icon } from "./Icon.js";
 
 // Pip positions on a 3×3 grid (cells 0..8) for each die face.
 const PIPS: Record<number, number[]> = {
@@ -96,7 +97,7 @@ export function CombatModal({ hs }: { hs: Hotseat }) {
           </div>
 
           <div className="combat-vs">
-            ⚔
+            <Icon name="swords" size={24} style={{ color: "var(--accent-bright)" }} />
             <div className="combat-odds">{winPct}%<span>to conquer</span></div>
           </div>
 

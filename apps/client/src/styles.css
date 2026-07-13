@@ -72,6 +72,20 @@ body {
   box-sizing: border-box;
 }
 
+/* Monochrome mask icon — inherits currentColor. See Icon.tsx. */
+.icon {
+  display: inline-block;
+  flex: none;
+  background-color: currentColor;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  vertical-align: -0.15em;
+}
+
 html,
 body,
 #root {
@@ -183,10 +197,13 @@ button.warn {
 }
 .turn .phase {
   margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--text-dim);
+  color: var(--accent-bright);
 }
 .turn .turnno {
   font-size: 12px;
