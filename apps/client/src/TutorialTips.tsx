@@ -5,11 +5,11 @@ import type { Hotseat } from "./game/useHotseat.js";
 const TIPS: Record<string, { title: string; body: string }> = {
   reinforce: {
     title: "Reinforce",
-    body: "Click your own territories to place your armies. Your goal is to hold whole continents — that earns bonus armies each turn. Holding 3+ matching cards? Trade them for extra armies.",
+    body: "Click one of your territories to open its dialog, choose how many armies to deploy, and confirm. Your goal is to hold whole continents — that earns bonus armies each turn. Holding 3+ matching cards? Trade them for extra armies.",
   },
   attack: {
     title: "Attack",
-    body: "Click one of your territories with 2+ armies, then a highlighted enemy neighbour to open the battle. There you can roll once, or “Attack till resolved”, and see the dice and your win chance. Press “End attack” on the panel when you're done.",
+    body: "Click one of your territories (2+ armies) and choose “Attack from here”, then click a highlighted enemy neighbour and confirm to open the battle — roll once or “Attack till resolved”, and see the dice and your win chance. “End attack” on the panel when done.",
   },
   occupy: {
     title: "You conquered a territory!",
@@ -17,7 +17,7 @@ const TIPS: Record<string, { title: string; body: string }> = {
   },
   fortify: {
     title: "Fortify",
-    body: "Optionally move armies once between two of your connected territories to shore up a border, then press “End turn”. Capture at least one territory this turn to earn a card.",
+    body: "Optionally move armies once between two connected territories: click a source and choose “Move from here”, then a connected territory and set how many to move. Then “End turn”. Capture at least one territory this turn to earn a card.",
   },
 };
 

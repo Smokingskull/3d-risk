@@ -60,6 +60,14 @@ export interface Hotseat {
   stopAuto: () => void;
   closeEngagement: () => void;
   occupy: (count: number) => void;
+  // Country action dialog.
+  selection: TerritoryId | null;
+  closeDialog: () => void;
+  deploy: (territory: TerritoryId, count: number) => void;
+  chooseSource: (id: TerritoryId) => void;
+  clearSource: () => void;
+  attackTarget: (to: TerritoryId) => void;
+  fortifyMove: (to: TerritoryId, count: number) => void;
   // Lifecycle / other controls.
   start: (mode: BoardMode, seats: SeatSpec[], tutorial: boolean) => void;
   reset: () => void;
@@ -80,6 +88,7 @@ export function useHotseat(): Hotseat {
   const [lastCombat, setLastCombat] = useState<AttackedEvent | null>(null);
   const [combatSeq, setCombatSeq] = useState(0);
   const [autoAttacking, setAutoAttacking] = useState(false);
+  const [selection, setSelection] = useState<TerritoryId | null>(null);
 
   const gameRef = useRef<GameState | null>(null);
   gameRef.current = game;
@@ -140,6 +149,7 @@ export function useHotseat(): Hotseat {
     autoRef.current = false;
     setGame(createGame({ players: buildPlayers(seats), boardMode: mode, seed }));
     setSelectedFrom(null);
+    setSelection(null);
     setEngagement(null);
     setLastCombat(null);
     setAutoAttacking(false);
@@ -154,6 +164,7 @@ export function useHotseat(): Hotseat {
     autoRef.current = false;
     setGame(null);
     setSelectedFrom(null);
+    setSelection(null);
     setEngagement(null);
     setLastCombat(null);
     setAutoAttacking(false);
@@ -197,6 +208,10 @@ export function useHotseat(): Hotseat {
       const ok = t && t.owner === game.activePlayer && t.armies >= 2 && (game.phase === "attack" || game.phase === "fortify");
       if (!ok) setSelectedFrom(null);
     }
+    // Close the country dialog when it's no longer this human's turn.
+    if (!game || game.winner || game.players.find((p) => p.id === game.activePlayer)?.kind !== "human") {
+      setSelection(null);
+    }
   }, [game, selectedFrom]);
 
   const validTargets = useMemo<Set<TerritoryId>>(() => {
@@ -211,40 +226,49 @@ export function useHotseat(): Hotseat {
     return new Set();
   }, [game, selectedFrom]);
 
+  // Clicking a country opens its action dialog (the dialog performs the action).
   const clickTerritory = useCallback(
     (id: TerritoryId) => {
-      if (!game || game.winner || !isHumanTurn || engagement) return;
-      const t = game.territories[id];
-      if (!t) return;
-      const me = game.activePlayer;
-
-      if (game.phase === "reinforce") {
-        if (t.owner === me && !mustTrade(game)) applyAndStore({ type: "placeArmies", territory: id, count: 1 });
-        return;
-      }
-      if (game.pendingOccupation) return;
-      if (id === selectedFrom) {
-        setSelectedFrom(null);
-        return;
-      }
-      if (game.phase === "attack") {
-        if (selectedFrom && t.owner !== me && validTargets.has(id)) {
-          // Open the battle dialog rather than firing a single roll.
-          setEngagement({ from: selectedFrom, to: id });
-          setLastCombat(null);
-        } else if (t.owner === me && t.armies >= 2) setSelectedFrom(id);
-        else setSelectedFrom(null);
-        return;
-      }
-      if (game.phase === "fortify") {
-        if (selectedFrom && validTargets.has(id)) {
-          applyAndStore({ type: "fortify", from: selectedFrom, to: id, count: game.territories[selectedFrom].armies - 1 });
-          setSelectedFrom(null);
-        } else if (t.owner === me && t.armies >= 2) setSelectedFrom(id);
-        else setSelectedFrom(null);
-      }
+      if (!game || game.winner || !isHumanTurn || engagement || game.pendingOccupation) return;
+      if (!game.territories[id]) return; // not playable in this mode
+      setSelection(id);
     },
-    [game, isHumanTurn, engagement, selectedFrom, validTargets, applyAndStore],
+    [game, isHumanTurn, engagement],
+  );
+
+  const closeDialog = useCallback(() => setSelection(null), []);
+  const deploy = useCallback(
+    (territory: TerritoryId, count: number) => {
+      applyAndStore({ type: "placeArmies", territory, count });
+      setSelection(null);
+    },
+    [applyAndStore],
+  );
+  const chooseSource = useCallback((id: TerritoryId) => {
+    setSelectedFrom(id);
+    setSelection(null);
+  }, []);
+  const clearSource = useCallback(() => {
+    setSelectedFrom(null);
+    setSelection(null);
+  }, []);
+  const attackTarget = useCallback(
+    (to: TerritoryId) => {
+      if (!selectedFrom) return;
+      setEngagement({ from: selectedFrom, to });
+      setLastCombat(null);
+      setSelection(null);
+    },
+    [selectedFrom],
+  );
+  const fortifyMove = useCallback(
+    (to: TerritoryId, count: number) => {
+      if (!selectedFrom) return;
+      applyAndStore({ type: "fortify", from: selectedFrom, to, count });
+      setSelectedFrom(null);
+      setSelection(null);
+    },
+    [selectedFrom, applyAndStore],
   );
 
   // --- combat controls ---
@@ -331,6 +355,13 @@ export function useHotseat(): Hotseat {
     stopAuto,
     closeEngagement,
     occupy,
+    selection,
+    closeDialog,
+    deploy,
+    chooseSource,
+    clearSource,
+    attackTarget,
+    fortifyMove,
     start,
     reset,
     clickTerritory,

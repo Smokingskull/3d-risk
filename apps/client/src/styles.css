@@ -296,6 +296,73 @@ button.quiet {
   font-variant-numeric: tabular-nums;
 }
 
+/* ---- country action dialog (bottom-centre) ---- */
+.country-pop {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 15;
+  width: 340px;
+  max-width: calc(100vw - 32px);
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgba(14, 20, 34, 0.95);
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  color: #e8ecf4;
+}
+.pop-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+}
+.pop-dot {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+}
+.pop-head .tut-x {
+  margin-left: auto;
+}
+.pop-info {
+  font-size: 13px;
+  color: #b7c3dc;
+  margin: 6px 0 10px;
+}
+.pop-body {
+  min-height: 34px;
+}
+.pop-action {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.stepper button {
+  width: 30px;
+  padding: 4px 0;
+  text-align: center;
+}
+.stepper-val {
+  min-width: 30px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.stepper .stepper-max {
+  width: auto;
+  padding: 4px 8px;
+  font-size: 11px;
+}
+
 /* ---- combat modal (centre-screen battle dialog) ---- */
 .combat-backdrop {
   position: fixed;

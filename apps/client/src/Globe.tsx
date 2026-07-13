@@ -32,6 +32,7 @@ interface GlobeProps {
   game: GameState;
   selectedFrom: TerritoryId | null;
   validTargets: Set<TerritoryId>;
+  selection: TerritoryId | null;
   highlightContinent: string | null;
   focus: FocusRequest | null;
   onHover: (country: TerritoryId | null) => void;
@@ -76,7 +77,7 @@ function Labels({ entries }: { entries: LabelEntry[] }) {
   );
 }
 
-export function Globe({ game, selectedFrom, validTargets, highlightContinent, focus, onHover, onPick }: GlobeProps) {
+export function Globe({ game, selectedFrom, validTargets, selection, highlightContinent, focus, onHover, onPick }: GlobeProps) {
   const { scene } = useGLTF(MODEL_URL);
   const camera = useThree((s) => s.camera);
   const controls = useThree((s) => s.controls) as unknown as { enabled: boolean; update?: () => void } | null;
@@ -141,10 +142,11 @@ export function Globe({ game, selectedFrom, validTargets, highlightContinent, fo
   const playable = useMemo(() => new Set(Object.keys(game.board.territories)), [game.board]);
 
   // Refs so the repaint routine and the imperative hover handler share one source.
-  const refs = useRef({ game, selectedFrom, validTargets, ownerColor, playable, highlightContinent, hovered: null as string | null });
+  const refs = useRef({ game, selectedFrom, validTargets, selection, ownerColor, playable, highlightContinent, hovered: null as string | null });
   refs.current.game = game;
   refs.current.selectedFrom = selectedFrom;
   refs.current.validTargets = validTargets;
+  refs.current.selection = selection;
   refs.current.ownerColor = ownerColor;
   refs.current.playable = playable;
   refs.current.highlightContinent = highlightContinent;
@@ -165,6 +167,7 @@ export function Globe({ game, selectedFrom, validTargets, highlightContinent, fo
     let intensity = 0;
     if (playableHere) {
       if (r.selectedFrom === country) [emissive, intensity] = ["#fff27a", 0.6];
+      else if (r.selection === country) [emissive, intensity] = ["#38bdf8", 0.6];
       else if (r.validTargets.has(country)) [emissive, intensity] = ["#ff8844", 0.5];
       else if (r.hovered === country) [emissive, intensity] = ["#ffffff", 0.3];
       else if (isMember)
@@ -184,7 +187,7 @@ export function Globe({ game, selectedFrom, validTargets, highlightContinent, fo
   };
 
   // Repaint owner colours + selection/target highlights whenever they change.
-  useEffect(paintAll, [game, selectedFrom, validTargets, ownerColor, playable, highlightContinent]);
+  useEffect(paintAll, [game, selectedFrom, validTargets, selection, ownerColor, playable, highlightContinent]);
 
   const setHovered = (country: string | null) => {
     const prev = refs.current.hovered;

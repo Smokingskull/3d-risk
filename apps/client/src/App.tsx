@@ -7,6 +7,7 @@ import { StartMenu } from "./StartMenu.js";
 import { RulesPage } from "./RulesPage.js";
 import { TutorialTips } from "./TutorialTips.js";
 import { CombatModal } from "./CombatModal.js";
+import { CountryPopup } from "./CountryPopup.js";
 import { ContinentsPanel } from "./ContinentsPanel.js";
 import { useHotseat } from "./game/useHotseat.js";
 
@@ -33,6 +34,7 @@ export function App() {
       <Hud hs={hs} hovered={hovered} />
       <TutorialTips hs={hs} />
       <CombatModal hs={hs} />
+      <CountryPopup hs={hs} />
       <ContinentsPanel
         game={hs.game}
         highlight={highlightContinent}
@@ -52,6 +54,7 @@ export function App() {
             game={hs.game}
             selectedFrom={hs.selectedFrom}
             validTargets={hs.validTargets}
+            selection={hs.selection}
             highlightContinent={highlightContinent}
             focus={focus}
             onHover={setHovered}
