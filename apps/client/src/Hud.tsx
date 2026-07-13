@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { GameEvent, GameState } from "@risk3d/engine";
 import type { Hotseat } from "./game/useHotseat.js";
 
@@ -40,6 +41,7 @@ export function Hud({ hs, hovered }: { hs: Hotseat; hovered: string | null }) {
   const winner = game.winner ? game.players.find((p) => p.id === game.winner) : null;
   const pending = game.pendingOccupation;
   const isCpu = active.kind === "cpu" && !winner;
+  const [open, setOpen] = useState(true);
 
   return (
     <div className="panel">
@@ -48,7 +50,13 @@ export function Hud({ hs, hovered }: { hs: Hotseat; hovered: string | null }) {
         <strong>{active.name}</strong>
         <span className="phase">{PHASE_LABEL[game.phase]}</span>
         <span className="turnno">turn {game.turn}</span>
+        <button className="collapse" aria-label={open ? "Collapse" : "Expand"} onClick={() => setOpen((o) => !o)}>
+          {open ? "▾" : "▸"}
+        </button>
       </div>
+
+      {open && (
+        <>
 
       {isCpu && <div className="row cpu">🤖 {active.name} ({active.difficulty}) is planning…</div>}
 
@@ -120,6 +128,8 @@ export function Hud({ hs, hovered }: { hs: Hotseat; hovered: string | null }) {
             Tutorial: {hs.tutorial ? "on" : "off"}
           </button>
         </div>
+      )}
+        </>
       )}
     </div>
   );

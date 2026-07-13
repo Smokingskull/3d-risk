@@ -77,6 +77,28 @@ button.warn {
   color: #6f7f9e;
 }
 
+.collapse {
+  background: transparent;
+  border: none;
+  color: #8fa3c8;
+  font-size: 12px;
+  line-height: 1;
+  padding: 2px 4px;
+  margin-left: 6px;
+}
+.collapse:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  color: #e8ecf4;
+}
+.cont-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.cont-header h1 {
+  margin-bottom: 0;
+}
+
 .dot {
   width: 13px;
   height: 13px;

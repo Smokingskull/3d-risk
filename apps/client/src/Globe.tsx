@@ -8,7 +8,7 @@ import { HAVE_COLOR, NEED_COLOR } from "./continents.js";
 
 const MODEL_URL = "/transparent_country_globe_gameboard.glb";
 const TARGET_RADIUS = 1.2;
-const INERT_COLOR = "#20242e"; // countries not playable in the current mode
+const INERT_COLOR = "#3a4252"; // muted land for countries not playable in the current mode
 
 // GLTFLoader sanitises node names (spaces -> underscores, reserved chars dropped),
 // so mesh names like "New_Zealand" don't match the engine's "New Zealand" ids.
@@ -97,7 +97,9 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
       if (!raw) return;
       const country = CANONICAL_BY_SANITIZED.get(raw) ?? raw; // recover the canonical id
 
-      mesh.material = new THREE.MeshStandardMaterial({ color: new THREE.Color(NEUTRAL_COLOR), roughness: 0.85 });
+      // Double-sided so a country's back face renders when it rotates away —
+      // it's still there, we're just looking at its back (no see-through).
+      mesh.material = new THREE.MeshStandardMaterial({ color: new THREE.Color(NEUTRAL_COLOR), roughness: 0.85, side: THREE.DoubleSide });
       mesh.userData.country = country;
       const list = byCountry.get(country) ?? [];
       list.push(mesh);

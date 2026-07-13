@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { GameState, TerritoryId } from "@risk3d/engine";
 import { CONTINENT_COLORS } from "./continents.js";
 
@@ -13,12 +14,21 @@ export function ContinentsPanel({ game, highlight, onToggle, onFocusCountry }: P
   const continents = Object.values(game.board.continents);
   const ownerName = (id: string | null) => game.players.find((p) => p.id === id)?.name ?? "—";
   const ownerColor = (id: string | null) => game.players.find((p) => p.id === id)?.color ?? "#6b7280";
+  const [open, setOpen] = useState(true);
 
   return (
     <div className="continents">
-      <h1>Continents</h1>
-      <p className="hint">Click a continent to highlight it (gold = still needed). Then click a country to rotate to it.</p>
-      {continents.map((c) => {
+      <div className="cont-header">
+        <h1>Continents</h1>
+        <button className="collapse" aria-label={open ? "Collapse" : "Expand"} onClick={() => setOpen((o) => !o)}>
+          {open ? "▾" : "▸"}
+        </button>
+      </div>
+      {open && (
+        <p className="hint">Click a continent to highlight it (gold = still needed). Then click a country to rotate to it.</p>
+      )}
+      {open &&
+        continents.map((c) => {
         const owned = c.territories.filter((t) => game.territories[t].owner === me).length;
         const total = c.territories.length;
         const complete = owned === total;
