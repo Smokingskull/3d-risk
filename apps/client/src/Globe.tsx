@@ -8,12 +8,10 @@ import { HAVE_COLOR, NEED_COLOR } from "./continents.js";
 
 const MODEL_URL = "/transparent_country_globe_gameboard.glb";
 const TARGET_RADIUS = 1.2;
-const INERT_COLOR = "#646d7c"; // neutral inactive land for countries not playable in the current mode
+const INERT_COLOR = "#646d7c"; // neutral inactive land (only if a mesh fails to resolve)
 
-// GLTFLoader sanitises node names (spaces -> underscores, reserved chars dropped),
-// so mesh names like "New_Zealand" don't match the engine's "New Zealand" ids.
-// Build a reverse map from every canonical id (the full world list covers both
-// board modes) sanitised the same way, so we can recover the real id per mesh.
+// GLTFLoader sanitises node names (spaces -> underscores); map them back to
+// canonical country ids using the full world list (covers both board modes).
 const CANONICAL_BY_SANITIZED = new Map(
   Object.keys(getBoard("world").territories).map((id) => [THREE.PropertyBinding.sanitizeNodeName(id), id]),
 );
@@ -22,7 +20,7 @@ const CANONICAL_BY_SANITIZED = new Map(
 const _labelDir = new THREE.Vector3();
 const _camDir = new THREE.Vector3();
 
-/** Requested camera focus: rotate so this country faces front (rotation only). */
+/** Requested camera focus: rotate so this territory faces front (rotation only). */
 export interface FocusRequest {
   id: TerritoryId;
   n: number;
@@ -35,8 +33,8 @@ interface GlobeProps {
   selection: TerritoryId | null;
   highlightContinent: string | null;
   focus: FocusRequest | null;
-  onHover: (country: TerritoryId | null) => void;
-  onPick: (country: TerritoryId) => void;
+  onHover: (territory: TerritoryId | null) => void;
+  onPick: (territory: TerritoryId) => void;
 }
 
 interface LabelEntry {
@@ -45,7 +43,7 @@ interface LabelEntry {
   text: string;
 }
 
-/** Army-count labels that always face the camera. */
+/** Army-count labels that always face the camera; far-side ones are hidden. */
 function Labels({ entries }: { entries: LabelEntry[] }) {
   const group = useRef<THREE.Group>(null);
   useFrame(({ camera }) => {
@@ -53,23 +51,13 @@ function Labels({ entries }: { entries: LabelEntry[] }) {
     _camDir.copy(camera.position).normalize();
     for (const child of group.current.children) {
       child.quaternion.copy(camera.quaternion);
-      // Hide labels on the far side of the globe (facing away from the camera).
       child.visible = _labelDir.copy(child.position).normalize().dot(_camDir) > 0.12;
     }
   });
   return (
     <group ref={group}>
       {entries.map((e) => (
-        <Text
-          key={e.id}
-          position={e.position}
-          fontSize={0.04}
-          color="#ffffff"
-          anchorX="center"
-          anchorY="middle"
-          outlineWidth={0.005}
-          outlineColor="#000000"
-        >
+        <Text key={e.id} position={e.position} fontSize={0.04} color="#ffffff" anchorX="center" anchorY="middle" outlineWidth={0.005} outlineColor="#000000">
           {e.text}
         </Text>
       ))}
@@ -82,12 +70,21 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
   const camera = useThree((s) => s.camera);
   const controls = useThree((s) => s.controls) as unknown as { enabled: boolean; update?: () => void } | null;
 
-  // Prepare the scene once: per-country material, collect meshes + surface
-  // centroids, normalise size/position so the globe is centred on the origin.
-  const { group, meshesByCountry, centroids } = useMemo(() => {
+  // Map each country to the territory that owns it (a region for Classic, the
+  // country itself for World, where territories carry no `members`).
+  const board = game.board;
+  const countryToTerritory = useMemo(() => {
+    const m = new Map<string, TerritoryId>();
+    for (const t of Object.values(board.territories)) for (const c of t.members ?? [t.id]) m.set(c, t.id);
+    return m;
+  }, [board]);
+
+  // Prepare the scene once per board: per-territory material grouping + centroids.
+  const { group, meshesByTerritory, centroids } = useMemo(() => {
     const root = scene.clone(true);
-    const byCountry = new Map<string, THREE.Mesh[]>();
-    const rawCentroids = new Map<string, THREE.Vector3>();
+    const byTerritory = new Map<string, THREE.Mesh[]>();
+    const sum = new Map<string, THREE.Vector3>();
+    const counts = new Map<string, number>();
     const points: THREE.Vector3[] = [];
 
     root.traverse((obj) => {
@@ -95,55 +92,50 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
       if (!mesh.isMesh) return;
       const raw = mesh.name || mesh.parent?.name || "";
       if (!raw) return;
-      const country = CANONICAL_BY_SANITIZED.get(raw) ?? raw; // recover the canonical id
+      const country = CANONICAL_BY_SANITIZED.get(raw) ?? raw;
+      const territory = countryToTerritory.get(country) ?? country;
 
-      // Double-sided so a country's back face renders when it rotates away —
-      // it's still there, we're just looking at its back (no see-through).
       mesh.material = new THREE.MeshStandardMaterial({ color: new THREE.Color(NEUTRAL_COLOR), roughness: 0.85, side: THREE.DoubleSide });
-      mesh.userData.country = country;
-      const list = byCountry.get(country) ?? [];
+      mesh.userData.territory = territory;
+      const list = byTerritory.get(territory) ?? [];
       list.push(mesh);
-      byCountry.set(country, list);
+      byTerritory.set(territory, list);
 
-      // Accumulate the vertex centroid (average) and collect points for a true
-      // bounding sphere — Box3.getBoundingSphere would over-size a sphere's AABB.
       const pos = mesh.geometry.getAttribute("position");
-      const c = new THREE.Vector3();
+      const acc = sum.get(territory) ?? new THREE.Vector3();
       for (let i = 0; i < pos.count; i++) {
         const v = new THREE.Vector3().fromBufferAttribute(pos, i);
         points.push(v);
-        c.add(v);
+        acc.add(v);
       }
-      rawCentroids.set(country, c.multiplyScalar(1 / pos.count));
+      sum.set(territory, acc);
+      counts.set(territory, (counts.get(territory) ?? 0) + pos.count);
     });
 
     const sphere = new THREE.Sphere().setFromPoints(points);
     const s = TARGET_RADIUS / (sphere.radius || 1);
-
     const g = new THREE.Group();
     g.add(root);
     root.position.copy(sphere.center).multiplyScalar(-s);
     root.scale.setScalar(s);
 
-    // Label anchors in world space: direction from the globe centre, at the
-    // globe's true world radius (so they sit just above the surface).
+    // One surface label anchor per territory (mean of its member vertices).
     const centroidDirs = new Map<string, THREE.Vector3>();
-    for (const [country, c] of rawCentroids)
-      centroidDirs.set(country, c.clone().sub(sphere.center).normalize().multiplyScalar(TARGET_RADIUS * 1.03));
+    for (const [territory, acc] of sum) {
+      const centre = acc.clone().multiplyScalar(1 / (counts.get(territory) || 1));
+      centroidDirs.set(territory, centre.sub(sphere.center).normalize().multiplyScalar(TARGET_RADIUS * 1.03));
+    }
+    return { group: g, meshesByTerritory: byTerritory, centroids: centroidDirs };
+  }, [scene, countryToTerritory]);
 
-    return { group: g, meshesByCountry: byCountry, centroids: centroidDirs };
-  }, [scene]);
-
-  // Owner → colour, refreshed when players change.
   const ownerColor = useMemo(() => {
     const m = new Map<string, string>();
     for (const p of game.players) m.set(p.id, p.color);
     return m;
   }, [game.players]);
 
-  const playable = useMemo(() => new Set(Object.keys(game.board.territories)), [game.board]);
+  const playable = useMemo(() => new Set(Object.keys(board.territories)), [board]);
 
-  // Refs so the repaint routine and the imperative hover handler share one source.
   const refs = useRef({ game, selectedFrom, validTargets, selection, ownerColor, playable, highlightContinent, hovered: null as string | null });
   refs.current.game = game;
   refs.current.selectedFrom = selectedFrom;
@@ -153,57 +145,54 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
   refs.current.playable = playable;
   refs.current.highlightContinent = highlightContinent;
 
-  const paint = (country: string) => {
-    const meshes = meshesByCountry.get(country);
+  const paint = (territory: string) => {
+    const meshes = meshesByTerritory.get(territory);
     if (!meshes) return;
     const r = refs.current;
-    const playableHere = r.playable.has(country);
-    const owner = playableHere ? r.game.territories[country]?.owner : null;
+    const playableHere = r.playable.has(territory);
+    const owner = playableHere ? r.game.territories[territory]?.owner : null;
     const base = !playableHere ? INERT_COLOR : owner ? (r.ownerColor.get(owner) ?? NEUTRAL_COLOR) : NEUTRAL_COLOR;
 
     const hl = r.highlightContinent;
-    const isMember = !!hl && playableHere && r.game.board.territories[country]?.continent === hl;
+    const isMember = !!hl && playableHere && r.game.board.territories[territory]?.continent === hl;
     const dimNonMember = !!hl && playableHere && !isMember;
 
     let emissive = "#000000";
     let intensity = 0;
     if (playableHere) {
-      if (r.selectedFrom === country) [emissive, intensity] = ["#fff27a", 0.6];
-      else if (r.selection === country) [emissive, intensity] = ["#38bdf8", 0.6];
-      else if (r.validTargets.has(country)) [emissive, intensity] = ["#ff8844", 0.5];
-      else if (r.hovered === country) [emissive, intensity] = ["#ffffff", 0.3];
-      else if (isMember)
-        [emissive, intensity] = owner === r.game.activePlayer ? [HAVE_COLOR, 0.4] : [NEED_COLOR, 0.75];
+      if (r.selectedFrom === territory) [emissive, intensity] = ["#fff27a", 0.6];
+      else if (r.selection === territory) [emissive, intensity] = ["#38bdf8", 0.6];
+      else if (r.validTargets.has(territory)) [emissive, intensity] = ["#ff8844", 0.5];
+      else if (r.hovered === territory) [emissive, intensity] = ["#ffffff", 0.3];
+      else if (isMember) [emissive, intensity] = owner === r.game.activePlayer ? [HAVE_COLOR, 0.4] : [NEED_COLOR, 0.75];
     }
     for (const mesh of meshes) {
       const mat = mesh.material as THREE.MeshStandardMaterial;
       mat.color.set(base);
-      if (dimNonMember) mat.color.multiplyScalar(0.32); // fade the rest so the continent pops
+      if (dimNonMember) mat.color.multiplyScalar(0.32);
       mat.emissive.set(emissive);
       mat.emissiveIntensity = intensity;
     }
   };
 
   const paintAll = () => {
-    for (const country of meshesByCountry.keys()) paint(country);
+    for (const territory of meshesByTerritory.keys()) paint(territory);
   };
-
-  // Repaint owner colours + selection/target highlights whenever they change.
   useEffect(paintAll, [game, selectedFrom, validTargets, selection, ownerColor, playable, highlightContinent]);
 
-  const setHovered = (country: string | null) => {
+  const setHovered = (territory: string | null) => {
     const prev = refs.current.hovered;
-    if (prev === country) return;
-    refs.current.hovered = country;
+    if (prev === territory) return;
+    refs.current.hovered = territory;
     if (prev) paint(prev);
-    if (country) paint(country);
-    onHover(country);
+    if (territory) paint(territory);
+    onHover(territory);
   };
 
   const handleMove = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
-    const country = e.object.userData.country as string | undefined;
-    setHovered(country && playable.has(country) ? country : null);
+    const territory = e.object.userData.territory as string | undefined;
+    setHovered(territory && playable.has(territory) ? territory : null);
   };
   const handleOut = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
@@ -211,14 +200,13 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
   };
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
-    const country = e.object.userData.country as string | undefined;
-    if (country && playable.has(country)) onPick(country);
+    const territory = e.object.userData.territory as string | undefined;
+    if (territory && playable.has(territory)) onPick(territory);
   };
 
   useEffect(() => () => setHovered(null), []);
 
-  // Rotate the globe so a requested country faces front (rotation only — no
-  // selection). Disables OrbitControls while easing, then hands control back.
+  // Rotate the globe so a requested territory faces front (rotation only).
   const focusDir = useRef<THREE.Vector3 | null>(null);
   useEffect(() => {
     if (!focus) return;

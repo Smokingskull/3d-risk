@@ -6,21 +6,18 @@
       "name": "North America",
       "bonus": 5,
       "territories": [
-        "Canada",
-        "United States of America",
-        "Mexico",
         "Greenland",
-        "Cuba",
-        "Guatemala",
-        "Honduras",
-        "Nicaragua",
-        "Panama"
+        "Canada",
+        "United States",
+        "Mexico",
+        "Central America",
+        "Caribbean"
       ]
     },
     "south-america": {
       "id": "south-america",
       "name": "South America",
-      "bonus": 2,
+      "bonus": 3,
       "territories": [
         "Venezuela",
         "Brazil",
@@ -34,24 +31,25 @@
       "bonus": 5,
       "territories": [
         "Iceland",
-        "United Kingdom",
-        "Norway",
-        "Germany",
-        "France",
-        "Italy",
-        "Ukraine"
+        "Great Britain",
+        "Scandinavia",
+        "Western Europe",
+        "Central Europe",
+        "Southern Europe",
+        "Eastern Europe"
       ]
     },
     "africa": {
       "id": "africa",
       "name": "Africa",
-      "bonus": 3,
+      "bonus": 5,
       "territories": [
-        "Morocco",
+        "North Africa",
+        "West Africa",
         "Egypt",
-        "Kenya",
-        "Dem. Rep. Congo",
-        "South Africa",
+        "Central Africa",
+        "East Africa",
+        "Southern Africa",
         "Madagascar"
       ]
     },
@@ -61,67 +59,40 @@
       "bonus": 7,
       "territories": [
         "Russia",
-        "Kazakhstan",
-        "Turkey",
-        "Saudi Arabia",
+        "Middle East",
+        "Arabia",
         "Iran",
+        "Central Asia",
         "Afghanistan",
-        "Pakistan",
         "India",
+        "Siam",
         "China",
         "Mongolia",
-        "Japan",
-        "Thailand"
+        "Far East"
       ]
     },
     "oceania": {
       "id": "oceania",
       "name": "Oceania",
-      "bonus": 2,
+      "bonus": 3,
       "territories": [
-        "Indonesia",
-        "Papua New Guinea",
+        "East Indies",
+        "New Guinea",
         "Australia",
         "New Zealand"
       ]
     }
   },
   "territories": {
-    "Afghanistan": {
-      "id": "Afghanistan",
-      "continent": "asia",
+    "Greenland": {
+      "id": "Greenland",
+      "continent": "north-america",
       "neighbours": [
-        "China",
-        "Iran",
-        "Kazakhstan",
-        "Pakistan"
-      ]
-    },
-    "Argentina": {
-      "id": "Argentina",
-      "continent": "south-america",
-      "neighbours": [
-        "Brazil",
-        "Peru"
-      ]
-    },
-    "Australia": {
-      "id": "Australia",
-      "continent": "oceania",
-      "neighbours": [
-        "Indonesia",
-        "New Zealand",
-        "Papua New Guinea"
-      ]
-    },
-    "Brazil": {
-      "id": "Brazil",
-      "continent": "south-america",
-      "neighbours": [
-        "Argentina",
-        "Morocco",
-        "Peru",
-        "Venezuela"
+        "Canada",
+        "Iceland"
+      ],
+      "members": [
+        "Greenland"
       ]
     },
     "Canada": {
@@ -129,262 +100,99 @@
       "continent": "north-america",
       "neighbours": [
         "Greenland",
-        "Russia",
-        "United States of America"
+        "United States"
+      ],
+      "members": [
+        "Canada"
       ]
     },
-    "China": {
-      "id": "China",
-      "continent": "asia",
-      "neighbours": [
-        "Afghanistan",
-        "India",
-        "Kazakhstan",
-        "Mongolia",
-        "Russia",
-        "Thailand"
-      ]
-    },
-    "Cuba": {
-      "id": "Cuba",
-      "continent": "north-america",
-      "neighbours": [
-        "Honduras",
-        "Mexico",
-        "United States of America"
-      ]
-    },
-    "Dem. Rep. Congo": {
-      "id": "Dem. Rep. Congo",
-      "continent": "africa",
-      "neighbours": [
-        "Kenya",
-        "Morocco",
-        "South Africa"
-      ]
-    },
-    "Egypt": {
-      "id": "Egypt",
-      "continent": "africa",
-      "neighbours": [
-        "Italy",
-        "Kenya",
-        "Morocco",
-        "Saudi Arabia"
-      ]
-    },
-    "France": {
-      "id": "France",
-      "continent": "europe",
-      "neighbours": [
-        "Germany",
-        "Italy",
-        "Morocco",
-        "United Kingdom"
-      ]
-    },
-    "Germany": {
-      "id": "Germany",
-      "continent": "europe",
-      "neighbours": [
-        "France",
-        "Italy",
-        "Norway",
-        "Ukraine",
-        "United Kingdom"
-      ]
-    },
-    "Greenland": {
-      "id": "Greenland",
+    "United States": {
+      "id": "United States",
       "continent": "north-america",
       "neighbours": [
         "Canada",
-        "Iceland"
-      ]
-    },
-    "Guatemala": {
-      "id": "Guatemala",
-      "continent": "north-america",
-      "neighbours": [
-        "Honduras",
-        "Mexico"
-      ]
-    },
-    "Honduras": {
-      "id": "Honduras",
-      "continent": "north-america",
-      "neighbours": [
-        "Cuba",
-        "Guatemala",
-        "Nicaragua"
-      ]
-    },
-    "Iceland": {
-      "id": "Iceland",
-      "continent": "europe",
-      "neighbours": [
-        "Greenland",
-        "Norway",
-        "United Kingdom"
-      ]
-    },
-    "India": {
-      "id": "India",
-      "continent": "asia",
-      "neighbours": [
-        "China",
-        "Pakistan",
-        "Saudi Arabia",
-        "Thailand"
-      ]
-    },
-    "Indonesia": {
-      "id": "Indonesia",
-      "continent": "oceania",
-      "neighbours": [
-        "Australia",
-        "Papua New Guinea",
-        "Thailand"
-      ]
-    },
-    "Iran": {
-      "id": "Iran",
-      "continent": "asia",
-      "neighbours": [
-        "Afghanistan",
-        "Pakistan",
-        "Saudi Arabia",
-        "Turkey"
-      ]
-    },
-    "Italy": {
-      "id": "Italy",
-      "continent": "europe",
-      "neighbours": [
-        "Egypt",
-        "France",
-        "Germany",
-        "Turkey",
-        "Ukraine"
-      ]
-    },
-    "Japan": {
-      "id": "Japan",
-      "continent": "asia",
-      "neighbours": [
-        "Mongolia",
+        "Caribbean",
+        "Mexico",
         "Russia"
-      ]
-    },
-    "Kazakhstan": {
-      "id": "Kazakhstan",
-      "continent": "asia",
-      "neighbours": [
-        "Afghanistan",
-        "China",
-        "Russia",
-        "Ukraine"
-      ]
-    },
-    "Kenya": {
-      "id": "Kenya",
-      "continent": "africa",
-      "neighbours": [
-        "Dem. Rep. Congo",
-        "Egypt",
-        "Madagascar",
-        "Morocco",
-        "Saudi Arabia",
-        "South Africa"
-      ]
-    },
-    "Madagascar": {
-      "id": "Madagascar",
-      "continent": "africa",
-      "neighbours": [
-        "Kenya",
-        "South Africa"
+      ],
+      "members": [
+        "United States of America"
       ]
     },
     "Mexico": {
       "id": "Mexico",
       "continent": "north-america",
       "neighbours": [
-        "Cuba",
-        "Guatemala",
-        "United States of America"
+        "Caribbean",
+        "Central America",
+        "United States"
+      ],
+      "members": [
+        "Mexico"
       ]
     },
-    "Mongolia": {
-      "id": "Mongolia",
-      "continent": "asia",
-      "neighbours": [
-        "China",
-        "Japan",
-        "Russia"
-      ]
-    },
-    "Morocco": {
-      "id": "Morocco",
-      "continent": "africa",
-      "neighbours": [
-        "Brazil",
-        "Dem. Rep. Congo",
-        "Egypt",
-        "France",
-        "Kenya"
-      ]
-    },
-    "New Zealand": {
-      "id": "New Zealand",
-      "continent": "oceania",
-      "neighbours": [
-        "Australia",
-        "Papua New Guinea"
-      ]
-    },
-    "Nicaragua": {
-      "id": "Nicaragua",
+    "Central America": {
+      "id": "Central America",
       "continent": "north-america",
       "neighbours": [
+        "Caribbean",
+        "Mexico",
+        "Venezuela"
+      ],
+      "members": [
+        "Guatemala",
+        "Belize",
         "Honduras",
+        "El Salvador",
+        "Nicaragua",
+        "Costa Rica",
         "Panama"
       ]
     },
-    "Norway": {
-      "id": "Norway",
-      "continent": "europe",
-      "neighbours": [
-        "Germany",
-        "Iceland",
-        "Ukraine",
-        "United Kingdom"
-      ]
-    },
-    "Pakistan": {
-      "id": "Pakistan",
-      "continent": "asia",
-      "neighbours": [
-        "Afghanistan",
-        "India",
-        "Iran"
-      ]
-    },
-    "Panama": {
-      "id": "Panama",
+    "Caribbean": {
+      "id": "Caribbean",
       "continent": "north-america",
       "neighbours": [
-        "Nicaragua",
-        "Venezuela"
+        "Central America",
+        "Mexico",
+        "United States"
+      ],
+      "members": [
+        "Cuba",
+        "Jamaica",
+        "Haiti",
+        "Dominican Rep.",
+        "Bahamas",
+        "Puerto Rico"
       ]
     },
-    "Papua New Guinea": {
-      "id": "Papua New Guinea",
-      "continent": "oceania",
+    "Venezuela": {
+      "id": "Venezuela",
+      "continent": "south-america",
       "neighbours": [
-        "Australia",
-        "Indonesia",
-        "New Zealand"
+        "Brazil",
+        "Central America",
+        "Peru"
+      ],
+      "members": [
+        "Colombia",
+        "Venezuela",
+        "Trinidad and Tobago",
+        "Guyana",
+        "Suriname"
+      ]
+    },
+    "Brazil": {
+      "id": "Brazil",
+      "continent": "south-america",
+      "neighbours": [
+        "Argentina",
+        "North Africa",
+        "Peru",
+        "Venezuela"
+      ],
+      "members": [
+        "Brazil"
       ]
     },
     "Peru": {
@@ -394,97 +202,515 @@
         "Argentina",
         "Brazil",
         "Venezuela"
+      ],
+      "members": [
+        "Ecuador",
+        "Peru",
+        "Bolivia"
+      ]
+    },
+    "Argentina": {
+      "id": "Argentina",
+      "continent": "south-america",
+      "neighbours": [
+        "Brazil",
+        "Peru"
+      ],
+      "members": [
+        "Argentina",
+        "Chile",
+        "Paraguay",
+        "Uruguay",
+        "Falkland Is.",
+        "Antarctica"
+      ]
+    },
+    "Iceland": {
+      "id": "Iceland",
+      "continent": "europe",
+      "neighbours": [
+        "Great Britain",
+        "Greenland",
+        "Scandinavia"
+      ],
+      "members": [
+        "Iceland"
+      ]
+    },
+    "Great Britain": {
+      "id": "Great Britain",
+      "continent": "europe",
+      "neighbours": [
+        "Iceland",
+        "Scandinavia",
+        "Western Europe"
+      ],
+      "members": [
+        "United Kingdom",
+        "Ireland"
+      ]
+    },
+    "Scandinavia": {
+      "id": "Scandinavia",
+      "continent": "europe",
+      "neighbours": [
+        "Central Europe",
+        "Eastern Europe",
+        "Great Britain",
+        "Iceland"
+      ],
+      "members": [
+        "Norway",
+        "Sweden",
+        "Finland",
+        "Denmark"
+      ]
+    },
+    "Western Europe": {
+      "id": "Western Europe",
+      "continent": "europe",
+      "neighbours": [
+        "Central Europe",
+        "Great Britain",
+        "North Africa",
+        "Southern Europe"
+      ],
+      "members": [
+        "Portugal",
+        "Spain",
+        "France",
+        "Belgium",
+        "Netherlands",
+        "Luxembourg"
+      ]
+    },
+    "Central Europe": {
+      "id": "Central Europe",
+      "continent": "europe",
+      "neighbours": [
+        "Eastern Europe",
+        "Scandinavia",
+        "Southern Europe",
+        "Western Europe"
+      ],
+      "members": [
+        "Germany",
+        "Switzerland",
+        "Austria",
+        "Czechia",
+        "Slovakia",
+        "Poland",
+        "Hungary"
+      ]
+    },
+    "Southern Europe": {
+      "id": "Southern Europe",
+      "continent": "europe",
+      "neighbours": [
+        "Central Europe",
+        "Eastern Europe",
+        "Middle East",
+        "North Africa",
+        "Western Europe"
+      ],
+      "members": [
+        "Italy",
+        "Slovenia",
+        "Croatia",
+        "Bosnia and Herz.",
+        "Serbia",
+        "Montenegro",
+        "Kosovo",
+        "Albania",
+        "Macedonia",
+        "Greece",
+        "Cyprus",
+        "N. Cyprus"
+      ]
+    },
+    "Eastern Europe": {
+      "id": "Eastern Europe",
+      "continent": "europe",
+      "neighbours": [
+        "Central Europe",
+        "Middle East",
+        "Russia",
+        "Scandinavia",
+        "Southern Europe"
+      ],
+      "members": [
+        "Ukraine",
+        "Belarus",
+        "Lithuania",
+        "Latvia",
+        "Estonia",
+        "Romania",
+        "Bulgaria",
+        "Moldova"
+      ]
+    },
+    "North Africa": {
+      "id": "North Africa",
+      "continent": "africa",
+      "neighbours": [
+        "Brazil",
+        "Egypt",
+        "Southern Europe",
+        "West Africa",
+        "Western Europe"
+      ],
+      "members": [
+        "Morocco",
+        "W. Sahara",
+        "Algeria",
+        "Tunisia",
+        "Libya",
+        "Mauritania"
+      ]
+    },
+    "West Africa": {
+      "id": "West Africa",
+      "continent": "africa",
+      "neighbours": [
+        "Central Africa",
+        "Egypt",
+        "North Africa"
+      ],
+      "members": [
+        "Mali",
+        "Niger",
+        "Senegal",
+        "Gambia",
+        "Guinea-Bissau",
+        "Guinea",
+        "Sierra Leone",
+        "Liberia",
+        "Côte d'Ivoire",
+        "Ghana",
+        "Togo",
+        "Benin",
+        "Burkina Faso",
+        "Nigeria"
+      ]
+    },
+    "Egypt": {
+      "id": "Egypt",
+      "continent": "africa",
+      "neighbours": [
+        "Central Africa",
+        "East Africa",
+        "Middle East",
+        "North Africa",
+        "West Africa"
+      ],
+      "members": [
+        "Egypt",
+        "Sudan",
+        "S. Sudan",
+        "Chad"
+      ]
+    },
+    "Central Africa": {
+      "id": "Central Africa",
+      "continent": "africa",
+      "neighbours": [
+        "East Africa",
+        "Egypt",
+        "Southern Africa",
+        "West Africa"
+      ],
+      "members": [
+        "Cameroon",
+        "Eq. Guinea",
+        "Gabon",
+        "Congo",
+        "Dem. Rep. Congo",
+        "Central African Rep."
+      ]
+    },
+    "East Africa": {
+      "id": "East Africa",
+      "continent": "africa",
+      "neighbours": [
+        "Arabia",
+        "Central Africa",
+        "Egypt",
+        "Madagascar",
+        "Southern Africa"
+      ],
+      "members": [
+        "Eritrea",
+        "Djibouti",
+        "Ethiopia",
+        "Somalia",
+        "Somaliland",
+        "Uganda",
+        "Kenya",
+        "Rwanda",
+        "Burundi",
+        "Tanzania"
+      ]
+    },
+    "Southern Africa": {
+      "id": "Southern Africa",
+      "continent": "africa",
+      "neighbours": [
+        "Central Africa",
+        "East Africa",
+        "Madagascar"
+      ],
+      "members": [
+        "Angola",
+        "Zambia",
+        "Malawi",
+        "Mozambique",
+        "Zimbabwe",
+        "Botswana",
+        "Namibia",
+        "South Africa",
+        "Lesotho",
+        "eSwatini"
+      ]
+    },
+    "Madagascar": {
+      "id": "Madagascar",
+      "continent": "africa",
+      "neighbours": [
+        "East Africa",
+        "Southern Africa"
+      ],
+      "members": [
+        "Madagascar",
+        "Fr. S. Antarctic Lands"
       ]
     },
     "Russia": {
       "id": "Russia",
       "continent": "asia",
       "neighbours": [
-        "Canada",
+        "Central Asia",
         "China",
-        "Japan",
-        "Kazakhstan",
+        "Eastern Europe",
+        "Far East",
         "Mongolia",
-        "Ukraine"
+        "United States"
+      ],
+      "members": [
+        "Russia"
       ]
     },
-    "Saudi Arabia": {
-      "id": "Saudi Arabia",
+    "Middle East": {
+      "id": "Middle East",
       "continent": "asia",
       "neighbours": [
+        "Arabia",
+        "Eastern Europe",
         "Egypt",
-        "India",
         "Iran",
-        "Kenya",
-        "Turkey"
+        "Southern Europe"
+      ],
+      "members": [
+        "Turkey",
+        "Georgia",
+        "Armenia",
+        "Azerbaijan",
+        "Syria",
+        "Lebanon",
+        "Israel",
+        "Palestine",
+        "Jordan",
+        "Iraq"
       ]
     },
-    "South Africa": {
-      "id": "South Africa",
-      "continent": "africa",
+    "Arabia": {
+      "id": "Arabia",
+      "continent": "asia",
       "neighbours": [
-        "Dem. Rep. Congo",
-        "Kenya",
-        "Madagascar"
+        "East Africa",
+        "Iran",
+        "Middle East"
+      ],
+      "members": [
+        "Saudi Arabia",
+        "Kuwait",
+        "Qatar",
+        "United Arab Emirates",
+        "Oman",
+        "Yemen"
       ]
     },
-    "Thailand": {
-      "id": "Thailand",
+    "Iran": {
+      "id": "Iran",
+      "continent": "asia",
+      "neighbours": [
+        "Afghanistan",
+        "Arabia",
+        "Central Asia",
+        "India",
+        "Middle East"
+      ],
+      "members": [
+        "Iran"
+      ]
+    },
+    "Central Asia": {
+      "id": "Central Asia",
+      "continent": "asia",
+      "neighbours": [
+        "Afghanistan",
+        "China",
+        "Iran",
+        "Russia"
+      ],
+      "members": [
+        "Kazakhstan",
+        "Uzbekistan",
+        "Turkmenistan",
+        "Tajikistan",
+        "Kyrgyzstan"
+      ]
+    },
+    "Afghanistan": {
+      "id": "Afghanistan",
+      "continent": "asia",
+      "neighbours": [
+        "Central Asia",
+        "China",
+        "India",
+        "Iran"
+      ],
+      "members": [
+        "Afghanistan"
+      ]
+    },
+    "India": {
+      "id": "India",
+      "continent": "asia",
+      "neighbours": [
+        "Afghanistan",
+        "China",
+        "Iran",
+        "Siam"
+      ],
+      "members": [
+        "India",
+        "Pakistan",
+        "Nepal",
+        "Bhutan",
+        "Bangladesh",
+        "Sri Lanka"
+      ]
+    },
+    "Siam": {
+      "id": "Siam",
       "continent": "asia",
       "neighbours": [
         "China",
-        "India",
-        "Indonesia"
+        "East Indies",
+        "India"
+      ],
+      "members": [
+        "Myanmar",
+        "Thailand",
+        "Laos",
+        "Cambodia",
+        "Vietnam"
       ]
     },
-    "Turkey": {
-      "id": "Turkey",
+    "China": {
+      "id": "China",
       "continent": "asia",
       "neighbours": [
-        "Iran",
-        "Italy",
-        "Saudi Arabia",
-        "Ukraine"
-      ]
-    },
-    "Ukraine": {
-      "id": "Ukraine",
-      "continent": "europe",
-      "neighbours": [
-        "Germany",
-        "Italy",
-        "Kazakhstan",
-        "Norway",
+        "Afghanistan",
+        "Central Asia",
+        "Far East",
+        "India",
+        "Mongolia",
         "Russia",
-        "Turkey"
+        "Siam"
+      ],
+      "members": [
+        "China"
       ]
     },
-    "United Kingdom": {
-      "id": "United Kingdom",
-      "continent": "europe",
+    "Mongolia": {
+      "id": "Mongolia",
+      "continent": "asia",
       "neighbours": [
-        "France",
-        "Germany",
-        "Iceland",
-        "Norway"
+        "China",
+        "Russia"
+      ],
+      "members": [
+        "Mongolia"
       ]
     },
-    "United States of America": {
-      "id": "United States of America",
-      "continent": "north-america",
+    "Far East": {
+      "id": "Far East",
+      "continent": "asia",
       "neighbours": [
-        "Canada",
-        "Cuba",
-        "Mexico"
+        "China",
+        "Russia"
+      ],
+      "members": [
+        "North Korea",
+        "South Korea",
+        "Japan",
+        "Taiwan"
       ]
     },
-    "Venezuela": {
-      "id": "Venezuela",
-      "continent": "south-america",
+    "East Indies": {
+      "id": "East Indies",
+      "continent": "oceania",
       "neighbours": [
-        "Brazil",
-        "Panama",
-        "Peru"
+        "Australia",
+        "New Guinea",
+        "Siam"
+      ],
+      "members": [
+        "Indonesia",
+        "Malaysia",
+        "Brunei",
+        "Timor-Leste",
+        "Philippines"
+      ]
+    },
+    "New Guinea": {
+      "id": "New Guinea",
+      "continent": "oceania",
+      "neighbours": [
+        "Australia",
+        "East Indies",
+        "New Zealand"
+      ],
+      "members": [
+        "Papua New Guinea",
+        "Solomon Is."
+      ]
+    },
+    "Australia": {
+      "id": "Australia",
+      "continent": "oceania",
+      "neighbours": [
+        "East Indies",
+        "New Guinea",
+        "New Zealand"
+      ],
+      "members": [
+        "Australia"
+      ]
+    },
+    "New Zealand": {
+      "id": "New Zealand",
+      "continent": "oceania",
+      "neighbours": [
+        "Australia",
+        "New Guinea"
+      ],
+      "members": [
+        "New Zealand",
+        "Fiji",
+        "Vanuatu",
+        "New Caledonia"
       ]
     }
   }

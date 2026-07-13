@@ -83,9 +83,14 @@ edit the source data and rerun. Two board modes ship:
 
 - **World** — all 177 countries, 6 continents, land adjacency from geometry + curated
   sea routes. Build: `build:board`.
-- **Classic** — 42 major countries mapped to the classic 6 continents at classic
-  sizes/bonuses, with **hand-curated** adjacency (`classic.adjacency.json`) that
-  reproduces the original board's choke points. Build: `build:classic`.
+- **Classic** — a classic-*style* board of ~39 **regions** that group **all 177
+  countries** (North Africa, Scandinavia, the Middle East, Central America, …), so
+  the whole globe is in play with no inert areas. Regions carry a `members` list of
+  the country meshes they cover; the client renders each region as one territory
+  (single colour + one army label). Continents/bonuses and hand-curated adjacency
+  (`classic.regions.json` + `classic.adjacency.json`) follow classic choke points.
+  Single-country classic splits (Russia, USA) stay whole since a mesh can't be cut.
+  Build: `build:classic`.
 
 Rebuild both with `pnpm --filter @risk3d/engine build:boards`. Load either via
 `getBoard("world" | "classic")` from `@risk3d/engine`.

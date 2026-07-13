@@ -1,10 +1,11 @@
-// Builds the Classic BoardDefinition from hand-curated data.
+// Builds the Classic (classic-style, region-based) BoardDefinition.
 //
-// Unlike the World board, Classic adjacency is authored (classic.adjacency.json),
-// not derived from geometry — it deliberately reproduces the original RISK board's
-// choke points. This script validates that every territory is a real GLB mesh, is
-// placed in exactly one continent, and that the authored graph is symmetric and
-// fully connected, then writes src/data/classic.board.json.
+// Classic territories are REGIONS that group real countries (classic.regions.json),
+// so the whole globe is in play — no inert areas. Adjacency is hand-authored
+// (classic.adjacency.json) for classic choke points. This validates that the
+// regions partition ALL 177 country meshes exactly once, that adjacency is
+// symmetric and fully connected, then writes src/data/classic.board.json with a
+// `members` list per territory.
 //
 // Run with:  pnpm --filter @risk3d/engine build:classic
 
@@ -17,7 +18,6 @@ const REPO_ROOT = resolve(HERE, "../../..");
 const DATA_DIR = resolve(HERE, "../src/data");
 const GLB_PATH = join(REPO_ROOT, "transparent_country_globe_gameboard.glb");
 
-// Valid territory names = the named mesh nodes in the GLB.
 function glbCountryNames() {
   const buf = readFileSync(GLB_PATH);
   let off = 12;
@@ -27,42 +27,52 @@ function glbCountryNames() {
   return new Set(json.nodes.filter((n) => n.name && n.mesh !== undefined).map((n) => n.name));
 }
 
-const validNames = glbCountryNames();
-const continentData = JSON.parse(readFileSync(join(DATA_DIR, "classic.continents.json"), "utf8"));
+const allCountries = glbCountryNames();
+const regionData = JSON.parse(readFileSync(join(DATA_DIR, "classic.regions.json"), "utf8"));
 const adjData = JSON.parse(readFileSync(join(DATA_DIR, "classic.adjacency.json"), "utf8"));
 
 const problems = [];
 
-// --- continents + territory set ---------------------------------------------
+// --- continents + regions + membership -------------------------------------
 const continents = {};
-const territoryContinent = new Map();
-const territorySet = new Set();
-for (const cont of continentData.continents) {
-  continents[cont.id] = { id: cont.id, name: cont.name, bonus: cont.bonus, territories: cont.territories };
-  for (const t of cont.territories) {
-    if (!validNames.has(t)) problems.push(`continent "${cont.id}" lists non-mesh country: "${t}"`);
-    if (territoryContinent.has(t)) problems.push(`"${t}" assigned to multiple continents`);
-    territoryContinent.set(t, cont.id);
-    territorySet.add(t);
+const territories = {};
+const regionContinent = new Map();
+const countryToRegion = new Map();
+
+for (const cont of regionData.continents) {
+  continents[cont.id] = { id: cont.id, name: cont.name, bonus: cont.bonus, territories: cont.regions.map((r) => r.id) };
+  for (const region of cont.regions) {
+    if (territories[region.id]) problems.push(`duplicate region id: "${region.id}"`);
+    territories[region.id] = { id: region.id, continent: cont.id, neighbours: [], members: region.members };
+    regionContinent.set(region.id, cont.id);
+    for (const c of region.members) {
+      if (!allCountries.has(c)) problems.push(`region "${region.id}" lists non-mesh country: "${c}"`);
+      if (countryToRegion.has(c)) problems.push(`country "${c}" assigned to both "${countryToRegion.get(c)}" and "${region.id}"`);
+      countryToRegion.set(c, region.id);
+    }
   }
 }
 
-// --- adjacency from authored edges ------------------------------------------
-const adj = new Map([...territorySet].map((t) => [t, new Set()]));
+// Every country must be assigned to exactly one region (no inert areas).
+for (const c of allCountries) if (!countryToRegion.has(c)) problems.push(`country not assigned to any region: "${c}"`);
+
+// --- adjacency --------------------------------------------------------------
+const adj = new Map(Object.keys(territories).map((t) => [t, new Set()]));
 for (const [a, b] of adjData.edges) {
-  if (!territorySet.has(a)) problems.push(`edge references non-classic territory: "${a}"`);
-  if (!territorySet.has(b)) problems.push(`edge references non-classic territory: "${b}"`);
+  if (!adj.has(a)) problems.push(`edge references unknown region: "${a}"`);
+  if (!adj.has(b)) problems.push(`edge references unknown region: "${b}"`);
   if (a === b) problems.push(`self-edge: "${a}"`);
-  if (territorySet.has(a) && territorySet.has(b) && a !== b) {
+  if (adj.has(a) && adj.has(b) && a !== b) {
     adj.get(a).add(b);
     adj.get(b).add(a);
   }
 }
+for (const [id, set] of adj) territories[id].neighbours = [...set].sort();
 
 // --- connectivity + isolation -----------------------------------------------
-const all = [...territorySet].sort();
+const all = Object.keys(territories).sort();
 const isolated = all.filter((t) => adj.get(t).size === 0);
-if (isolated.length) problems.push(`isolated territories: ${isolated.join(", ")}`);
+if (isolated.length) problems.push(`isolated regions: ${isolated.join(", ")}`);
 
 const seen = new Set();
 const stack = [all[0]];
@@ -72,23 +82,14 @@ while (stack.length) {
   seen.add(c);
   for (const n of adj.get(c)) stack.push(n);
 }
-if (seen.size !== all.length)
-  problems.push(`graph not fully connected — unreachable: ${all.filter((t) => !seen.has(t)).join(", ")}`);
+if (seen.size !== all.length) problems.push(`graph not fully connected — unreachable: ${all.filter((t) => !seen.has(t)).join(", ")}`);
 
-// --- assemble ----------------------------------------------------------------
-const territories = {};
-for (const t of all)
-  territories[t] = { id: t, continent: territoryContinent.get(t), neighbours: [...adj.get(t)].sort() };
-const board = { mode: "classic", continents, territories };
-
-// --- report ------------------------------------------------------------------
-console.log(`Classic territories: ${all.length}`);
+// --- report -----------------------------------------------------------------
+console.log(`Regions: ${all.length}   Countries covered: ${countryToRegion.size} / ${allCountries.size}`);
 console.log(`Edges: ${adjData.edges.length}`);
-console.log("\nPer-continent counts:");
-for (const cont of continentData.continents)
-  console.log(`  ${cont.name.padEnd(16)} ${String(cont.territories.length).padStart(2)}  (bonus ${cont.bonus})`);
-console.log("\nDegree per territory:");
-for (const t of all) console.log(`  ${t.padEnd(26)} ${adj.get(t).size}`);
+console.log("\nPer-continent regions (bonus):");
+for (const cont of regionData.continents)
+  console.log(`  ${cont.name.padEnd(16)} ${String(cont.regions.length).padStart(2)}  (bonus ${cont.bonus})`);
 
 if (problems.length) {
   console.error(`\n❌ ${problems.length} problem(s):`);
@@ -96,5 +97,6 @@ if (problems.length) {
   process.exit(1);
 }
 
+const board = { mode: "classic", continents, territories };
 writeFileSync(join(DATA_DIR, "classic.board.json"), JSON.stringify(board, null, 2) + "\n");
-console.log(`\n✅ Validated & connected. Wrote src/data/classic.board.json`);
+console.log(`\n✅ Validated, fully connected, all 177 countries covered. Wrote src/data/classic.board.json`);

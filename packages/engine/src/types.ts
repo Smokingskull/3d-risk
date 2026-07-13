@@ -28,6 +28,12 @@ export interface Territory {
   continent: ContinentId;
   /** Adjacent territory ids reachable in a single attack/fortify move. */
   neighbours: TerritoryId[];
+  /**
+   * Real country meshes this territory occupies. Presentation-only (the engine
+   * treats territories as opaque). Single-country territories (the World board)
+   * may omit this; the client then treats the territory id as its one member.
+   */
+  members?: TerritoryId[];
 }
 
 /** The static board: which territories exist, how they group, what connects. */
