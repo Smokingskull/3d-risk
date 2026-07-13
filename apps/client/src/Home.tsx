@@ -16,7 +16,7 @@ export function Home({ onStart }: Props) {
   return (
     <div className="home">
       <div className="home-inner">
-        <img className="home-banner" src="/banner.png" alt="3D Risk — Dominate. Conquer. Control." />
+        <img className="home-banner" src="/assets/images/banner.png" alt="3D Risk — Dominate. Conquer. Control." />
         <div className="home-actions">
           <button className="home-btn primary" onClick={() => setDialog({ kind: "new", mode: "classic" })}>
             New Classic Game

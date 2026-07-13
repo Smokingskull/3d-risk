@@ -3,14 +3,14 @@
    the browser doesn't fake bold. */
 @font-face {
   font-family: "Oswald";
-  src: url("/fonts/Oswald-SemiBold.ttf") format("truetype");
+  src: url("/assets/fonts/Oswald-SemiBold.ttf") format("truetype");
   font-weight: 300 800;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Black Ops One";
-  src: url("/fonts/BlackOpsOne-Regular.ttf") format("truetype");
+  src: url("/assets/fonts/BlackOpsOne-Regular.ttf") format("truetype");
   font-weight: 400 800;
   font-style: normal;
   font-display: swap;

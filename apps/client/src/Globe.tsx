@@ -27,7 +27,7 @@ const darkenBackFaces = (shader: { fragmentShader: string }) => {
 import { getBoard, type GameState, type TerritoryId } from "@risk3d/engine";
 import { NEUTRAL_COLOR } from "./players.js";
 
-const MODEL_URL = "/transparent_country_globe_gameboard.glb";
+const MODEL_URL = "/assets/models/transparent_country_globe_gameboard.glb";
 const TARGET_RADIUS = 1.2;
 const INERT_COLOR = "#646d7c"; // neutral inactive land (only if a mesh fails to resolve)
 
@@ -78,7 +78,7 @@ function Labels({ entries }: { entries: LabelEntry[] }) {
   return (
     <group ref={group}>
       {entries.map((e) => (
-        <Text key={e.id} font="/fonts/Oswald-SemiBold.ttf" position={e.position} fontSize={0.04} color="#ffffff" anchorX="center" anchorY="middle" outlineWidth={0.005} outlineColor="#000000">
+        <Text key={e.id} font="/assets/fonts/Oswald-SemiBold.ttf" position={e.position} fontSize={0.04} color="#ffffff" anchorX="center" anchorY="middle" outlineWidth={0.005} outlineColor="#000000">
           {e.text}
         </Text>
       ))}

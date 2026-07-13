@@ -25,7 +25,7 @@ recolouring works).
 
 ## The game board asset
 
-`apps/client/public/transparent_country_globe_gameboard.glb` is a glTF 2.0 binary
+`apps/client/public/assets/models/transparent_country_globe_gameboard.glb` is a glTF 2.0 binary
 containing **177 country meshes**, each a named node (Natural Earth country names)
 under a single `world` root. No materials are baked in — the client assigns colours
 per country at runtime.
@@ -110,3 +110,10 @@ runs in `apps/client/src/game/ai.worker.ts` off the main thread; seats are chose
 the start menu (Human / Easy / Medium / Hard, any mix).
 5. **Persistence** — accounts, resumable games, move-log archive.
 6. **Learning** — per-opponent modelling, then optional self-play RL.
+
+## Credits
+
+UI icons are from [game-icons.net](https://game-icons.net), licensed
+[CC BY 3.0](https://creativecommons.org/licenses/by/3.0/). Individual authors:
+Lorc, Delapouite, sbed, quoting, and John Colburn. Icons have been recoloured and
+had their background stripped for use in the interface.
