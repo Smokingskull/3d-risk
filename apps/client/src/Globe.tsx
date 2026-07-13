@@ -10,6 +10,10 @@ import { LineMaterial } from "three/examples/jsm/lines/LineMaterial.js";
 const BORDER_COLOR = "#0a0e18"; // permanent thin territory border (buttonised look)
 const BORDER_WIDTH = 1.4;
 const PICK_WIDTH = 4.5;
+
+// The model's north pole is on +Z; rotate it to +Y so the globe shows north-up
+// (standard orientation) rather than pole-on. Applied to meshes, labels, and foci.
+const POLE_FIX = new THREE.Euler(-Math.PI / 2, 0, 0);
 import { getBoard, type GameState, type TerritoryId } from "@risk3d/engine";
 import { NEUTRAL_COLOR } from "./players.js";
 
@@ -149,14 +153,15 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
     const s = TARGET_RADIUS / (sphere.radius || 1);
     const g = new THREE.Group();
     g.add(root);
-    root.position.copy(sphere.center).multiplyScalar(-s);
+    root.position.copy(sphere.center).multiplyScalar(-s).applyEuler(POLE_FIX);
     root.scale.setScalar(s);
+    root.rotation.copy(POLE_FIX);
 
     // One surface anchor per territory (mean of its member vertices), plus one
     // per continent (for rotate-to-continent). Keyed distinctly (region names vs
     // continent ids), both looked up by focus.
     const centroidDirs = new Map<string, THREE.Vector3>();
-    const toDir = (v: THREE.Vector3) => v.clone().sub(sphere.center).normalize().multiplyScalar(TARGET_RADIUS * 1.03);
+    const toDir = (v: THREE.Vector3) => v.clone().sub(sphere.center).normalize().applyEuler(POLE_FIX).multiplyScalar(TARGET_RADIUS * 1.03);
     const contSum = new Map<string, THREE.Vector3>();
     const contCount = new Map<string, number>();
     for (const [territory, acc] of sum) {

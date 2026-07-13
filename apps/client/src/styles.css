@@ -86,7 +86,7 @@ button.warn {
   border-radius: 12px;
   background: rgba(27, 34, 39, 0.88);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(101, 80, 54, 0.4);
+  border: 2px solid rgba(101, 80, 54, 0.55);
   color: var(--text);
   display: flex;
   flex-direction: column;
@@ -97,12 +97,18 @@ button.warn {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin: -14px -16px 12px;
+  padding: 8px 14px;
+  background: rgba(101, 80, 54, 0.18);
+  border-bottom: 2px solid var(--border);
+  border-radius: 10px 10px 0 0;
 }
 .panel-header h1 {
-  font-size: 13px;
-  letter-spacing: 0.06em;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: var(--text-dim);
+  color: var(--text);
 }
 .turn {
   display: flex;
@@ -125,20 +131,26 @@ button.warn {
 .collapse {
   background: transparent;
   border: none;
-  color: var(--text-dim);
-  font-size: 12px;
+  color: var(--text);
+  font-size: 18px;
   line-height: 1;
-  padding: 2px 4px;
+  padding: 2px 8px;
   margin-left: 6px;
+  cursor: pointer;
 }
 .collapse:hover:not(:disabled) {
-  background: rgba(101, 80, 54, 0.4);
-  color: var(--text);
+  background: transparent;
+  color: var(--accent-bright);
 }
 .cont-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin: -12px -14px 8px;
+  padding: 8px 14px;
+  background: rgba(101, 80, 54, 0.18);
+  border-bottom: 2px solid var(--border);
+  border-radius: 10px 10px 0 0;
 }
 .cont-header h1 {
   margin-bottom: 0;
@@ -277,14 +289,15 @@ button.quiet:hover:not(:disabled) {
   border-radius: 12px;
   background: rgba(27, 34, 39, 0.88);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(101, 80, 54, 0.4);
+  border: 2px solid rgba(101, 80, 54, 0.55);
   color: var(--text);
 }
 .continents h1 {
-  font-size: 13px;
-  letter-spacing: 0.06em;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: var(--text-dim);
+  color: var(--text);
   margin-bottom: 4px;
 }
 .continents .hint {
@@ -394,7 +407,7 @@ button.quiet:hover:not(:disabled) {
   padding: 14px 16px;
   border-radius: 12px;
   background: rgba(40, 49, 55, 0.96);
-  border: 1px solid rgba(56, 189, 248, 0.45);
+  border: 2px solid rgba(101, 80, 54, 0.6);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
   color: var(--text);
 }
@@ -465,7 +478,7 @@ button.quiet:hover:not(:disabled) {
   padding: 22px 24px;
   border-radius: 16px;
   background: rgba(40, 49, 55, 0.97);
-  border: 1px solid rgba(101, 80, 54, 0.5);
+  border: 2px solid rgba(101, 80, 54, 0.6);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   color: var(--text);
 }
@@ -618,7 +631,7 @@ button.quiet:hover:not(:disabled) {
   border-radius: 12px;
   background: rgba(40, 49, 55, 0.94);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(182, 138, 72, 0.5);
+  border: 2px solid rgba(182, 138, 72, 0.6);
   color: var(--text);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
 }
@@ -642,10 +655,14 @@ button.quiet:hover:not(:disabled) {
   margin-left: auto;
   background: transparent;
   border: none;
-  color: var(--text-dim);
-  font-size: 20px;
-  line-height: 1;
-  padding: 0 2px;
+  color: var(--text);
+  font-size: 26px;
+  line-height: 0.7;
+  padding: 0 6px;
+  cursor: pointer;
+}
+.tut-x:hover {
+  color: var(--accent-bright);
 }
 .tutorial p {
   font-size: 13px;
@@ -742,30 +759,26 @@ button.quiet:hover:not(:disabled) {
 }
 .home-btn {
   font-family: "Black Ops One", "Oswald", sans-serif;
-  font-size: 18px;
-  font-weight: 400;
-  letter-spacing: 0.04em;
+  font-size: 27px;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--text);
-  padding: 15px 22px;
-  border-radius: 10px;
-  background: rgba(40, 49, 55, 0.65);
-  border: 1px solid rgba(101, 80, 54, 0.6);
+  color: var(--text-dim);
+  background: none;
+  border: none;
+  padding: 6px 8px;
   cursor: pointer;
-  transition: background 0.13s, border-color 0.13s, transform 0.08s;
+  transition: color 0.13s, text-shadow 0.13s;
 }
 .home-btn:hover {
-  background: rgba(101, 80, 54, 0.5);
-  border-color: var(--accent-bright);
-  transform: translateY(-1px);
+  color: var(--accent-bright);
+  text-shadow: 0 0 20px rgba(213, 174, 105, 0.55);
 }
 .home-btn.primary {
-  background: var(--action);
-  border-color: var(--action-hover);
+  color: var(--text);
 }
 .home-btn.primary:hover {
-  background: var(--action-hover);
-  border-color: var(--action-hover);
+  color: var(--action-hover);
+  text-shadow: 0 0 22px rgba(197, 53, 44, 0.6);
 }
 
 /* ---- overlay dialogs (new game / how to play) ---- */
@@ -787,7 +800,7 @@ button.quiet:hover:not(:disabled) {
   padding: 24px;
   border-radius: 16px;
   background: rgba(40, 49, 55, 0.98);
-  border: 1px solid rgba(101, 80, 54, 0.5);
+  border: 2px solid rgba(101, 80, 54, 0.6);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
   color: var(--text);
   display: flex;
@@ -801,9 +814,18 @@ button.quiet:hover:not(:disabled) {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin: -24px -24px 2px;
+  padding: 12px 22px;
+  background: rgba(101, 80, 54, 0.18);
+  border-bottom: 2px solid var(--border);
+  border-radius: 14px 14px 0 0;
 }
 .overlay-head h2 {
   font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text);
 }
 .field {
   display: flex;
