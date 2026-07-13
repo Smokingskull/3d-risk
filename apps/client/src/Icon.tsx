@@ -6,23 +6,25 @@ import type { CSSProperties } from "react";
  */
 export function Icon({
   name,
-  size = 18,
+  size,
   className,
   style,
 }: {
+  /** Explicit size: number (px) or any CSS length. Omit to size relative to the
+   *  adjacent text (1.3em) so the icon is always a touch larger than it. */
   name: string;
-  size?: number;
+  size?: number | string;
   className?: string;
   style?: CSSProperties;
 }) {
   const url = `/assets/icons/${name}.svg`;
+  const dim = size === undefined ? undefined : typeof size === "number" ? `${size}px` : size;
   return (
     <span
       className={className ? `icon ${className}` : "icon"}
       aria-hidden="true"
       style={{
-        width: size,
-        height: size,
+        ...(dim ? { width: dim, height: dim } : null),
         WebkitMaskImage: `url("${url}")`,
         maskImage: `url("${url}")`,
         ...style,

@@ -97,7 +97,7 @@ export function CombatModal({ hs }: { hs: Hotseat }) {
           </div>
 
           <div className="combat-vs">
-            <Icon name="swords" size={24} style={{ color: "var(--accent-bright)" }} />
+            <Icon name="swords" style={{ color: "var(--accent-bright)" }} />
             <div className="combat-odds">{winPct}%<span>to conquer</span></div>
           </div>
 

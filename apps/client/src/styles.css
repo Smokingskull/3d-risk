@@ -72,10 +72,15 @@ body {
   box-sizing: border-box;
 }
 
-/* Monochrome mask icon — inherits currentColor. See Icon.tsx. */
+/* Monochrome mask icon — inherits currentColor. See Icon.tsx. Sized in em by
+   default so it stays a touch larger than the text it sits beside; centred on
+   the text's middle line (flex parents use align-items:center, inline uses
+   vertical-align:middle). */
 .icon {
   display: inline-block;
   flex: none;
+  width: 1.3em;
+  height: 1.3em;
   background-color: currentColor;
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
@@ -83,7 +88,7 @@ body {
   mask-position: center;
   -webkit-mask-size: contain;
   mask-size: contain;
-  vertical-align: -0.15em;
+  vertical-align: middle;
 }
 
 html,
