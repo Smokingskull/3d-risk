@@ -30,6 +30,7 @@ export function Home({ onStart }: Props) {
             How To Play
           </button>
         </div>
+        <img className="home-emblem" src="/assets/images/winged-emblem.png" alt="" />
       </div>
 
       {dialog?.kind === "new" && (
