@@ -136,7 +136,7 @@ button.warn {
   top: 16px;
   left: 16px;
   z-index: 10;
-  width: 340px;
+  width: 400px;
   max-width: calc(100vw - 32px);
   padding: 14px 16px;
   border-radius: 12px;
@@ -155,8 +155,8 @@ button.warn {
   justify-content: space-between;
   margin: -14px -16px 12px;
   padding: 8px 14px;
-  background: rgba(101, 80, 54, 0.18);
-  border-bottom: 2px solid var(--border);
+  background: linear-gradient(180deg, rgba(101, 80, 54, 0.3), rgba(101, 80, 54, 0.12));
+  border-bottom: 2px solid rgba(182, 138, 72, 0.55);
   border-radius: 10px 10px 0 0;
 }
 .panel-header h1 {
@@ -213,8 +213,8 @@ button.warn {
   justify-content: space-between;
   margin: -12px -14px 8px;
   padding: 8px 14px;
-  background: rgba(101, 80, 54, 0.18);
-  border-bottom: 2px solid var(--border);
+  background: linear-gradient(180deg, rgba(101, 80, 54, 0.3), rgba(101, 80, 54, 0.12));
+  border-bottom: 2px solid rgba(182, 138, 72, 0.55);
   border-radius: 10px 10px 0 0;
 }
 .cont-header h1 {
@@ -315,9 +315,17 @@ button.warn {
 .segmented button {
   flex: 1;
   border-radius: 0;
-  padding: 6px 4px;
+  padding: 7px 4px;
   font-size: 12px;
   border-right-width: 0;
+  color: var(--text-dim);
+  background: linear-gradient(180deg, rgba(27, 34, 39, 0.9), rgba(20, 25, 29, 0.9));
+  box-shadow: none;
+}
+.segmented button:hover:not(:disabled) {
+  color: var(--text);
+  background: rgba(101, 80, 54, 0.28);
+  box-shadow: none;
 }
 .segmented button:first-child {
   border-radius: 8px 0 0 8px;
@@ -328,8 +336,9 @@ button.warn {
 }
 .segmented button.sel {
   border-color: var(--accent);
-  background: rgba(213, 174, 105, 0.26);
+  background: linear-gradient(180deg, rgba(213, 174, 105, 0.3), rgba(182, 138, 72, 0.16));
   color: var(--text);
+  box-shadow: inset 0 -2px 0 var(--accent-bright);
 }
 
 .footer-row {
@@ -344,6 +353,7 @@ button.quiet {
   color: var(--text-dim);
   padding: 3px 8px;
   font-size: 12px;
+  letter-spacing: 0.02em;
   box-shadow: none;
 }
 button.quiet:hover:not(:disabled) {
@@ -393,7 +403,7 @@ button.quiet:hover:not(:disabled) {
   border: 1px solid transparent;
 }
 .cont-row:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(182, 138, 72, 0.14);
 }
 .cont-row.active {
   border-color: #ffcc33;
@@ -452,7 +462,7 @@ button.quiet:hover:not(:disabled) {
   font-size: 12px;
 }
 .cont-member:hover {
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(182, 138, 72, 0.13);
 }
 .cont-member.active {
   border-color: #38bdf8;
@@ -920,8 +930,8 @@ button.quiet:hover:not(:disabled) {
   justify-content: space-between;
   margin: -24px -24px 2px;
   padding: 12px 22px;
-  background: rgba(101, 80, 54, 0.18);
-  border-bottom: 2px solid var(--border);
+  background: linear-gradient(180deg, rgba(101, 80, 54, 0.3), rgba(101, 80, 54, 0.12));
+  border-bottom: 2px solid rgba(182, 138, 72, 0.55);
   border-radius: 14px 14px 0 0;
 }
 .overlay-head h2 {
@@ -959,8 +969,9 @@ button.quiet:hover:not(:disabled) {
 }
 .choices button.sel {
   border-color: var(--accent);
-  background: rgba(213, 174, 105, 0.26);
+  background: linear-gradient(180deg, rgba(213, 174, 105, 0.3), rgba(182, 138, 72, 0.16));
   color: var(--text);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 10px rgba(182, 138, 72, 0.25);
 }
 button.start {
   padding: 12px;
