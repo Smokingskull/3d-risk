@@ -1,0 +1,17 @@
+# One-time addition to the VPS Caddyfile (/etc/caddy/Caddyfile), alongside the
+# existing 3drisk block. Serves the staging SPA that the deploy-staging workflow
+# syncs to /srv/3drisk-staging. Then: `sudo systemctl reload caddy`.
+#
+# Requires a Cloudflare DNS A record:
+#   staging.3drisk.iainwilson.uk -> 167.233.119.140 (DNS-only / grey cloud).
+#
+# Production (3drisk.iainwilson.uk -> /srv/3drisk) is untouched; this is a
+# parallel site for the ui-redesign branch.
+
+staging.3drisk.iainwilson.uk {
+	root * /srv/3drisk-staging
+	encode gzip
+	# SPA fallback so any client-side route resolves to the app shell.
+	try_files {path} /index.html
+	file_server
+}
