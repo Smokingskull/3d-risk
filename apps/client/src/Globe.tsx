@@ -8,7 +8,7 @@ import { HAVE_COLOR, NEED_COLOR } from "./continents.js";
 
 const MODEL_URL = "/transparent_country_globe_gameboard.glb";
 const TARGET_RADIUS = 1.2;
-const INERT_COLOR = "#3a4252"; // muted land for countries not playable in the current mode
+const INERT_COLOR = "#646d7c"; // neutral inactive land for countries not playable in the current mode
 
 // GLTFLoader sanitises node names (spaces -> underscores, reserved chars dropped),
 // so mesh names like "New_Zealand" don't match the engine's "New Zealand" ids.
