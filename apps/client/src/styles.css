@@ -183,6 +183,83 @@ button.quiet {
   font-size: 12px;
 }
 
+/* ---- continents panel (top-right) ---- */
+.continents {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+  width: 290px;
+  max-width: calc(100vw - 32px);
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(10, 14, 24, 0.78);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  color: #e8ecf4;
+}
+.continents h1 {
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #8fa3c8;
+  margin-bottom: 4px;
+}
+.continents .hint {
+  margin-bottom: 8px;
+}
+.cont-row {
+  display: grid;
+  grid-template-columns: 14px 1fr 54px auto auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  padding: 6px 8px;
+  margin-top: 4px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid transparent;
+}
+.cont-row:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.06);
+}
+.cont-row.active {
+  border-color: #ffcc33;
+  background: rgba(255, 204, 51, 0.12);
+}
+.cont-sw {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+.cont-name {
+  font-size: 13px;
+}
+.cont-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+.cont-fill {
+  display: block;
+  height: 100%;
+}
+.cont-prog {
+  font-size: 12px;
+  color: #b7c3dc;
+  font-variant-numeric: tabular-nums;
+}
+.cont-prog.done {
+  color: #22c55e;
+  font-weight: 600;
+}
+.cont-bonus {
+  font-size: 12px;
+  color: #6f7f9e;
+}
+
 /* ---- combat modal (centre-screen battle dialog) ---- */
 .combat-backdrop {
   position: fixed;

@@ -4,6 +4,7 @@ import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 import type { GameState, TerritoryId } from "@risk3d/engine";
 import { NEUTRAL_COLOR } from "./players.js";
+import { HAVE_COLOR, NEED_COLOR } from "./continents.js";
 
 const MODEL_URL = "/transparent_country_globe_gameboard.glb";
 const TARGET_RADIUS = 1.2;
@@ -13,6 +14,7 @@ interface GlobeProps {
   game: GameState;
   selectedFrom: TerritoryId | null;
   validTargets: Set<TerritoryId>;
+  highlightContinent: string | null;
   onHover: (country: TerritoryId | null) => void;
   onPick: (country: TerritoryId) => void;
 }
@@ -50,7 +52,7 @@ function Labels({ entries }: { entries: LabelEntry[] }) {
   );
 }
 
-export function Globe({ game, selectedFrom, validTargets, onHover, onPick }: GlobeProps) {
+export function Globe({ game, selectedFrom, validTargets, highlightContinent, onHover, onPick }: GlobeProps) {
   const { scene } = useGLTF(MODEL_URL);
 
   // Prepare the scene once: per-country material, collect meshes + surface
@@ -112,12 +114,13 @@ export function Globe({ game, selectedFrom, validTargets, onHover, onPick }: Glo
   const playable = useMemo(() => new Set(Object.keys(game.board.territories)), [game.board]);
 
   // Refs so the repaint routine and the imperative hover handler share one source.
-  const refs = useRef({ game, selectedFrom, validTargets, ownerColor, playable, hovered: null as string | null });
+  const refs = useRef({ game, selectedFrom, validTargets, ownerColor, playable, highlightContinent, hovered: null as string | null });
   refs.current.game = game;
   refs.current.selectedFrom = selectedFrom;
   refs.current.validTargets = validTargets;
   refs.current.ownerColor = ownerColor;
   refs.current.playable = playable;
+  refs.current.highlightContinent = highlightContinent;
 
   const paint = (country: string) => {
     const meshes = meshesByCountry.get(country);
@@ -127,16 +130,23 @@ export function Globe({ game, selectedFrom, validTargets, onHover, onPick }: Glo
     const owner = playableHere ? r.game.territories[country]?.owner : null;
     const base = !playableHere ? INERT_COLOR : owner ? (r.ownerColor.get(owner) ?? NEUTRAL_COLOR) : NEUTRAL_COLOR;
 
+    const hl = r.highlightContinent;
+    const isMember = !!hl && playableHere && r.game.board.territories[country]?.continent === hl;
+    const dimNonMember = !!hl && playableHere && !isMember;
+
     let emissive = "#000000";
     let intensity = 0;
     if (playableHere) {
       if (r.selectedFrom === country) [emissive, intensity] = ["#fff27a", 0.6];
       else if (r.validTargets.has(country)) [emissive, intensity] = ["#ff8844", 0.5];
       else if (r.hovered === country) [emissive, intensity] = ["#ffffff", 0.3];
+      else if (isMember)
+        [emissive, intensity] = owner === r.game.activePlayer ? [HAVE_COLOR, 0.4] : [NEED_COLOR, 0.75];
     }
     for (const mesh of meshes) {
       const mat = mesh.material as THREE.MeshStandardMaterial;
       mat.color.set(base);
+      if (dimNonMember) mat.color.multiplyScalar(0.32); // fade the rest so the continent pops
       mat.emissive.set(emissive);
       mat.emissiveIntensity = intensity;
     }
@@ -147,7 +157,7 @@ export function Globe({ game, selectedFrom, validTargets, onHover, onPick }: Glo
   };
 
   // Repaint owner colours + selection/target highlights whenever they change.
-  useEffect(paintAll, [game, selectedFrom, validTargets, ownerColor, playable]);
+  useEffect(paintAll, [game, selectedFrom, validTargets, ownerColor, playable, highlightContinent]);
 
   const setHovered = (country: string | null) => {
     const prev = refs.current.hovered;
