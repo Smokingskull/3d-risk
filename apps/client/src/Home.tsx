@@ -20,9 +20,11 @@ export function Home({ onStart }: Props) {
         <div className="home-actions">
           <button className="home-btn primary" onClick={() => setDialog({ kind: "new", mode: "classic" })}>
             New Classic Game
+            <span className="home-desc">Close to the classic board — country groups across the traditional six continents. A quicker game.</span>
           </button>
           <button className="home-btn primary" onClick={() => setDialog({ kind: "new", mode: "world" })}>
             New Modern Game
+            <span className="home-desc">Every one of the world's 177 real countries as its own territory. A longer, sprawling campaign.</span>
           </button>
           <button className="home-btn" onClick={() => setDialog({ kind: "rules" })}>
             How To Play

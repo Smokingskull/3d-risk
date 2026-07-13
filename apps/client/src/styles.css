@@ -810,6 +810,21 @@ button.quiet:hover:not(:disabled) {
   color: var(--action-hover);
   text-shadow: 0 0 22px rgba(197, 53, 44, 0.6);
 }
+.home-btn {
+  max-width: 460px;
+}
+.home-desc {
+  display: block;
+  margin-top: 5px;
+  font-family: "Oswald", sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  line-height: 1.4;
+  color: var(--text-dim);
+  text-shadow: none;
+}
 
 /* ---- overlay dialogs (new game / how to play) ---- */
 .overlay {
