@@ -3,8 +3,7 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Stars } from "@react-three/drei";
 import { Globe } from "./Globe.js";
 import { Hud } from "./Hud.js";
-import { StartMenu } from "./StartMenu.js";
-import { RulesPage } from "./RulesPage.js";
+import { Home } from "./Home.js";
 import { TutorialTips } from "./TutorialTips.js";
 import { CombatModal } from "./CombatModal.js";
 import { CountryPopup } from "./CountryPopup.js";
@@ -14,20 +13,13 @@ import { useHotseat } from "./game/useHotseat.js";
 export function App() {
   const hs = useHotseat();
   const [hovered, setHovered] = useState<string | null>(null);
-  const [view, setView] = useState<"menu" | "rules">("menu");
   const [highlightContinent, setHighlightContinent] = useState<string | null>(null);
   const [focus, setFocus] = useState<{ id: string; n: number } | null>(null);
 
   // Dev-only test hook so headless checks can drive the game deterministically.
   if (import.meta.env.DEV) (window as unknown as { __risk: typeof hs }).__risk = hs;
 
-  if (!hs.game) {
-    return view === "rules" ? (
-      <RulesPage onBack={() => setView("menu")} />
-    ) : (
-      <StartMenu onStart={hs.start} onShowRules={() => setView("rules")} />
-    );
-  }
+  if (!hs.game) return <Home onStart={hs.start} />;
 
   const focusOn = (id: string) => {
     if (!hs.autoRotate) return; // auto-rotate disabled → never rotate the globe

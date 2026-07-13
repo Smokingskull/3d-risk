@@ -1,11 +1,8 @@
-export function RulesPage({ onBack }: { onBack: () => void }) {
+export function RulesDialog({ onClose }: { onClose: () => void }) {
   return (
-    <div className="rules">
-      <div className="rules-card">
-        <div className="rules-top">
-          <h1>How to play</h1>
-          <button onClick={onBack}>← Back</button>
-        </div>
+    <div className="overlay" onClick={onClose}>
+      <div className="overlay-card rules-card" onClick={(e) => e.stopPropagation()}>
+        <h1>How to play</h1>
 
         <p className="lede">
           3D Risk is world domination on a globe. Every country is a territory; take them all — or be the
@@ -14,10 +11,9 @@ export function RulesPage({ onBack }: { onBack: () => void }) {
 
         <h2>Setup</h2>
         <p>
-          Every territory is dealt out and seeded with armies automatically, then play begins. Choose the{" "}
-          <strong>World</strong> board (all 177 countries, six real continents) or <strong>Classic</strong>{" "}
-          (42 major countries in the traditional six regions). Each seat is a human or a CPU general
-          (Easy, Medium or Hard).
+          Every territory is dealt out and seeded with armies automatically, then play begins. Choose{" "}
+          <strong>Classic</strong> (major regions in the traditional six continents) or <strong>Modern</strong>{" "}
+          (all 177 real countries — a longer game). Each seat is a human or a CPU general (Easy, Medium or Hard).
         </p>
 
         <h2>Your turn has three phases</h2>
@@ -58,14 +54,14 @@ export function RulesPage({ onBack }: { onBack: () => void }) {
         <h2>Controls</h2>
         <ul className="controls">
           <li>Drag to rotate the globe · scroll to zoom.</li>
-          <li>Hover a country to read its name and army count.</li>
-          <li>Reinforce: click a territory to deploy. Attack/Fortify: click a source, then a highlighted target.</li>
-          <li>Use the on-screen buttons to trade cards, end the attack phase, occupy, and end your turn.</li>
-          <li>New to the game? Leave <strong>Tutorial tips</strong> on — stage-by-stage prompts you can dismiss or toggle off anytime.</li>
+          <li>Click a country to open its dialog — reinforce, attack from, or fortify from it.</li>
+          <li>Use the on-screen panels to trade cards, resolve battles, occupy, and end your turn.</li>
+          <li>The Continents panel shows what you need to complete each continent; click a region to fly to it.</li>
+          <li>New to the game? Leave <strong>Tutorial tips</strong> on — stage-by-stage prompts, toggled anytime.</li>
         </ul>
 
-        <button className="start" onClick={onBack}>
-          Back to menu
+        <button className="start" onClick={onClose}>
+          Close
         </button>
       </div>
     </div>

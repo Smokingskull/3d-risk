@@ -6,20 +6,16 @@ import { PLAYER_COLORS } from "./players.js";
 type SeatChoice = "human" | "easy" | "medium" | "hard";
 const CHOICES: SeatChoice[] = ["human", "easy", "medium", "hard"];
 const LABEL: Record<SeatChoice, string> = { human: "Human", easy: "Easy", medium: "Medium", hard: "Hard" };
-
-function toSpec(choice: SeatChoice): SeatSpec {
-  return choice === "human" ? { kind: "human" } : { kind: "cpu", difficulty: choice };
-}
-
-interface StartMenuProps {
-  onStart: (mode: BoardMode, seats: SeatSpec[], tutorial: boolean, names: string[]) => void;
-  onShowRules: () => void;
-}
-
+const toSpec = (c: SeatChoice): SeatSpec => (c === "human" ? { kind: "human" } : { kind: "cpu", difficulty: c });
 const defaultName = (i: number) => `Player ${i + 1}`;
 
-export function StartMenu({ onStart, onShowRules }: StartMenuProps) {
-  const [mode, setMode] = useState<BoardMode>("classic");
+interface Props {
+  mode: BoardMode;
+  onStart: (mode: BoardMode, seats: SeatSpec[], tutorial: boolean, names: string[]) => void;
+  onClose: () => void;
+}
+
+export function NewGameDialog({ mode, onStart, onClose }: Props) {
   const [seats, setSeats] = useState<SeatChoice[]>(["human", "medium", "medium"]);
   const [names, setNames] = useState<string[]>([0, 1, 2].map(defaultName));
   const [tutorial, setTutorial] = useState(true);
@@ -40,22 +36,12 @@ export function StartMenu({ onStart, onShowRules }: StartMenuProps) {
   const setName = (i: number, v: string) => setNames((prev) => prev.map((s, idx) => (idx === i ? v : s)));
 
   return (
-    <div className="menu">
-      <div className="menu-card">
-        <h1>3D Risk</h1>
-        <p className="tagline">Play locally against friends and CPU generals.</p>
-
-        <label className="field">
-          <span>Board</span>
-          <div className="choices">
-            <button className={mode === "classic" ? "sel" : ""} onClick={() => setMode("classic")}>
-              Classic <em>42 territories</em>
-            </button>
-            <button className={mode === "world" ? "sel" : ""} onClick={() => setMode("world")}>
-              World <em>177 countries</em>
-            </button>
-          </div>
-        </label>
+    <div className="overlay" onClick={onClose}>
+      <div className="overlay-card new-game" onClick={(e) => e.stopPropagation()}>
+        <div className="overlay-head">
+          <h2>New {mode === "classic" ? "Classic" : "Modern"} Game</h2>
+          <button className="tut-x" aria-label="Close" onClick={onClose}>×</button>
+        </div>
 
         <label className="field">
           <span>Players</span>
@@ -97,14 +83,9 @@ export function StartMenu({ onStart, onShowRules }: StartMenuProps) {
           <span>Tutorial tips — on-screen prompts for each phase (recommended for new players)</span>
         </label>
 
-        <div className="menu-actions">
-          <button className="start" onClick={() => onStart(mode, seats.map(toSpec), tutorial, names)}>
-            Start game
-          </button>
-          <button className="link" onClick={onShowRules}>
-            How to play
-          </button>
-        </div>
+        <button className="start" onClick={() => onStart(mode, seats.map(toSpec), tutorial, names)}>
+          Start game
+        </button>
       </div>
     </div>
   );
