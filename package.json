@@ -1,0 +1,15 @@
+{
+  "name": "3d-risk",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Web-based 3D globe version of RISK",
+  "scripts": {
+    "dev": "pnpm --filter @risk3d/client dev",
+    "build": "pnpm --filter @risk3d/client build",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "packageManager": "pnpm@11.8.0",
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "name": "@risk3d/engine",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "build:board": "node scripts/build-board.mjs",
+    "build:classic": "node scripts/build-classic.mjs",
+    "build:boards": "node scripts/build-board.mjs && node scripts/build-classic.mjs"
+  },
+  "devDependencies": {
+    "vitest": "^3.0.5"
+  }
+}

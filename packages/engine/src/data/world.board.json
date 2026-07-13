@@ -1,0 +1,2008 @@
+{
+  "mode": "world",
+  "continents": {
+    "north-america": {
+      "id": "north-america",
+      "name": "North America",
+      "bonus": 6,
+      "territories": [
+        "Canada",
+        "United States of America",
+        "Mexico",
+        "Guatemala",
+        "Belize",
+        "El Salvador",
+        "Honduras",
+        "Nicaragua",
+        "Costa Rica",
+        "Panama",
+        "Cuba",
+        "Jamaica",
+        "Haiti",
+        "Dominican Rep.",
+        "Bahamas",
+        "Puerto Rico",
+        "Greenland"
+      ]
+    },
+    "south-america": {
+      "id": "south-america",
+      "name": "South America",
+      "bonus": 4,
+      "territories": [
+        "Colombia",
+        "Venezuela",
+        "Trinidad and Tobago",
+        "Guyana",
+        "Suriname",
+        "Ecuador",
+        "Peru",
+        "Brazil",
+        "Bolivia",
+        "Paraguay",
+        "Chile",
+        "Argentina",
+        "Uruguay",
+        "Falkland Is.",
+        "Antarctica"
+      ]
+    },
+    "europe": {
+      "id": "europe",
+      "name": "Europe",
+      "bonus": 8,
+      "territories": [
+        "Iceland",
+        "Ireland",
+        "United Kingdom",
+        "Portugal",
+        "Spain",
+        "France",
+        "Belgium",
+        "Netherlands",
+        "Luxembourg",
+        "Germany",
+        "Switzerland",
+        "Italy",
+        "Austria",
+        "Denmark",
+        "Norway",
+        "Sweden",
+        "Finland",
+        "Poland",
+        "Czechia",
+        "Slovakia",
+        "Hungary",
+        "Slovenia",
+        "Croatia",
+        "Bosnia and Herz.",
+        "Serbia",
+        "Montenegro",
+        "Kosovo",
+        "Albania",
+        "Macedonia",
+        "Greece",
+        "Bulgaria",
+        "Romania",
+        "Moldova",
+        "Ukraine",
+        "Belarus",
+        "Lithuania",
+        "Latvia",
+        "Estonia",
+        "Cyprus",
+        "N. Cyprus"
+      ]
+    },
+    "africa": {
+      "id": "africa",
+      "name": "Africa",
+      "bonus": 9,
+      "territories": [
+        "Morocco",
+        "W. Sahara",
+        "Algeria",
+        "Tunisia",
+        "Libya",
+        "Egypt",
+        "Mauritania",
+        "Mali",
+        "Niger",
+        "Chad",
+        "Sudan",
+        "S. Sudan",
+        "Eritrea",
+        "Djibouti",
+        "Ethiopia",
+        "Somalia",
+        "Somaliland",
+        "Senegal",
+        "Gambia",
+        "Guinea-Bissau",
+        "Guinea",
+        "Sierra Leone",
+        "Liberia",
+        "Côte d'Ivoire",
+        "Ghana",
+        "Togo",
+        "Benin",
+        "Burkina Faso",
+        "Nigeria",
+        "Cameroon",
+        "Eq. Guinea",
+        "Gabon",
+        "Congo",
+        "Dem. Rep. Congo",
+        "Central African Rep.",
+        "Uganda",
+        "Kenya",
+        "Rwanda",
+        "Burundi",
+        "Tanzania",
+        "Angola",
+        "Zambia",
+        "Malawi",
+        "Mozambique",
+        "Zimbabwe",
+        "Botswana",
+        "Namibia",
+        "South Africa",
+        "Lesotho",
+        "eSwatini",
+        "Madagascar",
+        "Fr. S. Antarctic Lands"
+      ]
+    },
+    "asia": {
+      "id": "asia",
+      "name": "Asia",
+      "bonus": 11,
+      "territories": [
+        "Russia",
+        "Georgia",
+        "Armenia",
+        "Azerbaijan",
+        "Turkey",
+        "Syria",
+        "Lebanon",
+        "Israel",
+        "Palestine",
+        "Jordan",
+        "Iraq",
+        "Iran",
+        "Kuwait",
+        "Saudi Arabia",
+        "Qatar",
+        "United Arab Emirates",
+        "Oman",
+        "Yemen",
+        "Kazakhstan",
+        "Uzbekistan",
+        "Turkmenistan",
+        "Tajikistan",
+        "Kyrgyzstan",
+        "Afghanistan",
+        "Pakistan",
+        "India",
+        "Nepal",
+        "Bhutan",
+        "Bangladesh",
+        "Sri Lanka",
+        "Myanmar",
+        "Thailand",
+        "Laos",
+        "Cambodia",
+        "Vietnam",
+        "China",
+        "Mongolia",
+        "North Korea",
+        "South Korea",
+        "Japan",
+        "Taiwan",
+        "Philippines",
+        "Malaysia",
+        "Brunei",
+        "Indonesia",
+        "Timor-Leste"
+      ]
+    },
+    "oceania": {
+      "id": "oceania",
+      "name": "Oceania",
+      "bonus": 3,
+      "territories": [
+        "Australia",
+        "New Zealand",
+        "Papua New Guinea",
+        "Fiji",
+        "Solomon Is.",
+        "Vanuatu",
+        "New Caledonia"
+      ]
+    }
+  },
+  "territories": {
+    "Afghanistan": {
+      "id": "Afghanistan",
+      "continent": "asia",
+      "neighbours": [
+        "China",
+        "Iran",
+        "Pakistan",
+        "Tajikistan",
+        "Turkmenistan",
+        "Uzbekistan"
+      ]
+    },
+    "Albania": {
+      "id": "Albania",
+      "continent": "europe",
+      "neighbours": [
+        "Greece",
+        "Kosovo",
+        "Macedonia",
+        "Montenegro"
+      ]
+    },
+    "Algeria": {
+      "id": "Algeria",
+      "continent": "africa",
+      "neighbours": [
+        "Libya",
+        "Mali",
+        "Mauritania",
+        "Morocco",
+        "Niger",
+        "Tunisia",
+        "W. Sahara"
+      ]
+    },
+    "Angola": {
+      "id": "Angola",
+      "continent": "africa",
+      "neighbours": [
+        "Congo",
+        "Dem. Rep. Congo",
+        "Namibia",
+        "Zambia"
+      ]
+    },
+    "Antarctica": {
+      "id": "Antarctica",
+      "continent": "south-america",
+      "neighbours": [
+        "Argentina",
+        "Chile",
+        "Fr. S. Antarctic Lands"
+      ]
+    },
+    "Argentina": {
+      "id": "Argentina",
+      "continent": "south-america",
+      "neighbours": [
+        "Antarctica",
+        "Bolivia",
+        "Brazil",
+        "Chile",
+        "Falkland Is.",
+        "Paraguay",
+        "Uruguay"
+      ]
+    },
+    "Armenia": {
+      "id": "Armenia",
+      "continent": "asia",
+      "neighbours": [
+        "Azerbaijan",
+        "Georgia",
+        "Iran",
+        "Turkey"
+      ]
+    },
+    "Australia": {
+      "id": "Australia",
+      "continent": "oceania",
+      "neighbours": [
+        "Indonesia",
+        "New Caledonia",
+        "New Zealand",
+        "Papua New Guinea"
+      ]
+    },
+    "Austria": {
+      "id": "Austria",
+      "continent": "europe",
+      "neighbours": [
+        "Czechia",
+        "Germany",
+        "Hungary",
+        "Italy",
+        "Slovakia",
+        "Slovenia",
+        "Switzerland"
+      ]
+    },
+    "Azerbaijan": {
+      "id": "Azerbaijan",
+      "continent": "asia",
+      "neighbours": [
+        "Armenia",
+        "Georgia",
+        "Iran",
+        "Russia",
+        "Turkey"
+      ]
+    },
+    "Bahamas": {
+      "id": "Bahamas",
+      "continent": "north-america",
+      "neighbours": [
+        "Cuba",
+        "United States of America"
+      ]
+    },
+    "Bangladesh": {
+      "id": "Bangladesh",
+      "continent": "asia",
+      "neighbours": [
+        "India",
+        "Myanmar"
+      ]
+    },
+    "Belarus": {
+      "id": "Belarus",
+      "continent": "europe",
+      "neighbours": [
+        "Latvia",
+        "Lithuania",
+        "Poland",
+        "Russia",
+        "Ukraine"
+      ]
+    },
+    "Belgium": {
+      "id": "Belgium",
+      "continent": "europe",
+      "neighbours": [
+        "France",
+        "Germany",
+        "Luxembourg",
+        "Netherlands"
+      ]
+    },
+    "Belize": {
+      "id": "Belize",
+      "continent": "north-america",
+      "neighbours": [
+        "Guatemala",
+        "Mexico"
+      ]
+    },
+    "Benin": {
+      "id": "Benin",
+      "continent": "africa",
+      "neighbours": [
+        "Burkina Faso",
+        "Niger",
+        "Nigeria",
+        "Togo"
+      ]
+    },
+    "Bhutan": {
+      "id": "Bhutan",
+      "continent": "asia",
+      "neighbours": [
+        "China",
+        "India"
+      ]
+    },
+    "Bolivia": {
+      "id": "Bolivia",
+      "continent": "south-america",
+      "neighbours": [
+        "Argentina",
+        "Brazil",
+        "Chile",
+        "Paraguay",
+        "Peru"
+      ]
+    },
+    "Bosnia and Herz.": {
+      "id": "Bosnia and Herz.",
+      "continent": "europe",
+      "neighbours": [
+        "Croatia",
+        "Montenegro",
+        "Serbia"
+      ]
+    },
+    "Botswana": {
+      "id": "Botswana",
+      "continent": "africa",
+      "neighbours": [
+        "Namibia",
+        "South Africa",
+        "Zambia",
+        "Zimbabwe"
+      ]
+    },
+    "Brazil": {
+      "id": "Brazil",
+      "continent": "south-america",
+      "neighbours": [
+        "Argentina",
+        "Bolivia",
+        "Colombia",
+        "France",
+        "Guyana",
+        "Paraguay",
+        "Peru",
+        "Suriname",
+        "Uruguay",
+        "Venezuela"
+      ]
+    },
+    "Brunei": {
+      "id": "Brunei",
+      "continent": "asia",
+      "neighbours": [
+        "Malaysia"
+      ]
+    },
+    "Bulgaria": {
+      "id": "Bulgaria",
+      "continent": "europe",
+      "neighbours": [
+        "Greece",
+        "Macedonia",
+        "Romania",
+        "Serbia",
+        "Turkey"
+      ]
+    },
+    "Burkina Faso": {
+      "id": "Burkina Faso",
+      "continent": "africa",
+      "neighbours": [
+        "Benin",
+        "Côte d'Ivoire",
+        "Ghana",
+        "Mali",
+        "Niger",
+        "Togo"
+      ]
+    },
+    "Burundi": {
+      "id": "Burundi",
+      "continent": "africa",
+      "neighbours": [
+        "Dem. Rep. Congo",
+        "Rwanda",
+        "Tanzania"
+      ]
+    },
+    "Cambodia": {
+      "id": "Cambodia",
+      "continent": "asia",
+      "neighbours": [
+        "Laos",
+        "Thailand",
+        "Vietnam"
+      ]
+    },
+    "Cameroon": {
+      "id": "Cameroon",
+      "continent": "africa",
+      "neighbours": [
+        "Central African Rep.",
+        "Chad",
+        "Congo",
+        "Eq. Guinea",
+        "Gabon",
+        "Niger",
+        "Nigeria"
+      ]
+    },
+    "Canada": {
+      "id": "Canada",
+      "continent": "north-america",
+      "neighbours": [
+        "Greenland",
+        "United States of America"
+      ]
+    },
+    "Central African Rep.": {
+      "id": "Central African Rep.",
+      "continent": "africa",
+      "neighbours": [
+        "Cameroon",
+        "Chad",
+        "Congo",
+        "Dem. Rep. Congo",
+        "S. Sudan",
+        "Sudan"
+      ]
+    },
+    "Chad": {
+      "id": "Chad",
+      "continent": "africa",
+      "neighbours": [
+        "Cameroon",
+        "Central African Rep.",
+        "Libya",
+        "Niger",
+        "Sudan"
+      ]
+    },
+    "Chile": {
+      "id": "Chile",
+      "continent": "south-america",
+      "neighbours": [
+        "Antarctica",
+        "Argentina",
+        "Bolivia",
+        "Peru"
+      ]
+    },
+    "China": {
+      "id": "China",
+      "continent": "asia",
+      "neighbours": [
+        "Afghanistan",
+        "Bhutan",
+        "India",
+        "Kazakhstan",
+        "Kyrgyzstan",
+        "Laos",
+        "Mongolia",
+        "Myanmar",
+        "Nepal",
+        "North Korea",
+        "Pakistan",
+        "Russia",
+        "Taiwan",
+        "Tajikistan",
+        "Vietnam"
+      ]
+    },
+    "Colombia": {
+      "id": "Colombia",
+      "continent": "south-america",
+      "neighbours": [
+        "Brazil",
+        "Ecuador",
+        "Panama",
+        "Peru",
+        "Venezuela"
+      ]
+    },
+    "Congo": {
+      "id": "Congo",
+      "continent": "africa",
+      "neighbours": [
+        "Angola",
+        "Cameroon",
+        "Central African Rep.",
+        "Dem. Rep. Congo",
+        "Gabon"
+      ]
+    },
+    "Costa Rica": {
+      "id": "Costa Rica",
+      "continent": "north-america",
+      "neighbours": [
+        "Nicaragua",
+        "Panama"
+      ]
+    },
+    "Croatia": {
+      "id": "Croatia",
+      "continent": "europe",
+      "neighbours": [
+        "Bosnia and Herz.",
+        "Hungary",
+        "Montenegro",
+        "Serbia",
+        "Slovenia"
+      ]
+    },
+    "Cuba": {
+      "id": "Cuba",
+      "continent": "north-america",
+      "neighbours": [
+        "Bahamas",
+        "Haiti",
+        "Jamaica",
+        "Mexico"
+      ]
+    },
+    "Cyprus": {
+      "id": "Cyprus",
+      "continent": "europe",
+      "neighbours": [
+        "N. Cyprus",
+        "Turkey"
+      ]
+    },
+    "Czechia": {
+      "id": "Czechia",
+      "continent": "europe",
+      "neighbours": [
+        "Austria",
+        "Germany",
+        "Poland",
+        "Slovakia"
+      ]
+    },
+    "Côte d'Ivoire": {
+      "id": "Côte d'Ivoire",
+      "continent": "africa",
+      "neighbours": [
+        "Burkina Faso",
+        "Ghana",
+        "Guinea",
+        "Liberia",
+        "Mali"
+      ]
+    },
+    "Dem. Rep. Congo": {
+      "id": "Dem. Rep. Congo",
+      "continent": "africa",
+      "neighbours": [
+        "Angola",
+        "Burundi",
+        "Central African Rep.",
+        "Congo",
+        "Rwanda",
+        "S. Sudan",
+        "Tanzania",
+        "Uganda",
+        "Zambia"
+      ]
+    },
+    "Denmark": {
+      "id": "Denmark",
+      "continent": "europe",
+      "neighbours": [
+        "Germany",
+        "Norway",
+        "Sweden"
+      ]
+    },
+    "Djibouti": {
+      "id": "Djibouti",
+      "continent": "africa",
+      "neighbours": [
+        "Eritrea",
+        "Ethiopia",
+        "Somaliland",
+        "Yemen"
+      ]
+    },
+    "Dominican Rep.": {
+      "id": "Dominican Rep.",
+      "continent": "north-america",
+      "neighbours": [
+        "Haiti",
+        "Puerto Rico"
+      ]
+    },
+    "Ecuador": {
+      "id": "Ecuador",
+      "continent": "south-america",
+      "neighbours": [
+        "Colombia",
+        "Peru"
+      ]
+    },
+    "Egypt": {
+      "id": "Egypt",
+      "continent": "africa",
+      "neighbours": [
+        "Israel",
+        "Jordan",
+        "Libya",
+        "Sudan"
+      ]
+    },
+    "El Salvador": {
+      "id": "El Salvador",
+      "continent": "north-america",
+      "neighbours": [
+        "Guatemala",
+        "Honduras"
+      ]
+    },
+    "Eq. Guinea": {
+      "id": "Eq. Guinea",
+      "continent": "africa",
+      "neighbours": [
+        "Cameroon",
+        "Gabon"
+      ]
+    },
+    "Eritrea": {
+      "id": "Eritrea",
+      "continent": "africa",
+      "neighbours": [
+        "Djibouti",
+        "Ethiopia",
+        "Sudan"
+      ]
+    },
+    "Estonia": {
+      "id": "Estonia",
+      "continent": "europe",
+      "neighbours": [
+        "Latvia",
+        "Russia"
+      ]
+    },
+    "Ethiopia": {
+      "id": "Ethiopia",
+      "continent": "africa",
+      "neighbours": [
+        "Djibouti",
+        "Eritrea",
+        "Kenya",
+        "S. Sudan",
+        "Somalia",
+        "Somaliland",
+        "Sudan"
+      ]
+    },
+    "Falkland Is.": {
+      "id": "Falkland Is.",
+      "continent": "south-america",
+      "neighbours": [
+        "Argentina"
+      ]
+    },
+    "Fiji": {
+      "id": "Fiji",
+      "continent": "oceania",
+      "neighbours": [
+        "Vanuatu"
+      ]
+    },
+    "Finland": {
+      "id": "Finland",
+      "continent": "europe",
+      "neighbours": [
+        "Norway",
+        "Russia",
+        "Sweden"
+      ]
+    },
+    "Fr. S. Antarctic Lands": {
+      "id": "Fr. S. Antarctic Lands",
+      "continent": "africa",
+      "neighbours": [
+        "Antarctica",
+        "Madagascar"
+      ]
+    },
+    "France": {
+      "id": "France",
+      "continent": "europe",
+      "neighbours": [
+        "Belgium",
+        "Brazil",
+        "Germany",
+        "Italy",
+        "Luxembourg",
+        "Spain",
+        "Suriname",
+        "Switzerland",
+        "United Kingdom"
+      ]
+    },
+    "Gabon": {
+      "id": "Gabon",
+      "continent": "africa",
+      "neighbours": [
+        "Cameroon",
+        "Congo",
+        "Eq. Guinea"
+      ]
+    },
+    "Gambia": {
+      "id": "Gambia",
+      "continent": "africa",
+      "neighbours": [
+        "Senegal"
+      ]
+    },
+    "Georgia": {
+      "id": "Georgia",
+      "continent": "asia",
+      "neighbours": [
+        "Armenia",
+        "Azerbaijan",
+        "Russia",
+        "Turkey"
+      ]
+    },
+    "Germany": {
+      "id": "Germany",
+      "continent": "europe",
+      "neighbours": [
+        "Austria",
+        "Belgium",
+        "Czechia",
+        "Denmark",
+        "France",
+        "Luxembourg",
+        "Netherlands",
+        "Poland",
+        "Switzerland"
+      ]
+    },
+    "Ghana": {
+      "id": "Ghana",
+      "continent": "africa",
+      "neighbours": [
+        "Burkina Faso",
+        "Côte d'Ivoire",
+        "Togo"
+      ]
+    },
+    "Greece": {
+      "id": "Greece",
+      "continent": "europe",
+      "neighbours": [
+        "Albania",
+        "Bulgaria",
+        "Italy",
+        "Macedonia",
+        "Turkey"
+      ]
+    },
+    "Greenland": {
+      "id": "Greenland",
+      "continent": "north-america",
+      "neighbours": [
+        "Canada",
+        "Iceland"
+      ]
+    },
+    "Guatemala": {
+      "id": "Guatemala",
+      "continent": "north-america",
+      "neighbours": [
+        "Belize",
+        "El Salvador",
+        "Honduras",
+        "Mexico"
+      ]
+    },
+    "Guinea": {
+      "id": "Guinea",
+      "continent": "africa",
+      "neighbours": [
+        "Côte d'Ivoire",
+        "Guinea-Bissau",
+        "Liberia",
+        "Mali",
+        "Senegal",
+        "Sierra Leone"
+      ]
+    },
+    "Guinea-Bissau": {
+      "id": "Guinea-Bissau",
+      "continent": "africa",
+      "neighbours": [
+        "Guinea",
+        "Senegal"
+      ]
+    },
+    "Guyana": {
+      "id": "Guyana",
+      "continent": "south-america",
+      "neighbours": [
+        "Brazil",
+        "Suriname",
+        "Venezuela"
+      ]
+    },
+    "Haiti": {
+      "id": "Haiti",
+      "continent": "north-america",
+      "neighbours": [
+        "Cuba",
+        "Dominican Rep.",
+        "Jamaica"
+      ]
+    },
+    "Honduras": {
+      "id": "Honduras",
+      "continent": "north-america",
+      "neighbours": [
+        "El Salvador",
+        "Guatemala",
+        "Nicaragua"
+      ]
+    },
+    "Hungary": {
+      "id": "Hungary",
+      "continent": "europe",
+      "neighbours": [
+        "Austria",
+        "Croatia",
+        "Romania",
+        "Serbia",
+        "Slovakia",
+        "Slovenia",
+        "Ukraine"
+      ]
+    },
+    "Iceland": {
+      "id": "Iceland",
+      "continent": "europe",
+      "neighbours": [
+        "Greenland",
+        "Norway",
+        "United Kingdom"
+      ]
+    },
+    "India": {
+      "id": "India",
+      "continent": "asia",
+      "neighbours": [
+        "Bangladesh",
+        "Bhutan",
+        "China",
+        "Myanmar",
+        "Nepal",
+        "Pakistan",
+        "Sri Lanka"
+      ]
+    },
+    "Indonesia": {
+      "id": "Indonesia",
+      "continent": "asia",
+      "neighbours": [
+        "Australia",
+        "Malaysia",
+        "Papua New Guinea",
+        "Philippines",
+        "Timor-Leste"
+      ]
+    },
+    "Iran": {
+      "id": "Iran",
+      "continent": "asia",
+      "neighbours": [
+        "Afghanistan",
+        "Armenia",
+        "Azerbaijan",
+        "Iraq",
+        "Pakistan",
+        "Turkey",
+        "Turkmenistan"
+      ]
+    },
+    "Iraq": {
+      "id": "Iraq",
+      "continent": "asia",
+      "neighbours": [
+        "Iran",
+        "Jordan",
+        "Kuwait",
+        "Saudi Arabia",
+        "Syria",
+        "Turkey"
+      ]
+    },
+    "Ireland": {
+      "id": "Ireland",
+      "continent": "europe",
+      "neighbours": [
+        "United Kingdom"
+      ]
+    },
+    "Israel": {
+      "id": "Israel",
+      "continent": "asia",
+      "neighbours": [
+        "Egypt",
+        "Jordan",
+        "Lebanon",
+        "Palestine",
+        "Syria"
+      ]
+    },
+    "Italy": {
+      "id": "Italy",
+      "continent": "europe",
+      "neighbours": [
+        "Austria",
+        "France",
+        "Greece",
+        "Slovenia",
+        "Switzerland",
+        "Tunisia"
+      ]
+    },
+    "Jamaica": {
+      "id": "Jamaica",
+      "continent": "north-america",
+      "neighbours": [
+        "Cuba",
+        "Haiti"
+      ]
+    },
+    "Japan": {
+      "id": "Japan",
+      "continent": "asia",
+      "neighbours": [
+        "Russia",
+        "South Korea"
+      ]
+    },
+    "Jordan": {
+      "id": "Jordan",
+      "continent": "asia",
+      "neighbours": [
+        "Egypt",
+        "Iraq",
+        "Israel",
+        "Palestine",
+        "Saudi Arabia",
+        "Syria"
+      ]
+    },
+    "Kazakhstan": {
+      "id": "Kazakhstan",
+      "continent": "asia",
+      "neighbours": [
+        "China",
+        "Kyrgyzstan",
+        "Russia",
+        "Turkmenistan",
+        "Uzbekistan"
+      ]
+    },
+    "Kenya": {
+      "id": "Kenya",
+      "continent": "africa",
+      "neighbours": [
+        "Ethiopia",
+        "S. Sudan",
+        "Somalia",
+        "Tanzania",
+        "Uganda"
+      ]
+    },
+    "Kosovo": {
+      "id": "Kosovo",
+      "continent": "europe",
+      "neighbours": [
+        "Albania",
+        "Macedonia",
+        "Montenegro",
+        "Serbia"
+      ]
+    },
+    "Kuwait": {
+      "id": "Kuwait",
+      "continent": "asia",
+      "neighbours": [
+        "Iraq",
+        "Saudi Arabia"
+      ]
+    },
+    "Kyrgyzstan": {
+      "id": "Kyrgyzstan",
+      "continent": "asia",
+      "neighbours": [
+        "China",
+        "Kazakhstan",
+        "Tajikistan",
+        "Uzbekistan"
+      ]
+    },
+    "Laos": {
+      "id": "Laos",
+      "continent": "asia",
+      "neighbours": [
+        "Cambodia",
+        "China",
+        "Myanmar",
+        "Thailand",
+        "Vietnam"
+      ]
+    },
+    "Latvia": {
+      "id": "Latvia",
+      "continent": "europe",
+      "neighbours": [
+        "Belarus",
+        "Estonia",
+        "Lithuania",
+        "Russia"
+      ]
+    },
+    "Lebanon": {
+      "id": "Lebanon",
+      "continent": "asia",
+      "neighbours": [
+        "Israel",
+        "Syria"
+      ]
+    },
+    "Lesotho": {
+      "id": "Lesotho",
+      "continent": "africa",
+      "neighbours": [
+        "South Africa"
+      ]
+    },
+    "Liberia": {
+      "id": "Liberia",
+      "continent": "africa",
+      "neighbours": [
+        "Côte d'Ivoire",
+        "Guinea",
+        "Sierra Leone"
+      ]
+    },
+    "Libya": {
+      "id": "Libya",
+      "continent": "africa",
+      "neighbours": [
+        "Algeria",
+        "Chad",
+        "Egypt",
+        "Niger",
+        "Sudan",
+        "Tunisia"
+      ]
+    },
+    "Lithuania": {
+      "id": "Lithuania",
+      "continent": "europe",
+      "neighbours": [
+        "Belarus",
+        "Latvia",
+        "Poland",
+        "Russia"
+      ]
+    },
+    "Luxembourg": {
+      "id": "Luxembourg",
+      "continent": "europe",
+      "neighbours": [
+        "Belgium",
+        "France",
+        "Germany"
+      ]
+    },
+    "Macedonia": {
+      "id": "Macedonia",
+      "continent": "europe",
+      "neighbours": [
+        "Albania",
+        "Bulgaria",
+        "Greece",
+        "Kosovo",
+        "Serbia"
+      ]
+    },
+    "Madagascar": {
+      "id": "Madagascar",
+      "continent": "africa",
+      "neighbours": [
+        "Fr. S. Antarctic Lands",
+        "Mozambique"
+      ]
+    },
+    "Malawi": {
+      "id": "Malawi",
+      "continent": "africa",
+      "neighbours": [
+        "Mozambique",
+        "Tanzania",
+        "Zambia"
+      ]
+    },
+    "Malaysia": {
+      "id": "Malaysia",
+      "continent": "asia",
+      "neighbours": [
+        "Brunei",
+        "Indonesia",
+        "Philippines",
+        "Thailand"
+      ]
+    },
+    "Mali": {
+      "id": "Mali",
+      "continent": "africa",
+      "neighbours": [
+        "Algeria",
+        "Burkina Faso",
+        "Côte d'Ivoire",
+        "Guinea",
+        "Mauritania",
+        "Niger",
+        "Senegal"
+      ]
+    },
+    "Mauritania": {
+      "id": "Mauritania",
+      "continent": "africa",
+      "neighbours": [
+        "Algeria",
+        "Mali",
+        "Senegal",
+        "W. Sahara"
+      ]
+    },
+    "Mexico": {
+      "id": "Mexico",
+      "continent": "north-america",
+      "neighbours": [
+        "Belize",
+        "Cuba",
+        "Guatemala",
+        "United States of America"
+      ]
+    },
+    "Moldova": {
+      "id": "Moldova",
+      "continent": "europe",
+      "neighbours": [
+        "Romania",
+        "Ukraine"
+      ]
+    },
+    "Mongolia": {
+      "id": "Mongolia",
+      "continent": "asia",
+      "neighbours": [
+        "China",
+        "Russia"
+      ]
+    },
+    "Montenegro": {
+      "id": "Montenegro",
+      "continent": "europe",
+      "neighbours": [
+        "Albania",
+        "Bosnia and Herz.",
+        "Croatia",
+        "Kosovo",
+        "Serbia"
+      ]
+    },
+    "Morocco": {
+      "id": "Morocco",
+      "continent": "africa",
+      "neighbours": [
+        "Algeria",
+        "Spain",
+        "W. Sahara"
+      ]
+    },
+    "Mozambique": {
+      "id": "Mozambique",
+      "continent": "africa",
+      "neighbours": [
+        "Madagascar",
+        "Malawi",
+        "South Africa",
+        "Tanzania",
+        "Zambia",
+        "Zimbabwe",
+        "eSwatini"
+      ]
+    },
+    "Myanmar": {
+      "id": "Myanmar",
+      "continent": "asia",
+      "neighbours": [
+        "Bangladesh",
+        "China",
+        "India",
+        "Laos",
+        "Thailand"
+      ]
+    },
+    "N. Cyprus": {
+      "id": "N. Cyprus",
+      "continent": "europe",
+      "neighbours": [
+        "Cyprus"
+      ]
+    },
+    "Namibia": {
+      "id": "Namibia",
+      "continent": "africa",
+      "neighbours": [
+        "Angola",
+        "Botswana",
+        "South Africa",
+        "Zambia"
+      ]
+    },
+    "Nepal": {
+      "id": "Nepal",
+      "continent": "asia",
+      "neighbours": [
+        "China",
+        "India"
+      ]
+    },
+    "Netherlands": {
+      "id": "Netherlands",
+      "continent": "europe",
+      "neighbours": [
+        "Belgium",
+        "Germany",
+        "United Kingdom"
+      ]
+    },
+    "New Caledonia": {
+      "id": "New Caledonia",
+      "continent": "oceania",
+      "neighbours": [
+        "Australia",
+        "New Zealand",
+        "Vanuatu"
+      ]
+    },
+    "New Zealand": {
+      "id": "New Zealand",
+      "continent": "oceania",
+      "neighbours": [
+        "Australia",
+        "New Caledonia"
+      ]
+    },
+    "Nicaragua": {
+      "id": "Nicaragua",
+      "continent": "north-america",
+      "neighbours": [
+        "Costa Rica",
+        "Honduras"
+      ]
+    },
+    "Niger": {
+      "id": "Niger",
+      "continent": "africa",
+      "neighbours": [
+        "Algeria",
+        "Benin",
+        "Burkina Faso",
+        "Cameroon",
+        "Chad",
+        "Libya",
+        "Mali",
+        "Nigeria"
+      ]
+    },
+    "Nigeria": {
+      "id": "Nigeria",
+      "continent": "africa",
+      "neighbours": [
+        "Benin",
+        "Cameroon",
+        "Niger"
+      ]
+    },
+    "North Korea": {
+      "id": "North Korea",
+      "continent": "asia",
+      "neighbours": [
+        "China",
+        "Russia",
+        "South Korea"
+      ]
+    },
+    "Norway": {
+      "id": "Norway",
+      "continent": "europe",
+      "neighbours": [
+        "Denmark",
+        "Finland",
+        "Iceland",
+        "Russia",
+        "Sweden",
+        "United Kingdom"
+      ]
+    },
+    "Oman": {
+      "id": "Oman",
+      "continent": "asia",
+      "neighbours": [
+        "Saudi Arabia",
+        "United Arab Emirates",
+        "Yemen"
+      ]
+    },
+    "Pakistan": {
+      "id": "Pakistan",
+      "continent": "asia",
+      "neighbours": [
+        "Afghanistan",
+        "China",
+        "India",
+        "Iran"
+      ]
+    },
+    "Palestine": {
+      "id": "Palestine",
+      "continent": "asia",
+      "neighbours": [
+        "Israel",
+        "Jordan"
+      ]
+    },
+    "Panama": {
+      "id": "Panama",
+      "continent": "north-america",
+      "neighbours": [
+        "Colombia",
+        "Costa Rica"
+      ]
+    },
+    "Papua New Guinea": {
+      "id": "Papua New Guinea",
+      "continent": "oceania",
+      "neighbours": [
+        "Australia",
+        "Indonesia",
+        "Solomon Is."
+      ]
+    },
+    "Paraguay": {
+      "id": "Paraguay",
+      "continent": "south-america",
+      "neighbours": [
+        "Argentina",
+        "Bolivia",
+        "Brazil"
+      ]
+    },
+    "Peru": {
+      "id": "Peru",
+      "continent": "south-america",
+      "neighbours": [
+        "Bolivia",
+        "Brazil",
+        "Chile",
+        "Colombia",
+        "Ecuador"
+      ]
+    },
+    "Philippines": {
+      "id": "Philippines",
+      "continent": "asia",
+      "neighbours": [
+        "Indonesia",
+        "Malaysia",
+        "Taiwan"
+      ]
+    },
+    "Poland": {
+      "id": "Poland",
+      "continent": "europe",
+      "neighbours": [
+        "Belarus",
+        "Czechia",
+        "Germany",
+        "Lithuania",
+        "Russia",
+        "Slovakia",
+        "Ukraine"
+      ]
+    },
+    "Portugal": {
+      "id": "Portugal",
+      "continent": "europe",
+      "neighbours": [
+        "Spain"
+      ]
+    },
+    "Puerto Rico": {
+      "id": "Puerto Rico",
+      "continent": "north-america",
+      "neighbours": [
+        "Dominican Rep."
+      ]
+    },
+    "Qatar": {
+      "id": "Qatar",
+      "continent": "asia",
+      "neighbours": [
+        "Saudi Arabia"
+      ]
+    },
+    "Romania": {
+      "id": "Romania",
+      "continent": "europe",
+      "neighbours": [
+        "Bulgaria",
+        "Hungary",
+        "Moldova",
+        "Serbia",
+        "Ukraine"
+      ]
+    },
+    "Russia": {
+      "id": "Russia",
+      "continent": "asia",
+      "neighbours": [
+        "Azerbaijan",
+        "Belarus",
+        "China",
+        "Estonia",
+        "Finland",
+        "Georgia",
+        "Japan",
+        "Kazakhstan",
+        "Latvia",
+        "Lithuania",
+        "Mongolia",
+        "North Korea",
+        "Norway",
+        "Poland",
+        "Ukraine",
+        "United States of America"
+      ]
+    },
+    "Rwanda": {
+      "id": "Rwanda",
+      "continent": "africa",
+      "neighbours": [
+        "Burundi",
+        "Dem. Rep. Congo",
+        "Tanzania",
+        "Uganda"
+      ]
+    },
+    "S. Sudan": {
+      "id": "S. Sudan",
+      "continent": "africa",
+      "neighbours": [
+        "Central African Rep.",
+        "Dem. Rep. Congo",
+        "Ethiopia",
+        "Kenya",
+        "Sudan",
+        "Uganda"
+      ]
+    },
+    "Saudi Arabia": {
+      "id": "Saudi Arabia",
+      "continent": "asia",
+      "neighbours": [
+        "Iraq",
+        "Jordan",
+        "Kuwait",
+        "Oman",
+        "Qatar",
+        "United Arab Emirates",
+        "Yemen"
+      ]
+    },
+    "Senegal": {
+      "id": "Senegal",
+      "continent": "africa",
+      "neighbours": [
+        "Gambia",
+        "Guinea",
+        "Guinea-Bissau",
+        "Mali",
+        "Mauritania"
+      ]
+    },
+    "Serbia": {
+      "id": "Serbia",
+      "continent": "europe",
+      "neighbours": [
+        "Bosnia and Herz.",
+        "Bulgaria",
+        "Croatia",
+        "Hungary",
+        "Kosovo",
+        "Macedonia",
+        "Montenegro",
+        "Romania"
+      ]
+    },
+    "Sierra Leone": {
+      "id": "Sierra Leone",
+      "continent": "africa",
+      "neighbours": [
+        "Guinea",
+        "Liberia"
+      ]
+    },
+    "Slovakia": {
+      "id": "Slovakia",
+      "continent": "europe",
+      "neighbours": [
+        "Austria",
+        "Czechia",
+        "Hungary",
+        "Poland",
+        "Ukraine"
+      ]
+    },
+    "Slovenia": {
+      "id": "Slovenia",
+      "continent": "europe",
+      "neighbours": [
+        "Austria",
+        "Croatia",
+        "Hungary",
+        "Italy"
+      ]
+    },
+    "Solomon Is.": {
+      "id": "Solomon Is.",
+      "continent": "oceania",
+      "neighbours": [
+        "Papua New Guinea",
+        "Vanuatu"
+      ]
+    },
+    "Somalia": {
+      "id": "Somalia",
+      "continent": "africa",
+      "neighbours": [
+        "Ethiopia",
+        "Kenya",
+        "Somaliland"
+      ]
+    },
+    "Somaliland": {
+      "id": "Somaliland",
+      "continent": "africa",
+      "neighbours": [
+        "Djibouti",
+        "Ethiopia",
+        "Somalia"
+      ]
+    },
+    "South Africa": {
+      "id": "South Africa",
+      "continent": "africa",
+      "neighbours": [
+        "Botswana",
+        "Lesotho",
+        "Mozambique",
+        "Namibia",
+        "Zimbabwe",
+        "eSwatini"
+      ]
+    },
+    "South Korea": {
+      "id": "South Korea",
+      "continent": "asia",
+      "neighbours": [
+        "Japan",
+        "North Korea"
+      ]
+    },
+    "Spain": {
+      "id": "Spain",
+      "continent": "europe",
+      "neighbours": [
+        "France",
+        "Morocco",
+        "Portugal"
+      ]
+    },
+    "Sri Lanka": {
+      "id": "Sri Lanka",
+      "continent": "asia",
+      "neighbours": [
+        "India"
+      ]
+    },
+    "Sudan": {
+      "id": "Sudan",
+      "continent": "africa",
+      "neighbours": [
+        "Central African Rep.",
+        "Chad",
+        "Egypt",
+        "Eritrea",
+        "Ethiopia",
+        "Libya",
+        "S. Sudan"
+      ]
+    },
+    "Suriname": {
+      "id": "Suriname",
+      "continent": "south-america",
+      "neighbours": [
+        "Brazil",
+        "France",
+        "Guyana"
+      ]
+    },
+    "Sweden": {
+      "id": "Sweden",
+      "continent": "europe",
+      "neighbours": [
+        "Denmark",
+        "Finland",
+        "Norway"
+      ]
+    },
+    "Switzerland": {
+      "id": "Switzerland",
+      "continent": "europe",
+      "neighbours": [
+        "Austria",
+        "France",
+        "Germany",
+        "Italy"
+      ]
+    },
+    "Syria": {
+      "id": "Syria",
+      "continent": "asia",
+      "neighbours": [
+        "Iraq",
+        "Israel",
+        "Jordan",
+        "Lebanon",
+        "Turkey"
+      ]
+    },
+    "Taiwan": {
+      "id": "Taiwan",
+      "continent": "asia",
+      "neighbours": [
+        "China",
+        "Philippines"
+      ]
+    },
+    "Tajikistan": {
+      "id": "Tajikistan",
+      "continent": "asia",
+      "neighbours": [
+        "Afghanistan",
+        "China",
+        "Kyrgyzstan",
+        "Uzbekistan"
+      ]
+    },
+    "Tanzania": {
+      "id": "Tanzania",
+      "continent": "africa",
+      "neighbours": [
+        "Burundi",
+        "Dem. Rep. Congo",
+        "Kenya",
+        "Malawi",
+        "Mozambique",
+        "Rwanda",
+        "Uganda",
+        "Zambia"
+      ]
+    },
+    "Thailand": {
+      "id": "Thailand",
+      "continent": "asia",
+      "neighbours": [
+        "Cambodia",
+        "Laos",
+        "Malaysia",
+        "Myanmar"
+      ]
+    },
+    "Timor-Leste": {
+      "id": "Timor-Leste",
+      "continent": "asia",
+      "neighbours": [
+        "Indonesia"
+      ]
+    },
+    "Togo": {
+      "id": "Togo",
+      "continent": "africa",
+      "neighbours": [
+        "Benin",
+        "Burkina Faso",
+        "Ghana"
+      ]
+    },
+    "Trinidad and Tobago": {
+      "id": "Trinidad and Tobago",
+      "continent": "south-america",
+      "neighbours": [
+        "Venezuela"
+      ]
+    },
+    "Tunisia": {
+      "id": "Tunisia",
+      "continent": "africa",
+      "neighbours": [
+        "Algeria",
+        "Italy",
+        "Libya"
+      ]
+    },
+    "Turkey": {
+      "id": "Turkey",
+      "continent": "asia",
+      "neighbours": [
+        "Armenia",
+        "Azerbaijan",
+        "Bulgaria",
+        "Cyprus",
+        "Georgia",
+        "Greece",
+        "Iran",
+        "Iraq",
+        "Syria"
+      ]
+    },
+    "Turkmenistan": {
+      "id": "Turkmenistan",
+      "continent": "asia",
+      "neighbours": [
+        "Afghanistan",
+        "Iran",
+        "Kazakhstan",
+        "Uzbekistan"
+      ]
+    },
+    "Uganda": {
+      "id": "Uganda",
+      "continent": "africa",
+      "neighbours": [
+        "Dem. Rep. Congo",
+        "Kenya",
+        "Rwanda",
+        "S. Sudan",
+        "Tanzania"
+      ]
+    },
+    "Ukraine": {
+      "id": "Ukraine",
+      "continent": "europe",
+      "neighbours": [
+        "Belarus",
+        "Hungary",
+        "Moldova",
+        "Poland",
+        "Romania",
+        "Russia",
+        "Slovakia"
+      ]
+    },
+    "United Arab Emirates": {
+      "id": "United Arab Emirates",
+      "continent": "asia",
+      "neighbours": [
+        "Oman",
+        "Saudi Arabia"
+      ]
+    },
+    "United Kingdom": {
+      "id": "United Kingdom",
+      "continent": "europe",
+      "neighbours": [
+        "France",
+        "Iceland",
+        "Ireland",
+        "Netherlands",
+        "Norway"
+      ]
+    },
+    "United States of America": {
+      "id": "United States of America",
+      "continent": "north-america",
+      "neighbours": [
+        "Bahamas",
+        "Canada",
+        "Mexico",
+        "Russia"
+      ]
+    },
+    "Uruguay": {
+      "id": "Uruguay",
+      "continent": "south-america",
+      "neighbours": [
+        "Argentina",
+        "Brazil"
+      ]
+    },
+    "Uzbekistan": {
+      "id": "Uzbekistan",
+      "continent": "asia",
+      "neighbours": [
+        "Afghanistan",
+        "Kazakhstan",
+        "Kyrgyzstan",
+        "Tajikistan",
+        "Turkmenistan"
+      ]
+    },
+    "Vanuatu": {
+      "id": "Vanuatu",
+      "continent": "oceania",
+      "neighbours": [
+        "Fiji",
+        "New Caledonia",
+        "Solomon Is."
+      ]
+    },
+    "Venezuela": {
+      "id": "Venezuela",
+      "continent": "south-america",
+      "neighbours": [
+        "Brazil",
+        "Colombia",
+        "Guyana",
+        "Trinidad and Tobago"
+      ]
+    },
+    "Vietnam": {
+      "id": "Vietnam",
+      "continent": "asia",
+      "neighbours": [
+        "Cambodia",
+        "China",
+        "Laos"
+      ]
+    },
+    "W. Sahara": {
+      "id": "W. Sahara",
+      "continent": "africa",
+      "neighbours": [
+        "Algeria",
+        "Mauritania",
+        "Morocco"
+      ]
+    },
+    "Yemen": {
+      "id": "Yemen",
+      "continent": "asia",
+      "neighbours": [
+        "Djibouti",
+        "Oman",
+        "Saudi Arabia"
+      ]
+    },
+    "Zambia": {
+      "id": "Zambia",
+      "continent": "africa",
+      "neighbours": [
+        "Angola",
+        "Botswana",
+        "Dem. Rep. Congo",
+        "Malawi",
+        "Mozambique",
+        "Namibia",
+        "Tanzania",
+        "Zimbabwe"
+      ]
+    },
+    "Zimbabwe": {
+      "id": "Zimbabwe",
+      "continent": "africa",
+      "neighbours": [
+        "Botswana",
+        "Mozambique",
+        "South Africa",
+        "Zambia"
+      ]
+    },
+    "eSwatini": {
+      "id": "eSwatini",
+      "continent": "africa",
+      "neighbours": [
+        "Mozambique",
+        "South Africa"
+      ]
+    }
+  }
+}

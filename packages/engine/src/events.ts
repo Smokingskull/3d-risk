@@ -1,0 +1,34 @@
+/**
+ * Events emitted by applyAction. The UI animates from these; the server can log
+ * them; the move-log archive built from them is training data for the learning AI.
+ */
+import type { Phase, PlayerId, TerritoryId } from "./types.js";
+
+export type GameEvent =
+  | { type: "armiesPlaced"; player: PlayerId; territory: TerritoryId; count: number }
+  | { type: "cardsTraded"; player: PlayerId; bonus: number; territoryMatch: boolean }
+  | {
+      type: "attacked";
+      player: PlayerId;
+      from: TerritoryId;
+      to: TerritoryId;
+      attackerDice: number[];
+      defenderDice: number[];
+      attackerLosses: number;
+      defenderLosses: number;
+      conquered: boolean;
+    }
+  | {
+      type: "territoryConquered";
+      from: TerritoryId;
+      to: TerritoryId;
+      newOwner: PlayerId;
+      previousOwner: PlayerId;
+    }
+  | { type: "occupied"; from: TerritoryId; to: TerritoryId; count: number }
+  | { type: "cardAwarded"; player: PlayerId }
+  | { type: "fortified"; from: TerritoryId; to: TerritoryId; count: number }
+  | { type: "playerEliminated"; player: PlayerId; by: PlayerId; cardsTaken: number }
+  | { type: "phaseChanged"; phase: Phase; player: PlayerId }
+  | { type: "turnEnded"; player: PlayerId; nextPlayer: PlayerId; turn: number }
+  | { type: "gameWon"; winner: PlayerId };
