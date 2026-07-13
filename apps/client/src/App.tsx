@@ -52,6 +52,7 @@ export function App() {
   const pickCountry = (id: string) => {
     hs.clickTerritory(id);
     setHighlightContinent(hs.game!.board.territories[id]?.continent ?? null);
+    focusOn(id); // auto-rotate to the selected country (when auto-rotate is on)
   };
 
   if (import.meta.env.DEV)
