@@ -44,9 +44,9 @@ export function Hud({ hs, hovered }: { hs: Hotseat; hovered: string | null }) {
   const [open, setOpen] = useState(true);
 
   return (
-    <div className="panel">
+    <div className={open ? "panel" : "panel collapsed"}>
       <div className="panel-header">
-        <h1>Game</h1>
+        <h1>{open ? "Game" : `Game (${active.name})`}</h1>
         <button className="collapse" aria-label={open ? "Collapse" : "Expand"} onClick={() => setOpen((o) => !o)}>
           {open ? "▾" : "▸"}
         </button>

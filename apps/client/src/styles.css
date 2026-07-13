@@ -110,6 +110,15 @@ button.warn {
   text-transform: uppercase;
   color: var(--text);
 }
+/* Collapsed: box is just the title bar, with rounded bottom corners. */
+.panel.collapsed {
+  padding-bottom: 0;
+}
+.panel.collapsed .panel-header {
+  margin-bottom: 0;
+  border-bottom: none;
+  border-radius: 10px;
+}
 .turn {
   display: flex;
   align-items: center;
@@ -154,6 +163,14 @@ button.warn {
 }
 .cont-header h1 {
   margin-bottom: 0;
+}
+.continents.collapsed {
+  padding-bottom: 0;
+}
+.continents.collapsed .cont-header {
+  margin-bottom: 0;
+  border-bottom: none;
+  border-radius: 10px;
 }
 
 .dot {

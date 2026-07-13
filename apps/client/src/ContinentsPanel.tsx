@@ -13,14 +13,15 @@ interface Props {
 export function ContinentsPanel({ game, highlight, selection, onToggle, onSelectRegion }: Props) {
   const me = game.activePlayer;
   const continents = Object.values(game.board.continents);
+  const held = continents.filter((c) => c.territories.every((t) => game.territories[t].owner === me)).length;
   const ownerName = (id: string | null) => game.players.find((p) => p.id === id)?.name ?? "—";
   const ownerColor = (id: string | null) => game.players.find((p) => p.id === id)?.color ?? "#6b7280";
   const [open, setOpen] = useState(true);
 
   return (
-    <div className="continents">
+    <div className={open ? "continents" : "continents collapsed"}>
       <div className="cont-header">
-        <h1>Continents</h1>
+        <h1>{open ? "Continents" : `Continents (${held} held)`}</h1>
         <button className="collapse" aria-label={open ? "Collapse" : "Expand"} onClick={() => setOpen((o) => !o)}>
           {open ? "▾" : "▸"}
         </button>
