@@ -9,6 +9,7 @@ import { TutorialTips } from "./TutorialTips.js";
 import { CombatModal } from "./CombatModal.js";
 import { CountryPopup } from "./CountryPopup.js";
 import { ContinentsPanel } from "./ContinentsPanel.js";
+import { PlayersPanel } from "./PlayersPanel.js";
 import { useHotseat } from "./game/useHotseat.js";
 
 /** A directional light that tracks the camera — straight-on "headlight" so the
@@ -65,13 +66,16 @@ export function App() {
       <TutorialTips hs={hs} />
       <CombatModal hs={hs} />
       <CountryPopup hs={hs} />
-      <ContinentsPanel
-        game={hs.game}
-        highlight={highlightContinent}
-        selection={hs.selection}
-        onToggle={toggleContinent}
-        onSelectRegion={selectRegion}
-      />
+      <div className="right-stack">
+        <PlayersPanel game={hs.game} />
+        <ContinentsPanel
+          game={hs.game}
+          highlight={highlightContinent}
+          selection={hs.selection}
+          onToggle={toggleContinent}
+          onSelectRegion={selectRegion}
+        />
+      </div>
 
       <Canvas camera={{ position: [0, 0, 4], fov: 45 }} dpr={[1, 2]}>
         <color attach="background" args={["#101417"]} />
