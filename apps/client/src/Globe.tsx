@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef } from "react";
 import { Text, useGLTF } from "@react-three/drei";
-import { useFrame, type ThreeEvent } from "@react-three/fiber";
+import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
-import type { GameState, TerritoryId } from "@risk3d/engine";
+import { getBoard, type GameState, type TerritoryId } from "@risk3d/engine";
 import { NEUTRAL_COLOR } from "./players.js";
 import { HAVE_COLOR, NEED_COLOR } from "./continents.js";
 
@@ -10,11 +10,30 @@ const MODEL_URL = "/transparent_country_globe_gameboard.glb";
 const TARGET_RADIUS = 1.2;
 const INERT_COLOR = "#20242e"; // countries not playable in the current mode
 
+// GLTFLoader sanitises node names (spaces -> underscores, reserved chars dropped),
+// so mesh names like "New_Zealand" don't match the engine's "New Zealand" ids.
+// Build a reverse map from every canonical id (the full world list covers both
+// board modes) sanitised the same way, so we can recover the real id per mesh.
+const CANONICAL_BY_SANITIZED = new Map(
+  Object.keys(getBoard("world").territories).map((id) => [THREE.PropertyBinding.sanitizeNodeName(id), id]),
+);
+
+// Scratch vectors reused each frame (single globe instance, single render thread).
+const _labelDir = new THREE.Vector3();
+const _camDir = new THREE.Vector3();
+
+/** Requested camera focus: rotate so this country faces front (rotation only). */
+export interface FocusRequest {
+  id: TerritoryId;
+  n: number;
+}
+
 interface GlobeProps {
   game: GameState;
   selectedFrom: TerritoryId | null;
   validTargets: Set<TerritoryId>;
   highlightContinent: string | null;
+  focus: FocusRequest | null;
   onHover: (country: TerritoryId | null) => void;
   onPick: (country: TerritoryId) => void;
 }
@@ -30,7 +49,12 @@ function Labels({ entries }: { entries: LabelEntry[] }) {
   const group = useRef<THREE.Group>(null);
   useFrame(({ camera }) => {
     if (!group.current) return;
-    for (const child of group.current.children) child.quaternion.copy(camera.quaternion);
+    _camDir.copy(camera.position).normalize();
+    for (const child of group.current.children) {
+      child.quaternion.copy(camera.quaternion);
+      // Hide labels on the far side of the globe (facing away from the camera).
+      child.visible = _labelDir.copy(child.position).normalize().dot(_camDir) > 0.12;
+    }
   });
   return (
     <group ref={group}>
@@ -52,8 +76,10 @@ function Labels({ entries }: { entries: LabelEntry[] }) {
   );
 }
 
-export function Globe({ game, selectedFrom, validTargets, highlightContinent, onHover, onPick }: GlobeProps) {
+export function Globe({ game, selectedFrom, validTargets, highlightContinent, focus, onHover, onPick }: GlobeProps) {
   const { scene } = useGLTF(MODEL_URL);
+  const camera = useThree((s) => s.camera);
+  const controls = useThree((s) => s.controls) as unknown as { enabled: boolean; update?: () => void } | null;
 
   // Prepare the scene once: per-country material, collect meshes + surface
   // centroids, normalise size/position so the globe is centred on the origin.
@@ -66,8 +92,9 @@ export function Globe({ game, selectedFrom, validTargets, highlightContinent, on
     root.traverse((obj) => {
       const mesh = obj as THREE.Mesh;
       if (!mesh.isMesh) return;
-      const country = mesh.name || mesh.parent?.name || "";
-      if (!country) return;
+      const raw = mesh.name || mesh.parent?.name || "";
+      if (!raw) return;
+      const country = CANONICAL_BY_SANITIZED.get(raw) ?? raw; // recover the canonical id
 
       mesh.material = new THREE.MeshStandardMaterial({ color: new THREE.Color(NEUTRAL_COLOR), roughness: 0.85 });
       mesh.userData.country = country;
@@ -184,6 +211,33 @@ export function Globe({ game, selectedFrom, validTargets, highlightContinent, on
   };
 
   useEffect(() => () => setHovered(null), []);
+
+  // Rotate the globe so a requested country faces front (rotation only — no
+  // selection). Disables OrbitControls while easing, then hands control back.
+  const focusDir = useRef<THREE.Vector3 | null>(null);
+  useEffect(() => {
+    if (!focus) return;
+    const c = centroids.get(focus.id);
+    if (c) focusDir.current = c.clone().normalize();
+  }, [focus, centroids]);
+
+  useFrame(() => {
+    const target = focusDir.current;
+    if (!target) return;
+    if (controls) controls.enabled = false;
+    const radius = camera.position.length();
+    const cur = camera.position.clone().normalize();
+    if (cur.angleTo(target) < 0.02) {
+      focusDir.current = null;
+      if (controls) {
+        controls.enabled = true;
+        controls.update?.();
+      }
+      return;
+    }
+    camera.position.copy(cur.lerp(target, 0.15).normalize().multiplyScalar(radius));
+    camera.lookAt(0, 0, 0);
+  });
 
   const labels = useMemo<LabelEntry[]>(() => {
     const out: LabelEntry[] = [];

@@ -15,6 +15,7 @@ export function App() {
   const [hovered, setHovered] = useState<string | null>(null);
   const [view, setView] = useState<"menu" | "rules">("menu");
   const [highlightContinent, setHighlightContinent] = useState<string | null>(null);
+  const [focus, setFocus] = useState<{ id: string; n: number } | null>(null);
 
   // Dev-only test hook so headless checks can drive the game deterministically.
   if (import.meta.env.DEV) (window as unknown as { __risk: typeof hs }).__risk = hs;
@@ -32,7 +33,12 @@ export function App() {
       <Hud hs={hs} hovered={hovered} />
       <TutorialTips hs={hs} />
       <CombatModal hs={hs} />
-      <ContinentsPanel game={hs.game} highlight={highlightContinent} onToggle={(id) => setHighlightContinent((cur) => (cur === id ? null : id))} />
+      <ContinentsPanel
+        game={hs.game}
+        highlight={highlightContinent}
+        onToggle={(id) => setHighlightContinent((cur) => (cur === id ? null : id))}
+        onFocusCountry={(id) => setFocus((cur) => ({ id, n: (cur?.n ?? 0) + 1 }))}
+      />
 
       <Canvas camera={{ position: [0, 0, 4], fov: 45 }} dpr={[1, 2]}>
         <color attach="background" args={["#05070d"]} />
@@ -47,12 +53,13 @@ export function App() {
             selectedFrom={hs.selectedFrom}
             validTargets={hs.validTargets}
             highlightContinent={highlightContinent}
+            focus={focus}
             onHover={setHovered}
             onPick={hs.clickTerritory}
           />
         </Suspense>
 
-        <OrbitControls enablePan={false} minDistance={1.6} maxDistance={8} rotateSpeed={0.6} zoomSpeed={0.7} />
+        <OrbitControls makeDefault enablePan={false} minDistance={1.6} maxDistance={8} rotateSpeed={0.6} zoomSpeed={0.7} />
       </Canvas>
     </>
   );
