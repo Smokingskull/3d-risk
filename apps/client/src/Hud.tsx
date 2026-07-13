@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { GameEvent, GameState } from "@risk3d/engine";
 import type { Hotseat } from "./game/useHotseat.js";
 import { Icon } from "./Icon.js";
+import { CardPanel } from "./CardPanel.js";
 
 function describe(e: GameEvent): string {
   switch (e.type) {
@@ -49,8 +50,10 @@ export function Hud({ hs, hovered }: { hs: Hotseat; hovered: string | null }) {
   const pending = game.pendingOccupation;
   const isCpu = active.kind === "cpu" && !winner;
   const [open, setOpen] = useState(true);
+  const [cardsOpen, setCardsOpen] = useState(false);
 
   return (
+    <>
     <div className={open ? "panel" : "panel collapsed"}>
       <div className="panel-header">
         <h1>{open ? "Game" : `Game (${active.name})`}</h1>
@@ -80,8 +83,8 @@ export function Hud({ hs, hovered }: { hs: Hotseat; hovered: string | null }) {
             Reinforcements: <strong>{game.reinforcementsRemaining}</strong>
           </span>
           {game.options.cardsEnabled && (
-            <button onClick={hs.tradeFirstSet} disabled={hs.availableSets === 0} className={hs.mustTrade ? "warn" : ""}>
-              Trade set ({active.cards.length} cards{hs.availableSets ? `, ${hs.availableSets} avail` : ""})
+            <button onClick={() => setCardsOpen(true)} className={hs.mustTrade ? "warn" : ""}>
+              Cards ({active.cards.length}){hs.availableSets ? ` · ${hs.availableSets} set${hs.availableSets > 1 ? "s" : ""}` : ""}
             </button>
           )}
         </div>
@@ -150,5 +153,9 @@ export function Hud({ hs, hovered }: { hs: Hotseat; hovered: string | null }) {
         </>
       )}
     </div>
+    {cardsOpen && !isCpu && game.phase === "reinforce" && (
+      <CardPanel hs={hs} onClose={() => setCardsOpen(false)} />
+    )}
+    </>
   );
 }
