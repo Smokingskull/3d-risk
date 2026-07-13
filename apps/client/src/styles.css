@@ -86,7 +86,7 @@ button.warn {
   border-radius: 12px;
   background: rgba(27, 34, 39, 0.88);
   backdrop-filter: blur(10px);
-  border: 2px solid rgba(101, 80, 54, 0.55);
+  border: 2px solid rgba(182, 138, 72, 0.6);
   color: var(--text);
   display: flex;
   flex-direction: column;
@@ -306,7 +306,7 @@ button.quiet:hover:not(:disabled) {
   border-radius: 12px;
   background: rgba(27, 34, 39, 0.88);
   backdrop-filter: blur(10px);
-  border: 2px solid rgba(101, 80, 54, 0.55);
+  border: 2px solid rgba(182, 138, 72, 0.6);
   color: var(--text);
 }
 .continents h1 {
@@ -424,7 +424,7 @@ button.quiet:hover:not(:disabled) {
   padding: 14px 16px;
   border-radius: 12px;
   background: rgba(40, 49, 55, 0.96);
-  border: 2px solid rgba(101, 80, 54, 0.6);
+  border: 2px solid rgba(182, 138, 72, 0.6);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
   color: var(--text);
 }
@@ -495,7 +495,7 @@ button.quiet:hover:not(:disabled) {
   padding: 22px 24px;
   border-radius: 16px;
   background: rgba(40, 49, 55, 0.97);
-  border: 2px solid rgba(101, 80, 54, 0.6);
+  border: 2px solid rgba(182, 138, 72, 0.6);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   color: var(--text);
 }
@@ -651,6 +651,19 @@ button.quiet:hover:not(:disabled) {
   border: 2px solid rgba(182, 138, 72, 0.6);
   color: var(--text);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+}
+.tutorial.collapsed {
+  padding-bottom: 0;
+}
+.tutorial.collapsed .panel-header {
+  margin-bottom: 0;
+  border-bottom: none;
+  border-radius: 10px;
+}
+.tut-title {
+  display: block;
+  font-size: 15px;
+  color: var(--text);
 }
 .tut-head {
   display: flex;
@@ -817,7 +830,7 @@ button.quiet:hover:not(:disabled) {
   padding: 24px;
   border-radius: 16px;
   background: rgba(40, 49, 55, 0.98);
-  border: 2px solid rgba(101, 80, 54, 0.6);
+  border: 2px solid rgba(182, 138, 72, 0.6);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
   color: var(--text);
   display: flex;

@@ -14,6 +14,16 @@ const PICK_WIDTH = 4.5;
 // The model's north pole is on +Z; rotate it to +Y so the globe shows north-up
 // (standard orientation) rather than pole-on. Applied to meshes, labels, and foci.
 const POLE_FIX = new THREE.Euler(-Math.PI / 2, 0, 0);
+
+// Darken back-facing fragments so the far side of the (transparent) globe reads
+// as "the back", making orientation easy to tell. Shared so all country
+// materials reuse one compiled program.
+const darkenBackFaces = (shader: { fragmentShader: string }) => {
+  shader.fragmentShader = shader.fragmentShader.replace(
+    "#include <color_fragment>",
+    "#include <color_fragment>\n  if (!gl_FrontFacing) diffuseColor.rgb *= 0.4;",
+  );
+};
 import { getBoard, type GameState, type TerritoryId } from "@risk3d/engine";
 import { NEUTRAL_COLOR } from "./players.js";
 
@@ -109,7 +119,10 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
       const territory = countryToTerritory.get(country) ?? country;
 
       if (!mesh.geometry.getAttribute("normal")) mesh.geometry.computeVertexNormals();
-      mesh.material = new THREE.MeshStandardMaterial({ color: new THREE.Color(NEUTRAL_COLOR), roughness: 0.8, side: THREE.DoubleSide });
+      const material = new THREE.MeshStandardMaterial({ color: new THREE.Color(NEUTRAL_COLOR), roughness: 0.8, side: THREE.DoubleSide });
+      material.onBeforeCompile = darkenBackFaces;
+      material.customProgramCacheKey = () => "globe-country";
+      mesh.material = material;
       mesh.userData.territory = territory;
       const list = byTerritory.get(territory) ?? [];
       list.push(mesh);

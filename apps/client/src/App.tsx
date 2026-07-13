@@ -1,6 +1,7 @@
-import { Suspense, useState } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Suspense, useRef, useState } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, Stars } from "@react-three/drei";
+import * as THREE from "three";
 import { Globe } from "./Globe.js";
 import { Hud } from "./Hud.js";
 import { Home } from "./Home.js";
@@ -9,6 +10,14 @@ import { CombatModal } from "./CombatModal.js";
 import { CountryPopup } from "./CountryPopup.js";
 import { ContinentsPanel } from "./ContinentsPanel.js";
 import { useHotseat } from "./game/useHotseat.js";
+
+/** A directional light that tracks the camera — straight-on "headlight" so the
+ * globe shows a subtle centre-bright, edge-dark 3D gradient as it rotates. */
+function CameraLight() {
+  const ref = useRef<THREE.DirectionalLight>(null);
+  useFrame(({ camera }) => ref.current?.position.copy(camera.position));
+  return <directionalLight ref={ref} intensity={0.85} />;
+}
 
 export function App() {
   const hs = useHotseat();
@@ -66,12 +75,12 @@ export function App() {
 
       <Canvas camera={{ position: [0, 0, 4], fov: 45 }} dpr={[1, 2]}>
         <color attach="background" args={["#101417"]} />
-        {/* Mostly-flat ambient keeps colours bright; a gentle hemisphere + key
-            light add a subtle top-lit gradient so countries read as slightly raised. */}
-        <ambientLight intensity={0.8} />
-        <hemisphereLight args={["#dbe6ff", "#2a3242", 0.35]} />
-        <directionalLight position={[5, 4, 5]} intensity={0.7} />
-        <directionalLight position={[-5, -2, -3]} intensity={0.25} />
+        {/* Base ambient + a camera-tracking headlight give a straight-on, centre-bright
+            3D gradient; a faint fixed fill keeps the far edge from going pure black. */}
+        <ambientLight intensity={0.5} />
+        <hemisphereLight args={["#dbe6ff", "#2a3242", 0.2]} />
+        <CameraLight />
+        <directionalLight position={[-5, -2, -3]} intensity={0.15} />
         <Stars radius={120} depth={40} count={3000} factor={4} fade speed={0.5} />
 
         <Suspense fallback={null}>

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { Hotseat } from "./game/useHotseat.js";
 
 /** One tip per stage. Keyed by the stage the player is currently in. */
@@ -20,7 +21,11 @@ const TIPS: Record<string, { title: string; body: string }> = {
   },
 };
 
+/** Short label shown in the collapsed title, e.g. TUTORIAL (Reinforce). */
+const TAG: Record<string, string> = { reinforce: "Reinforce", attack: "Attack", occupy: "Occupy", fortify: "Fortify" };
+
 export function TutorialTips({ hs }: { hs: Hotseat }) {
+  const [open, setOpen] = useState(true);
   const game = hs.game;
   if (!game || game.winner || !hs.tutorial || !hs.isHumanTurn) return null;
 
@@ -29,15 +34,22 @@ export function TutorialTips({ hs }: { hs: Hotseat }) {
   if (!tip) return null;
 
   return (
-    <div className="tutorial">
-      <div className="tut-head">
-        <span className="tut-badge">Tutorial</span>
-        <strong>{tip.title}</strong>
+    <div className={open ? "tutorial" : "tutorial collapsed"}>
+      <div className="panel-header">
+        <h1>{open ? "Tutorial" : `Tutorial (${TAG[key] ?? ""})`}</h1>
+        <button className="collapse" aria-label={open ? "Collapse" : "Expand"} onClick={() => setOpen((o) => !o)}>
+          {open ? "▾" : "▸"}
+        </button>
       </div>
-      <p>{tip.body}</p>
-      <button className="tut-off" onClick={hs.toggleTutorial}>
-        Turn tutorial off
-      </button>
+      {open && (
+        <>
+          <strong className="tut-title">{tip.title}</strong>
+          <p>{tip.body}</p>
+          <button className="tut-off" onClick={hs.toggleTutorial}>
+            Turn tutorial off
+          </button>
+        </>
+      )}
     </div>
   );
 }
