@@ -1,6 +1,28 @@
+/* Bundled fonts (served from our own origin). Oswald for all UI, Black Ops One
+   for the main-menu options. One static face each, covering the weight range so
+   the browser doesn't fake bold. */
+@font-face {
+  font-family: "Oswald";
+  src: url("/fonts/Oswald-SemiBold.ttf") format("truetype");
+  font-weight: 300 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Black Ops One";
+  src: url("/fonts/BlackOpsOne-Regular.ttf") format("truetype");
+  font-weight: 400 800;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   color-scheme: dark;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: "Oswald", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+  font-family: "Oswald", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
 * {
@@ -706,10 +728,10 @@ button.quiet:hover:not(:disabled) {
   max-width: 380px;
 }
 .home-btn {
-  font-family: inherit;
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: 0.07em;
+  font-family: "Black Ops One", "Oswald", sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: #e8ecf4;
   padding: 15px 22px;

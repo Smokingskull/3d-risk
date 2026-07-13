@@ -64,7 +64,7 @@ function Labels({ entries }: { entries: LabelEntry[] }) {
   return (
     <group ref={group}>
       {entries.map((e) => (
-        <Text key={e.id} position={e.position} fontSize={0.04} color="#ffffff" anchorX="center" anchorY="middle" outlineWidth={0.005} outlineColor="#000000">
+        <Text key={e.id} font="/fonts/Oswald-SemiBold.ttf" position={e.position} fontSize={0.04} color="#ffffff" anchorX="center" anchorY="middle" outlineWidth={0.005} outlineColor="#000000">
           {e.text}
         </Text>
       ))}
