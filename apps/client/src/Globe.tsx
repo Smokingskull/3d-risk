@@ -15,15 +15,16 @@ const PICK_WIDTH = 4.5;
 // (standard orientation) rather than pole-on. Applied to meshes, labels, and foci.
 const POLE_FIX = new THREE.Euler(-Math.PI / 2, 0, 0);
 
-// Darken back-facing fragments so the far side of the (transparent) globe reads
-// as "the back", making orientation easy to tell. Shared so all country
-// materials reuse one compiled program.
-const darkenBackFaces = (shader: { fragmentShader: string }) => {
-  shader.fragmentShader = shader.fragmentShader.replace(
-    "#include <color_fragment>",
-    "#include <color_fragment>\n  if (!gl_FrontFacing) diffuseColor.rgb *= 0.4;",
-  );
-};
+// Cracked-earth surface via object-space triplanar projection. The country
+// meshes have no UVs, so we sample a tiling crack texture from the three axis
+// planes and blend by the surface normal — the detail sticks to the globe as it
+// turns. Crack lines darken the per-owner tint (and roughen it a touch) so each
+// territory reads as parched earth in its player colour. Back-facing fragments
+// are dimmed so the far side of the transparent globe reads as "the back".
+const CRACK_TEX_URL = "/assets/textures/mud03_diff_2k.jpg";
+const CRACK_REPEATS = 11; // texture tiles across the globe diameter (tune)
+const CRACK_DARK = 0.55; // how much crack lines darken the tint
+const CRACK_ROUGH = 0.15; // extra roughness in the cracks
 import { getBoard, type GameState, type TerritoryId } from "@risk3d/engine";
 import { NEUTRAL_COLOR } from "./players.js";
 
@@ -101,8 +102,62 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
   }, [board]);
 
   // Prepare the scene once per board: per-territory material grouping + centroids.
-  const { group, meshesByTerritory, outlinesByTerritory, outlineMaterials, centroids } = useMemo(() => {
+  const { group, meshesByTerritory, outlinesByTerritory, outlineMaterials, centroids, crackUniforms } = useMemo(() => {
     const root = scene.clone(true);
+
+    // Shared crack shader. One function reference for every material, so three
+    // dedups to a single compiled program while still injecting each material's
+    // uniforms. uScale is filled in once the object-space radius is known.
+    // Placeholder (1x1 gray) until the crack texture loads, so the globe renders
+    // immediately and the detail pops in. applyCrack collects each material's
+    // uCrack uniform so the effect below can swap the loaded texture into all.
+    const placeholder = new THREE.DataTexture(new Uint8Array([128, 128, 128, 255]), 1, 1);
+    placeholder.needsUpdate = true;
+    placeholder.wrapS = placeholder.wrapT = THREE.RepeatWrapping;
+    const crackUniforms: { value: THREE.Texture }[] = [];
+    const scaleHolder = { value: 0.5 };
+    const applyCrack = (shader: THREE.WebGLProgramParametersWithUniforms) => {
+      const uCrack = { value: placeholder as THREE.Texture };
+      crackUniforms.push(uCrack);
+      shader.uniforms.uCrack = uCrack;
+      shader.uniforms.uScale = { value: scaleHolder.value };
+      shader.uniforms.uDark = { value: CRACK_DARK };
+      shader.uniforms.uRough = { value: CRACK_ROUGH };
+      shader.vertexShader = shader.vertexShader
+        .replace("#include <common>", "#include <common>\nvarying vec3 vObjPos;\nvarying vec3 vObjNrm;")
+        .replace("#include <begin_vertex>", "#include <begin_vertex>\n  vObjPos = position;\n  vObjNrm = normal;");
+      shader.fragmentShader = shader.fragmentShader
+        .replace(
+          "#include <common>",
+          [
+            "#include <common>",
+            "varying vec3 vObjPos;",
+            "varying vec3 vObjNrm;",
+            "uniform sampler2D uCrack;",
+            "uniform float uScale;",
+            "uniform float uDark;",
+            "uniform float uRough;",
+            "float triCrack(){",
+            "  vec3 n = normalize(abs(vObjNrm));",
+            "  n /= (n.x + n.y + n.z);",
+            "  vec3 p = vObjPos * uScale;",
+            "  float x = texture2D(uCrack, p.yz).r;",
+            "  float y = texture2D(uCrack, p.zx).r;",
+            "  float z = texture2D(uCrack, p.xy).r;",
+            "  return x * n.x + y * n.y + z * n.z;",
+            "}",
+          ].join("\n"),
+        )
+        .replace(
+          "#include <roughnessmap_fragment>",
+          "#include <roughnessmap_fragment>\n  float _crack = smoothstep(0.12, 0.62, triCrack());\n  roughnessFactor = clamp(roughnessFactor + (1.0 - _crack) * uRough, 0.0, 1.0);",
+        )
+        .replace(
+          "#include <color_fragment>",
+          "#include <color_fragment>\n  diffuseColor.rgb *= mix(1.0 - uDark, 1.0, smoothstep(0.2, 0.62, triCrack()));\n  if (!gl_FrontFacing) diffuseColor.rgb *= 0.4;",
+        );
+    };
+
     const byTerritory = new Map<string, THREE.Mesh[]>();
     const outlines = new Map<string, LineSegments2>();
     const outlineMaterials: LineMaterial[] = [];
@@ -119,9 +174,8 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
       const territory = countryToTerritory.get(country) ?? country;
 
       if (!mesh.geometry.getAttribute("normal")) mesh.geometry.computeVertexNormals();
-      const material = new THREE.MeshStandardMaterial({ color: new THREE.Color(NEUTRAL_COLOR), roughness: 0.8, side: THREE.DoubleSide });
-      material.onBeforeCompile = darkenBackFaces;
-      material.customProgramCacheKey = () => "globe-country";
+      const material = new THREE.MeshStandardMaterial({ color: new THREE.Color(NEUTRAL_COLOR), roughness: 0.85, side: THREE.DoubleSide });
+      material.onBeforeCompile = applyCrack;
       mesh.material = material;
       mesh.userData.territory = territory;
       const list = byTerritory.get(territory) ?? [];
@@ -163,6 +217,7 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
     }
 
     const sphere = new THREE.Sphere().setFromPoints(points);
+    scaleHolder.value = CRACK_REPEATS / (2 * (sphere.radius || 1));
     const s = TARGET_RADIUS / (sphere.radius || 1);
     const g = new THREE.Group();
     g.add(root);
@@ -188,8 +243,25 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
       contCount.set(cont, (contCount.get(cont) ?? 0) + n);
     }
     for (const [cont, acc] of contSum) centroidDirs.set(cont, toDir(acc.clone().multiplyScalar(1 / (contCount.get(cont) || 1))));
-    return { group: g, meshesByTerritory: byTerritory, outlinesByTerritory: outlines, outlineMaterials, centroids: centroidDirs };
+    return { group: g, meshesByTerritory: byTerritory, outlinesByTerritory: outlines, outlineMaterials, centroids: centroidDirs, crackUniforms };
   }, [scene, countryToTerritory, board]);
+
+  // Load the crack texture off the critical path (fetch-based ImageBitmapLoader,
+  // robust in headless) and swap it into every country material once ready.
+  useEffect(() => {
+    let cancelled = false;
+    new THREE.ImageBitmapLoader().load(CRACK_TEX_URL, (bitmap) => {
+      if (cancelled) return;
+      const tex = new THREE.Texture(bitmap as unknown as HTMLImageElement);
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.needsUpdate = true;
+      for (const u of crackUniforms) u.value = tex;
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [crackUniforms]);
 
   // Fat lines need the viewport resolution for correct pixel width.
   const size = useThree((s) => s.size);

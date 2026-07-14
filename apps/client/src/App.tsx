@@ -1,4 +1,4 @@
-import { Suspense, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, Stars } from "@react-three/drei";
 import * as THREE from "three";
@@ -28,6 +28,25 @@ export function App() {
 
   // Dev-only test hook so headless checks can drive the game deterministically.
   if (import.meta.env.DEV) (window as unknown as { __risk: typeof hs }).__risk = hs;
+
+  // Dev-only: ?autostart=classic|world boots straight into a game so headless
+  // screenshots can capture the live globe (which only renders in-game).
+  const autostarted = useRef(false);
+  useEffect(() => {
+    if (!import.meta.env.DEV || autostarted.current || hs.game) return;
+    const mode = new URLSearchParams(window.location.search).get("autostart");
+    if (mode !== "classic" && mode !== "world") return;
+    autostarted.current = true;
+    hs.start(mode, [{ kind: "human" }, { kind: "cpu", difficulty: "easy" }, { kind: "cpu", difficulty: "easy" }], false, [
+      "Red",
+      "Blue",
+      "Green",
+    ]);
+  }, [hs]);
+
+  // Dev-only camera distance override (?cam=2.2) for inspecting the globe surface.
+  const camZ =
+    import.meta.env.DEV ? Number(new URLSearchParams(window.location.search).get("cam")) || 4 : 4;
 
   if (!hs.game) return <Home onStart={hs.start} />;
 
@@ -77,7 +96,7 @@ export function App() {
         />
       </div>
 
-      <Canvas camera={{ position: [0, 0, 4], fov: 45 }} dpr={[1, 2]}>
+      <Canvas camera={{ position: [0, 0, camZ], fov: 45 }} dpr={[1, 2]}>
         <color attach="background" args={["#101417"]} />
         {/* Base ambient + a camera-tracking headlight give a straight-on, centre-bright
             3D gradient; a faint fixed fill keeps the far edge from going pure black. */}
