@@ -1,4 +1,5 @@
-import { setBonus, validSetsInHand, type Card } from "@risk3d/engine";
+import { useMemo, useState } from "react";
+import { isValidSet, setBonus, type Card, type TerritoryId } from "@risk3d/engine";
 import type { Hotseat } from "./game/useHotseat.js";
 import { Icon } from "./Icon.js";
 
@@ -9,31 +10,65 @@ const ART: Record<string, string> = {
   wild: "/assets/cards/wild-unit-card.png",
 };
 
-function CardFace({ card, owned, inSet }: { card: Card; owned: boolean; inSet: boolean }) {
+function CardFace({
+  card,
+  owned,
+  selected,
+  onClick,
+}: {
+  card: Card;
+  owned: boolean;
+  selected: boolean;
+  onClick: () => void;
+}) {
   return (
-    <div className={`card-face${inSet ? " in-set" : ""}`}>
+    <button className={`card-face${selected ? " sel" : ""}`} onClick={onClick} aria-pressed={selected}>
       <img src={ART[card.symbol]} alt={card.symbol} draggable={false} />
       <div className="card-terr">
         {card.territory ?? "Wild"}
         {owned && <Icon name="shield" style={{ color: "var(--accent-bright)" }} />}
       </div>
-    </div>
+    </button>
   );
 }
 
-/** Modal showing the active player's hand as illustrated cards, with the set
- *  bonus and a trade action. Only opened on a human reinforce turn. */
+/** Modal showing the active player's hand as illustrated cards. The player picks
+ *  three cards to form a set and, when the set pictures territories they own,
+ *  chooses which one receives the +2 bonus armies. Trading only in reinforce. */
 export function CardPanel({ hs, onClose }: { hs: Hotseat; onClose: () => void }) {
   const game = hs.game;
-  if (!game) return null;
-  const me = game.players.find((p) => p.id === game.activePlayer);
-  if (!me) return null;
+  const [selected, setSelected] = useState<string[]>([]);
+  const [bonusChoice, setBonusChoice] = useState<TerritoryId | null>(null);
 
-  const hand = me.cards;
-  const nextBonus = setBonus(game.setsTradedIn);
-  const firstSet = validSetsInHand(hand)[0];
-  const inSet = (id: string) => !!firstSet?.includes(id);
-  const owns = (t: string | null) => !!t && game.territories[t]?.owner === me.id;
+  const me = game?.players.find((p) => p.id === game.activePlayer);
+  const hand = me?.cards ?? [];
+  const owns = (t: string | null) => !!t && !!me && game!.territories[t]?.owner === me.id;
+
+  const selectedCards = useMemo(() => hand.filter((c) => selected.includes(c.id)), [hand, selected]);
+  const isSet = selected.length === 3 && isValidSet(selectedCards);
+  // Owned territories pictured in the chosen set — candidates for the +2.
+  const ownedInSet = useMemo(
+    () => (isSet ? selectedCards.map((c) => c.territory).filter((t): t is TerritoryId => owns(t)) : []),
+    [isSet, selectedCards],
+  );
+  const bonusTerritory = bonusChoice && ownedInSet.includes(bonusChoice) ? bonusChoice : ownedInSet[0] ?? null;
+
+  if (!game || !me) return null;
+
+  const base = setBonus(game.setsTradedIn);
+  const canTrade = isSet && game.phase === "reinforce";
+
+  const toggle = (id: string) =>
+    setSelected((cur) =>
+      cur.includes(id) ? cur.filter((x) => x !== id) : cur.length < 3 ? [...cur, id] : cur,
+    );
+
+  const trade = () => {
+    if (!canTrade) return;
+    hs.tradeSet(selected as [string, string, string], bonusTerritory ?? undefined);
+    setSelected([]);
+    setBonusChoice(null);
+  };
 
   return (
     <div className="overlay" onClick={onClose}>
@@ -50,31 +85,58 @@ export function CardPanel({ hs, onClose }: { hs: Hotseat; onClose: () => void })
         ) : (
           <div className="card-hand">
             {hand.map((c) => (
-              <CardFace key={c.id} card={c} owned={owns(c.territory)} inSet={inSet(c.id)} />
+              <CardFace key={c.id} card={c} owned={owns(c.territory)} selected={selected.includes(c.id)} onClick={() => toggle(c.id)} />
             ))}
           </div>
         )}
 
         <div className="card-foot">
-          <div className="card-bonus">
-            Set bonus <strong>+{nextBonus}</strong>
-          </div>
-          <button
-            className="start"
-            disabled={hs.availableSets === 0 || game.phase !== "reinforce"}
-            onClick={hs.tradeFirstSet}
-          >
-            Trade set (+{nextBonus})
-          </button>
-        </div>
+          {/* Selection status */}
+          {hand.length > 0 && !isSet && (
+            <p className="hint">
+              {selected.length < 3
+                ? `Select ${3 - selected.length} more card${3 - selected.length === 1 ? "" : "s"} to form a set.`
+                : "Not a valid set — pick three of a kind, one of each, or any three including a wild."}
+            </p>
+          )}
 
-        {hs.mustTrade && <p className="hint">You hold 5+ cards — you must trade a set before placing armies.</p>}
-        {game.phase !== "reinforce" && <p className="hint">You can trade a set during your reinforce phase.</p>}
-        {hand.some((c) => owns(c.territory)) && (
-          <p className="hint">
-            <Icon name="shield" /> = you hold the pictured territory (grants +2 armies there when traded).
-          </p>
-        )}
+          {/* Territory bonus chooser (only when the chosen set is valid) */}
+          {isSet && (
+            <div className="card-bonusrow">
+              {ownedInSet.length > 0 ? (
+                <div className="bonus-choice">
+                  <span className="bonus-label">
+                    <Icon name="shield" /> +2 armies on:
+                  </span>
+                  {ownedInSet.map((t) => (
+                    <button
+                      key={t}
+                      className={`bonus-chip${t === bonusTerritory ? " sel" : ""}`}
+                      disabled={ownedInSet.length === 1}
+                      onClick={() => setBonusChoice(t)}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="hint">No territory bonus — you own none of the countries in this set.</p>
+              )}
+            </div>
+          )}
+
+          <div className="card-actions">
+            <div className="card-bonus">
+              Set bonus <strong>+{base}</strong>
+            </div>
+            <button className="start" disabled={!canTrade} onClick={trade}>
+              Trade set (+{base}){isSet && bonusTerritory ? ` · +2 → ${bonusTerritory}` : ""}
+            </button>
+          </div>
+
+          {hs.mustTrade && <p className="hint warn">You hold 5+ cards — you must trade a set before placing armies.</p>}
+          {game.phase !== "reinforce" && <p className="hint">You can only trade during your reinforce phase.</p>}
+        </div>
       </div>
     </div>
   );

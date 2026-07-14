@@ -7,7 +7,7 @@
  * code and always agree.
  */
 import type { Action } from "./actions.js";
-import { buildDeck, isValidSet, setBonus, validSetsInHand } from "./cards.js";
+import { buildDeck, isValidSet, setBonus, validSetsInHand, WILDS_BY_MODE } from "./cards.js";
 import type { GameEvent } from "./events.js";
 import { getBoard } from "./board.js";
 import { mulberry32, rollDieAt, shuffle } from "./rng.js";
@@ -179,7 +179,7 @@ export function createGame(config: GameConfig): GameState {
   const campaign = config.campaign ?? false;
   if (campaign) assignCampaigns(players, territories, board, rng);
 
-  const deck = cardsEnabled ? shuffle(buildDeck(board), rng) : [];
+  const deck = cardsEnabled ? shuffle(buildDeck(board, WILDS_BY_MODE[boardMode]), rng) : [];
 
   const state: GameState = {
     board,
@@ -241,6 +241,12 @@ export function validateAction(state: GameState, action: Action): string | null 
       if (picked.some((c) => !c)) return "card not in hand";
       if (new Set(action.cards).size !== 3) return "must pick three distinct cards";
       if (!isValidSet(picked as Card[])) return "not a valid set";
+      if (action.bonusTerritory !== undefined) {
+        const pictured = (picked as Card[]).some((c) => c.territory === action.bonusTerritory);
+        if (!pictured) return "bonus territory is not pictured in this set";
+        if (state.territories[action.bonusTerritory]?.owner !== me)
+          return "bonus territory must be one you own";
+      }
       return null;
     }
     case "placeArmies": {
@@ -391,13 +397,23 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       const picked = action.cards.map((id) => player.cards.find((c) => c.id === id)!);
       player.cards = player.cards.filter((c) => !action.cards.includes(c.id));
       s.discard.push(...picked);
-      const territoryMatch = picked.some(
-        (c) => c.territory && s.territories[c.territory].owner === me,
-      );
-      const bonus = setBonus(s.setsTradedIn) + (territoryMatch ? 2 : 0);
+      const base = setBonus(s.setsTradedIn);
       s.setsTradedIn += 1;
-      s.reinforcementsRemaining += bonus;
-      events.push({ type: "cardsTraded", player: me, bonus, territoryMatch });
+      s.reinforcementsRemaining += base; // base set bonus goes to the pool
+      // The +2 territory bonus is placed on ONE owned territory pictured in the
+      // set — the chosen one, or the first owned match if unspecified.
+      const owned = picked
+        .map((c) => c.territory)
+        .filter((t): t is TerritoryId => !!t && s.territories[t].owner === me);
+      const dest = action.bonusTerritory ?? owned[0] ?? null;
+      if (dest) s.territories[dest].armies += 2;
+      events.push({
+        type: "cardsTraded",
+        player: me,
+        bonus: base,
+        territoryBonus: dest ? 2 : 0,
+        bonusTerritory: dest,
+      });
       break;
     }
 

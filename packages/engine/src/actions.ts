@@ -5,8 +5,13 @@
 import type { TerritoryId } from "./types.js";
 
 export type Action =
-  /** Trade three cards (by id) for bonus armies during reinforce. */
-  | { type: "tradeCards"; cards: [string, string, string] }
+  /**
+   * Trade three cards (by id) for bonus armies during reinforce. If the set
+   * pictures a territory the player owns, `bonusTerritory` names the one that
+   * receives the +2 (must be an owned territory among the three cards). When
+   * omitted, the engine picks the first owned match.
+   */
+  | { type: "tradeCards"; cards: [string, string, string]; bonusTerritory?: TerritoryId }
   /** Place armies from the reinforcement pool onto an owned territory. */
   | { type: "placeArmies"; territory: TerritoryId; count: number }
   /** Attack an adjacent enemy territory with 1..3 dice. */

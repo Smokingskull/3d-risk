@@ -120,15 +120,43 @@ describe("reinforce phase", () => {
     expect(state.players[0].cards).toHaveLength(0);
   });
 
-  it("adds a +2 territory-match bonus when trading a card you own", () => {
+  it("places the +2 territory bonus on an owned pictured territory, not the pool", () => {
     const s = baseGame(ringBoard(), { cardsEnabled: true });
     setBoard(s, { A: ["p1", 1], B: ["p1", 1], C: ["p1", 1], D: ["p2", 1] }); // p1 owns A/B/C
     s.reinforcementsRemaining = 3;
     const deck = buildDeck(ringBoard());
-    const trio = [deck.find((c) => c.symbol === "infantry")!, deck.find((c) => c.symbol === "cavalry")!, deck.find((c) => c.symbol === "artillery")!];
+    // trio pictures A (infantry), B (cavalry), C (artillery) — all owned by p1.
+    const trio = [deck.find((c) => c.territory === "A")!, deck.find((c) => c.territory === "B")!, deck.find((c) => c.territory === "C")!];
     s.players[0].cards = trio;
-    const { state } = applyAction(s, { type: "tradeCards", cards: [trio[0].id, trio[1].id, trio[2].id] });
-    expect(state.reinforcementsRemaining).toBe(3 + 4 + 2);
+    const { state, events } = applyAction(s, { type: "tradeCards", cards: [trio[0].id, trio[1].id, trio[2].id] });
+    expect(state.reinforcementsRemaining).toBe(3 + 4); // pool gets only the base bonus
+    expect(state.territories.A.armies).toBe(1 + 2); // +2 landed on the first owned match
+    expect(state.territories.B.armies).toBe(1);
+    const traded = events.find((e) => e.type === "cardsTraded")!;
+    expect(traded).toMatchObject({ bonus: 4, territoryBonus: 2, bonusTerritory: "A" });
+  });
+
+  it("honours an explicit bonusTerritory choice", () => {
+    const s = baseGame(ringBoard(), { cardsEnabled: true });
+    setBoard(s, { A: ["p1", 1], B: ["p1", 1], C: ["p1", 1], D: ["p2", 1] });
+    s.reinforcementsRemaining = 3;
+    const deck = buildDeck(ringBoard());
+    const trio = [deck.find((c) => c.territory === "A")!, deck.find((c) => c.territory === "B")!, deck.find((c) => c.territory === "C")!];
+    s.players[0].cards = trio;
+    const { state } = applyAction(s, { type: "tradeCards", cards: [trio[0].id, trio[1].id, trio[2].id], bonusTerritory: "C" });
+    expect(state.territories.C.armies).toBe(1 + 2);
+    expect(state.territories.A.armies).toBe(1);
+  });
+
+  it("rejects a bonusTerritory you don't own or isn't in the set", () => {
+    const s = baseGame(ringBoard(), { cardsEnabled: true });
+    setBoard(s, { A: ["p1", 1], B: ["p1", 1], C: ["p1", 1], D: ["p2", 1] });
+    s.reinforcementsRemaining = 3;
+    const deck = buildDeck(ringBoard());
+    const trio = [deck.find((c) => c.territory === "A")!, deck.find((c) => c.territory === "B")!, deck.find((c) => c.territory === "C")!];
+    s.players[0].cards = trio;
+    const cards: [string, string, string] = [trio[0].id, trio[1].id, trio[2].id];
+    expect(isLegal(s, { type: "tradeCards", cards, bonusTerritory: "D" })).toBe(false); // not owned / not in set
   });
 });
 

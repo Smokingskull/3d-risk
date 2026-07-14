@@ -6,7 +6,16 @@ import type { Phase, PlayerId, TerritoryId } from "./types.js";
 
 export type GameEvent =
   | { type: "armiesPlaced"; player: PlayerId; territory: TerritoryId; count: number }
-  | { type: "cardsTraded"; player: PlayerId; bonus: number; territoryMatch: boolean }
+  | {
+      type: "cardsTraded";
+      player: PlayerId;
+      /** Base set bonus added to the reinforcement pool. */
+      bonus: number;
+      /** Extra armies placed on a pictured territory the player owns (0 or 2). */
+      territoryBonus: number;
+      /** Which territory received the +2, or null if none was owned. */
+      bonusTerritory: TerritoryId | null;
+    }
   | {
       type: "attacked";
       player: PlayerId;

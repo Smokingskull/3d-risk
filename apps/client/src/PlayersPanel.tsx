@@ -78,7 +78,7 @@ export function PlayersPanel({ hs }: { hs: Hotseat }) {
 
         {open && activeHuman && game.options.cardsEnabled && (
           <button className={`players-cards${hs.mustTrade ? " warn" : ""}`} data-tut="cards" onClick={() => setCardsOpen(true)}>
-            Cards ({activeHuman.cards.length}){hs.availableSets ? ` · ${hs.availableSets} set${hs.availableSets > 1 ? "s" : ""}` : ""}
+            Cards ({activeHuman.cards.length}){hs.tradeableSetCount ? ` · ${hs.tradeableSetCount} set${hs.tradeableSetCount > 1 ? "s" : ""}` : ""}
           </button>
         )}
       </div>

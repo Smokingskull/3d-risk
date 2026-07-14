@@ -1348,18 +1348,32 @@ button.start:hover:not(:disabled) {
 /* ---- card panel (hand of illustrated RISK cards) ---- */
 .cards-card {
   width: 680px;
+  overflow: hidden; /* the hand scrolls; header + footer stay put */
 }
 .card-hand {
   display: flex;
   flex-wrap: wrap;
   gap: 14px;
   justify-content: center;
+  align-content: flex-start;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px 2px;
 }
 .card-face {
   width: 128px;
   display: flex;
   flex-direction: column;
   gap: 6px;
+  /* now a <button> — strip the chrome */
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
 }
 .card-face img,
 .card-wild {
@@ -1367,14 +1381,18 @@ button.start:hover:not(:disabled) {
   aspect-ratio: 2 / 3;
   border-radius: 8px;
   display: block;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
 }
 .card-face img {
   object-fit: contain;
   transition: outline-color 0.12s, box-shadow 0.12s;
 }
-.card-face.in-set img {
+.card-face:hover img {
+  outline-color: rgba(213, 174, 105, 0.55);
+}
+.card-face.sel img {
   outline: 2px solid var(--accent-bright);
-  outline-offset: 2px;
   box-shadow: 0 0 18px rgba(213, 174, 105, 0.5);
 }
 .card-wild {
@@ -1400,6 +1418,13 @@ button.start:hover:not(:disabled) {
 }
 .card-foot {
   display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  flex: none;
+}
+.card-actions {
+  display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 14px;
@@ -1415,4 +1440,35 @@ button.start:hover:not(:disabled) {
   color: var(--accent-bright);
   font-size: 18px;
   margin-left: 4px;
+}
+.card-bonusrow {
+  display: flex;
+  flex-wrap: wrap;
+}
+.bonus-choice {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.bonus-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+.bonus-chip {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+}
+.bonus-chip.sel {
+  border-color: var(--accent);
+  background: linear-gradient(180deg, rgba(213, 174, 105, 0.3), rgba(182, 138, 72, 0.16));
+  color: var(--text);
+}
+.bonus-chip:disabled {
+  opacity: 1; /* single owned match: shown as fixed destination, not greyed out */
+  cursor: default;
 }

@@ -3,8 +3,8 @@ import {
   applyAction,
   createGame,
   isLegal,
+  maxDisjointSets,
   pathExists,
-  validSetsInHand,
   type Action,
   type BoardMode,
   type Difficulty,
@@ -84,8 +84,10 @@ export interface Hotseat {
   clickTerritory: (id: TerritoryId) => void;
   endAttack: () => void;
   endTurn: () => void;
-  tradeFirstSet: () => void;
-  availableSets: number;
+  /** Trade a player-chosen set; bonusTerritory picks which owned country gets the +2. */
+  tradeSet: (cards: [string, string, string], bonusTerritory?: TerritoryId) => void;
+  /** How many sets the active hand can actually cash (disjoint), for the label. */
+  tradeableSetCount: number;
   mustTrade: boolean;
 }
 
@@ -365,8 +367,13 @@ export function useHotseat(): Hotseat {
   const endTurn = useMemo(() => guardHuman(() => applyAndStore({ type: "endTurn" })), [guardHuman, applyAndStore]);
 
   const activeHand = activePlayer?.cards ?? [];
-  const sets = useMemo(() => validSetsInHand(activeHand), [activeHand]);
-  const tradeFirstSet = useCallback(() => { if (isHumanTurn && sets.length > 0) applyAndStore({ type: "tradeCards", cards: sets[0] }); }, [isHumanTurn, sets, applyAndStore]);
+  const tradeableSetCount = useMemo(() => maxDisjointSets(activeHand), [activeHand]);
+  const tradeSet = useCallback(
+    (cards: [string, string, string], bonusTerritory?: TerritoryId) => {
+      if (isHumanTurn) applyAndStore({ type: "tradeCards", cards, bonusTerritory });
+    },
+    [isHumanTurn, applyAndStore],
+  );
 
   return {
     game,
@@ -404,8 +411,8 @@ export function useHotseat(): Hotseat {
     clickTerritory,
     endAttack,
     endTurn,
-    tradeFirstSet,
-    availableSets: sets.length,
+    tradeSet,
+    tradeableSetCount,
     mustTrade: game ? mustTrade(game) : false,
   };
 }

@@ -10,7 +10,7 @@ function describe(e: GameEvent): string {
     case "armiesPlaced":
       return `${e.player} placed ${e.count} on ${e.territory}`;
     case "cardsTraded":
-      return `${e.player} traded a set for +${e.bonus}${e.territoryMatch ? " (incl. territory bonus)" : ""}`;
+      return `${e.player} traded a set for +${e.bonus}${e.territoryBonus ? ` (+${e.territoryBonus} on ${e.bonusTerritory})` : ""}`;
     case "attacked":
       return `${e.from} → ${e.to}: 🎲 [${e.attackerDice.join(",")}] vs [${e.defenderDice.join(",")}] · −${e.attackerLosses}/−${e.defenderLosses}${e.conquered ? " · captured!" : ""}`;
     case "territoryConquered":
