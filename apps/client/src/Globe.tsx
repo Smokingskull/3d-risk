@@ -22,9 +22,9 @@ const POLE_FIX = new THREE.Euler(-Math.PI / 2, 0, 0);
 // territory reads as parched earth in its player colour. Back-facing fragments
 // are dimmed so the far side of the transparent globe reads as "the back".
 const CRACK_REPEATS = 9; // crack texture tiles across the globe diameter (tune)
-const CRACK_DARK = 0.72; // how much crack lines darken the tint
+const CRACK_DARK = 0.55; // how much crack lines darken the tint (0 = bevel only)
 const CRACK_ROUGH = 0.2; // extra roughness in the cracks
-const CRACK_BUMP = 0.5; // relief strength — perturbs the normal so cracks catch light
+const CRACK_BUMP = 1.2; // relief strength — scales the baked normal so cracks catch light
 
 // Small deterministic RNG so the generated crack pattern is stable across runs.
 function mulberry32(seed: number): () => number {
@@ -37,9 +37,10 @@ function mulberry32(seed: number): () => number {
   };
 }
 
-// Generate a tileable dried-earth crack pattern (Worley F2−F1 cell edges): thin
-// dark lines at cell borders, light inside. Synchronous DataTexture — no asset
-// download, renders immediately, and reads as parched earth when tiled.
+// Generate a tileable dried-earth crack texture from Worley cells. One packed
+// texture so colour and relief can never drift apart: RGB = surface normal baked
+// from a smooth height field (wide, sloped crack walls → a real bevel), A = the
+// diffuse darkening factor (per-plate shade × groove). Synchronous DataTexture.
 function makeCrackTexture(size = 512, cells = 14, seed = 20260714): THREE.DataTexture {
   const rnd = mulberry32(seed);
   const fx = new Float32Array(cells * cells);
@@ -50,7 +51,11 @@ function makeCrackTexture(size = 512, cells = 14, seed = 20260714): THREE.DataTe
     fy[i] = rnd();
     cb[i] = 0.5 + rnd() * 0.5; // 0.5..1.0 so plates differ in shade
   }
-  const data = new Uint8Array(size * size * 4);
+
+  // Pass 1: groove height H (1 on the plate, sloping down to 0 in the crack) and
+  // which cell owns each texel. Wide smoothstep → gently sloped walls (the bevel).
+  const H = new Float32Array(size * size);
+  const owner = new Int32Array(size * size);
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
       const u = (x / size) * cells;
@@ -59,7 +64,7 @@ function makeCrackTexture(size = 512, cells = 14, seed = 20260714): THREE.DataTe
       const cy = Math.floor(v);
       let f1 = 1e9;
       let f2 = 1e9;
-      let owner = 0;
+      let own = 0;
       for (let oy = -1; oy <= 1; oy++) {
         for (let ox = -1; ox <= 1; ox++) {
           const gx = (((cx + ox) % cells) + cells) % cells;
@@ -70,31 +75,55 @@ function makeCrackTexture(size = 512, cells = 14, seed = 20260714): THREE.DataTe
           if (d < f1) {
             f2 = f1;
             f1 = d;
-            owner = gy * cells + gx;
+            own = gy * cells + gx;
           } else if (d < f2) {
             f2 = d;
           }
         }
       }
-      const edge = f2 - f1; // ~0 on a cell border (crack), larger inside
-      let c = Math.min(1, edge / 0.14); // wider → thicker cracks that survive minification
-      c = c * c * (3 - 2 * c); // smoothstep
-      // Each plate has its own shade; borders drop toward dark. Together the
-      // surface reads as a patchwork of parched plates split by cracks — so the
-      // whole territory is textured, not just the deepest crack lines.
-      const b = cb[owner] * (0.16 + 0.84 * c);
-      const val = Math.round(Math.max(0, Math.min(1, b)) * 255);
-      const i = (y * size + x) * 4;
-      data[i] = data[i + 1] = data[i + 2] = val;
-      data[i + 3] = 255;
+      let h = Math.min(1, (f2 - f1) / 0.45); // wide → sloped bevel walls
+      h = h * h * (3 - 2 * h);
+      const idx = y * size + x;
+      H[idx] = h;
+      owner[idx] = own;
     }
   }
+
+  // Pass 2: bake tangent-space normals from H (wrapping central differences) into
+  // RGB, and the diffuse darkening (plate shade × groove) into A.
+  const data = new Uint8Array(size * size * 4);
+  const K = 6.0; // slope gain — how steep the baked walls are
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const xl = (x - 1 + size) % size;
+      const xr = (x + 1) % size;
+      const yd = (y - 1 + size) % size;
+      const yu = (y + 1) % size;
+      const dhx = (H[y * size + xr] - H[y * size + xl]) * 0.5 * K;
+      const dhy = (H[yu * size + x] - H[yd * size + x]) * 0.5 * K;
+      let nx = -dhx;
+      let ny = -dhy;
+      let nz = 1;
+      const inv = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+      nx *= inv;
+      ny *= inv;
+      nz *= inv;
+      const idx = y * size + x;
+      const cf = cb[owner[idx]] * (0.2 + 0.8 * H[idx]);
+      const i = idx * 4;
+      data[i] = Math.round((nx * 0.5 + 0.5) * 255);
+      data[i + 1] = Math.round((ny * 0.5 + 0.5) * 255);
+      data[i + 2] = Math.round((nz * 0.5 + 0.5) * 255);
+      data[i + 3] = Math.round(Math.max(0, Math.min(1, cf)) * 255);
+    }
+  }
+
   const tex = new THREE.DataTexture(data, size, size);
   tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
   tex.magFilter = THREE.LinearFilter;
   tex.minFilter = THREE.LinearMipmapLinearFilter;
   tex.generateMipmaps = true;
-  tex.anisotropy = 8; // keep crack lines crisp when the surface is minified
+  tex.anisotropy = 8;
   tex.needsUpdate = true;
   return tex;
 }
@@ -204,47 +233,40 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
             "uniform float uDark;",
             "uniform float uRough;",
             "uniform float uBump;",
-            "float triCrack(){",
-            "  vec3 n = normalize(abs(vObjNrm));",
-            "  n /= (n.x + n.y + n.z);",
-            "  vec3 p = vObjPos * uScale;",
-            "  float x = texture2D(uCrack, p.yz).r;",
-            "  float y = texture2D(uCrack, p.zx).r;",
-            "  float z = texture2D(uCrack, p.xy).r;",
-            "  return x * n.x + y * n.y + z * n.z;",
+            "uniform mat3 normalMatrix;",
+            // Object-space triplanar blend weights, sharpened so each face picks
+            // mostly one projection plane.
+            "vec3 triBlend(){ vec3 b = pow(abs(normalize(vObjNrm)), vec3(4.0)); return b / max(dot(b, vec3(1.0)), 1e-4); }",
+            // Diffuse darkening factor (packed in the texture's alpha).
+            "float crackColor(){ vec3 b = triBlend(); vec3 p = vObjPos * uScale;",
+            "  return texture2D(uCrack, p.zy).a * b.x + texture2D(uCrack, p.xz).a * b.y + texture2D(uCrack, p.xy).a * b.z; }",
+            // Triplanar normal mapping (whiteout blend) → object-space normal,
+            // then into view space for lighting. RGB of the texture is the normal.
+            "vec3 crackNormal(){",
+            "  vec3 wn = normalize(vObjNrm); vec3 b = triBlend(); vec3 p = vObjPos * uScale;",
+            "  vec3 nX = texture2D(uCrack, p.zy).xyz * 2.0 - 1.0;",
+            "  vec3 nY = texture2D(uCrack, p.xz).xyz * 2.0 - 1.0;",
+            "  vec3 nZ = texture2D(uCrack, p.xy).xyz * 2.0 - 1.0;",
+            "  nX.xy *= uBump; nY.xy *= uBump; nZ.xy *= uBump;",
+            "  nX = vec3(nX.xy + wn.zy, abs(nX.z) * wn.x);",
+            "  nY = vec3(nY.xy + wn.xz, abs(nY.z) * wn.y);",
+            "  nZ = vec3(nZ.xy + wn.xy, abs(nZ.z) * wn.z);",
+            "  vec3 on = normalize(nX.zyx * b.x + nY.xzy * b.y + nZ.xyz * b.z);",
+            "  return normalize(normalMatrix * on);",
             "}",
           ].join("\n"),
         )
         .replace(
           "#include <roughnessmap_fragment>",
-          "#include <roughnessmap_fragment>\n  roughnessFactor = clamp(roughnessFactor + (1.0 - triCrack()) * uRough, 0.0, 1.0);",
+          "#include <roughnessmap_fragment>\n  roughnessFactor = clamp(roughnessFactor + (1.0 - crackColor()) * uRough, 0.0, 1.0);",
         )
         .replace(
           "#include <color_fragment>",
-          "#include <color_fragment>\n  diffuseColor.rgb *= mix(1.0 - uDark, 1.0, triCrack());\n  if (!gl_FrontFacing) diffuseColor.rgb *= 0.4;",
+          "#include <color_fragment>\n  diffuseColor.rgb *= mix(1.0 - uDark, 1.0, crackColor());\n  if (!gl_FrontFacing) diffuseColor.rgb *= 0.4;",
         )
-        // Derivative-based bump: perturb the normal from the crack height using
-        // screen-space gradients (no UVs/tangents needed). Cracks become grooves
-        // that catch light — the raised-plate relief.
-        .replace(
-          "#include <normal_fragment_maps>",
-          [
-            "#include <normal_fragment_maps>",
-            "{",
-            "  float _h = triCrack();",
-            "  vec2 _dH = vec2(dFdx(_h), dFdy(_h)) * uBump;",
-            "  vec3 _sp = -vViewPosition;",
-            "  vec3 _sx = dFdx(_sp);",
-            "  vec3 _sy = dFdy(_sp);",
-            "  vec3 _R1 = cross(_sy, normal);",
-            "  vec3 _R2 = cross(normal, _sx);",
-            "  float _fd = gl_FrontFacing ? 1.0 : -1.0;",
-            "  float _det = dot(_sx, _R1) * _fd;",
-            "  vec3 _grad = sign(_det) * (_dH.x * _R1 + _dH.y * _R2);",
-            "  normal = normalize(abs(_det) * normal - _grad);",
-            "}",
-          ].join("\n"),
-        );
+        // Real bevel: replace the geometric normal with the triplanar-sampled
+        // baked normal (relief that catches light), respecting face direction.
+        .replace("#include <normal_fragment_maps>", "#include <normal_fragment_maps>\n  normal = crackNormal() * faceDirection;");
     };
 
     const byTerritory = new Map<string, THREE.Mesh[]>();
