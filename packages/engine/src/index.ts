@@ -8,7 +8,7 @@ export * from "./cards.js";
 export * from "./events.js";
 export * from "./actions.js";
 export * from "./game.js";
-export * from "./save.js";
+export * from "./scenario.js";
 export * from "./ai/index.js";
 
-export const ENGINE_VERSION = "0.3.0";
+export const ENGINE_VERSION = "0.4.0";

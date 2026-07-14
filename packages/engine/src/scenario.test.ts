@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
-import exampleSave from "./saves/example.classic.json";
+import exampleScenario from "./scenarios/example.classic.json";
 import {
   deserializeGame,
   loadFromJSON,
-  SaveError,
-  SAVE_VERSION,
+  ScenarioError,
+  SCENARIO_VERSION,
   serializeGame,
-  type SaveGameInput,
-} from "./save.js";
+  type ScenarioStateInput,
+} from "./scenario.js";
 import { createGame, applyAction, reinforcementsFor } from "./game.js";
 import { buildDeck, validSetsInHand } from "./cards.js";
 import { CLASSIC_BOARD } from "./board.js";
@@ -44,13 +44,13 @@ describe("serializeGame / deserializeGame round-trip", () => {
   it("serializeGame drops the board and stamps the current version", () => {
     const save = serializeGame(createGame({ players: [P1, P2], boardMode: "classic", seed: 1 }));
     expect(save).not.toHaveProperty("board");
-    expect(save.version).toBe(SAVE_VERSION);
+    expect(save.version).toBe(SCENARIO_VERSION);
   });
 });
 
 describe("deserializeGame tolerant authoring", () => {
   it("fills defaults for omitted fields", () => {
-    const save: SaveGameInput = {
+    const save: ScenarioStateInput = {
       options: { boardMode: "classic", cardsEnabled: true },
       players: [P1, P2],
       territories: territoryMap((_id, i) => ({ owner: i % 2 === 0 ? "p1" : "p2", armies: 1 })),
@@ -88,7 +88,7 @@ describe("deserializeGame tolerant authoring", () => {
 });
 
 describe("deserializeGame validation", () => {
-  const base = (): SaveGameInput => ({
+  const base = (): ScenarioStateInput => ({
     version: 1,
     options: { boardMode: "classic", cardsEnabled: false },
     players: [P1, P2],
@@ -128,12 +128,12 @@ describe("deserializeGame validation", () => {
   it("rejects an activePlayer that is not a player", () => {
     const save = base();
     save.activePlayer = "pX";
-    expect(() => deserializeGame(save)).toThrow(SaveError);
+    expect(() => deserializeGame(save)).toThrow(ScenarioError);
   });
 
   it("rejects a save version newer than supported", () => {
     const save = base();
-    save.version = SAVE_VERSION + 1;
+    save.version = SCENARIO_VERSION + 1;
     expect(() => deserializeGame(save)).toThrow(/newer/);
   });
 
@@ -198,11 +198,11 @@ describe("hand-authored scenarios drive the reducer", () => {
   });
 });
 
-describe("committed example fixture (saves/example.classic.json)", () => {
+describe("committed example fixture (scenarios/example.classic.json)", () => {
   it("loads into a valid, playable state via both object and JSON-string paths", () => {
     for (const state of [
-      deserializeGame(exampleSave as SaveGameInput),
-      loadFromJSON(JSON.stringify(exampleSave)),
+      deserializeGame(exampleScenario as ScenarioStateInput),
+      loadFromJSON(JSON.stringify(exampleScenario)),
     ]) {
       expect(state.options.boardMode).toBe("classic");
       expect(state.activePlayer).toBe("p1");
@@ -212,7 +212,7 @@ describe("committed example fixture (saves/example.classic.json)", () => {
     }
   });
 
-  it("reports invalid JSON as a SaveError", () => {
-    expect(() => loadFromJSON("{ not json")).toThrow(SaveError);
+  it("reports invalid JSON as a ScenarioError", () => {
+    expect(() => loadFromJSON("{ not json")).toThrow(ScenarioError);
   });
 });
