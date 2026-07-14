@@ -45,6 +45,7 @@ export function PlayersPanel({ hs }: { hs: Hotseat }) {
             const won = game.winner === p.id;
             return (
               <div key={p.id} className={`player-row${isActive ? " active" : ""}${p.eliminated ? " dead" : ""}`}>
+                <span className="player-arrow">{isActive ? "▸" : ""}</span>
                 <span className="player-sw" style={{ background: p.color }} />
                 <div className="player-id">
                   <span className="player-name">

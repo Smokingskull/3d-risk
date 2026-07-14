@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { GameEvent, GameState } from "@risk3d/engine";
 import type { Hotseat } from "./game/useHotseat.js";
 import { Icon } from "./Icon.js";
+import { OptionsDialog } from "./OptionsDialog.js";
 
 function describe(e: GameEvent): string {
   switch (e.type) {
@@ -49,8 +50,10 @@ export function Hud({ hs, hovered }: { hs: Hotseat; hovered: string | null }) {
   const pending = game.pendingOccupation;
   const isCpu = active.kind === "cpu" && !winner;
   const [open, setOpen] = useState(true);
+  const [optionsOpen, setOptionsOpen] = useState(false);
 
   return (
+    <>
     <div className={open ? "panel" : "panel collapsed"}>
       <div className="panel-header">
         <h1>{open ? "Game" : `Game (${active.name})`}</h1>
@@ -75,6 +78,7 @@ export function Hud({ hs, hovered }: { hs: Hotseat; hovered: string | null }) {
             <span className="phase">
               <Icon name={PHASE_ICON[game.phase]} />
               {PHASE_LABEL[game.phase]}
+              {game.phase === "reinforce" && <strong className="phase-count">{game.reinforcementsRemaining}</strong>}
             </span>
             <span className="turnno">turn {game.turn}</span>
           </div>
@@ -82,13 +86,6 @@ export function Hud({ hs, hovered }: { hs: Hotseat; hovered: string | null }) {
 
       {isCpu && <div className="row cpu">🤖 {active.name} ({active.difficulty}) is planning…</div>}
 
-      {!isCpu && game.phase === "reinforce" && (
-        <div className="row">
-          <span>
-            Reinforcements: <strong>{game.reinforcementsRemaining}</strong>
-          </span>
-        </div>
-      )}
       {!isCpu && game.phase === "reinforce" && (
         <p className="hint">
           {hs.mustTrade ? "You hold 5+ cards — you must trade before placing." : "Click your territories to place armies."}
@@ -139,19 +136,15 @@ export function Hud({ hs, hovered }: { hs: Hotseat; hovered: string | null }) {
       )}
       {!winner && (
         <div className="footer-row">
-          <button className="quiet" onClick={hs.reset}>
-            Quit to menu
-          </button>
-          <button className="quiet" onClick={hs.toggleAutoRotate}>
-            Auto-rotate: {hs.autoRotate ? "on" : "off"}
-          </button>
-          <button className="quiet" onClick={hs.toggleTutorial}>
-            Tutorial: {hs.tutorial ? "on" : "off"}
+          <button className="options-btn" onClick={() => setOptionsOpen(true)}>
+            <Icon name="settings" /> Options
           </button>
         </div>
       )}
         </>
       )}
     </div>
+    {optionsOpen && !winner && <OptionsDialog hs={hs} onClose={() => setOptionsOpen(false)} />}
+    </>
   );
 }

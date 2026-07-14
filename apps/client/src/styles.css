@@ -201,11 +201,14 @@ button.warn {
 .turn .phase {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--accent-bright);
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text);
+}
+.turn .phase .phase-count {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 /* Rotate-lock toggle: icon button before the phase label. */
 .mode-btn {
@@ -385,6 +388,20 @@ button.warn {
   gap: 12px;
   flex-wrap: wrap;
 }
+.options-btn {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+/* Options dialog action row: Quit to Menu (left) / Resume (right). */
+.options-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+}
 button.quiet {
   background: transparent;
   border-color: rgba(101, 80, 54, 0.5);
@@ -437,19 +454,24 @@ button.quiet:hover:not(:disabled) {
 }
 .player-row {
   display: grid;
-  grid-template-columns: 14px 1fr auto;
+  grid-template-columns: 15px 14px 1fr auto;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   padding: 7px 8px;
-  margin-top: 4px;
+  margin-top: 2px;
   border-radius: 8px;
-  border: 1px solid transparent;
-  border-left: 3px solid transparent;
 }
-.player-row.active {
-  border-color: rgba(182, 138, 72, 0.5);
-  border-left-color: var(--accent-bright);
-  background: rgba(182, 138, 72, 0.14);
+/* Current player is marked by a chevron + accent name, not a selectable-looking box. */
+.player-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  line-height: 1;
+  color: var(--accent-bright);
+}
+.player-row.active .player-name {
+  color: var(--accent-bright);
 }
 .player-row.dead {
   opacity: 0.45;
