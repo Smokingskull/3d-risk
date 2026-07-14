@@ -89,6 +89,10 @@ export interface Hotseat {
   /** How many sets the active hand can actually cash (disjoint), for the label. */
   tradeableSetCount: number;
   mustTrade: boolean;
+  /** True when the current game was loaded from a scenario (vs started fresh). */
+  isScenario: boolean;
+  /** How the game was won, once there's a winner (drives the win screen). */
+  winReason: "elimination" | "campaign" | null;
 }
 
 export function useHotseat(): Hotseat {
@@ -104,6 +108,8 @@ export function useHotseat(): Hotseat {
   const [combatSeq, setCombatSeq] = useState(0);
   const [autoAttacking, setAutoAttacking] = useState(false);
   const [selection, setSelection] = useState<TerritoryId | null>(null);
+  const [isScenario, setIsScenario] = useState(false);
+  const [winReason, setWinReason] = useState<"elimination" | "campaign" | null>(null);
 
   const gameRef = useRef<GameState | null>(null);
   gameRef.current = game;
@@ -155,6 +161,8 @@ export function useHotseat(): Hotseat {
     gameRef.current = state;
     setGame(state);
     setLog((prev) => [...events].reverse().concat(prev).slice(0, 10));
+    const won = events.find((e) => e.type === "gameWon");
+    if (won && won.type === "gameWon") setWinReason(won.reason ?? null);
     return events;
   }, []);
 
@@ -170,6 +178,8 @@ export function useHotseat(): Hotseat {
     setAutoAttacking(false);
     setLog([]);
     setTutorial(useTutorial);
+    setIsScenario(false);
+    setWinReason(null);
   }, []);
 
   const loadState = useCallback((state: GameState) => {
@@ -184,6 +194,8 @@ export function useHotseat(): Hotseat {
     setAutoAttacking(false);
     setLog([]);
     setTutorial(false);
+    setIsScenario(true);
+    setWinReason(null);
   }, []);
 
   const toggleTutorial = useCallback(() => setTutorial((t) => !t), []);
@@ -201,6 +213,8 @@ export function useHotseat(): Hotseat {
     setLastCombat(null);
     setAutoAttacking(false);
     setLog([]);
+    setIsScenario(false);
+    setWinReason(null);
   }, []);
 
   // Drive CPU turns via the worker (unchanged logic; uses applyAndStore).
@@ -414,5 +428,7 @@ export function useHotseat(): Hotseat {
     tradeSet,
     tradeableSetCount,
     mustTrade: game ? mustTrade(game) : false,
+    isScenario,
+    winReason,
   };
 }

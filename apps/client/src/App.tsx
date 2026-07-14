@@ -10,6 +10,7 @@ import { HelpBox } from "./HelpBox.js";
 import { HelpDialog } from "./HelpDialog.js";
 import { CombatModal } from "./CombatModal.js";
 import { CountryPopup } from "./CountryPopup.js";
+import { VictoryOverlay } from "./VictoryOverlay.js";
 import { ContinentsPanel } from "./ContinentsPanel.js";
 import { PlayersPanel } from "./PlayersPanel.js";
 import { useHotseat } from "./game/useHotseat.js";
@@ -174,6 +175,7 @@ export function App() {
       {helpOpen && <HelpDialog onClose={() => setHelpOpen(false)} />}
       <CombatModal hs={hs} />
       <CountryPopup hs={hs} />
+      <VictoryOverlay hs={hs} />
       <div className="right-stack">
         <PlayersPanel hs={hs} />
         <ContinentsPanel

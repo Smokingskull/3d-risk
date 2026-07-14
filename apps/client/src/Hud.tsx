@@ -136,25 +136,24 @@ export function Hud({ hs, hovered, onOpenHelp }: { hs: Hotseat; hovered: string 
         ))}
       </ul>
 
-      {winner && (
-        <div className="banner">
-          <Icon name="leaderboards" style={{ color: "#f5c842" }} />
-          {winner.name} wins!
-          <button onClick={hs.reset}>New game</button>
-        </div>
-      )}
-      {!winner && (
-        <div className="footer-row">
-          {game.options.campaign && !isCpu && (
-            <button className="campaign-btn" onClick={() => setCampaignOpen(true)}>
-              <Icon name="star" /> Campaign
-            </button>
-          )}
-          <button className="options-btn" data-tut="options" onClick={() => setOptionsOpen(true)}>
-            <Icon name="settings" /> Options
+      <div className="footer-row">
+        {winner ? (
+          <button className="options-btn" onClick={hs.reset}>
+            <Icon name="leaderboards" style={{ color: "#f5c842" }} /> New game
           </button>
-        </div>
-      )}
+        ) : (
+          <>
+            {game.options.campaign && !isCpu && (
+              <button className="campaign-btn" onClick={() => setCampaignOpen(true)}>
+                <Icon name="star" /> Campaign
+              </button>
+            )}
+            <button className="options-btn" data-tut="options" onClick={() => setOptionsOpen(true)}>
+              <Icon name="settings" /> Options
+            </button>
+          </>
+        )}
+      </div>
         </>
       )}
     </div>

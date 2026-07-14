@@ -1268,6 +1268,35 @@ button.quiet:hover:not(:disabled) {
   background: rgba(3, 5, 10, 0.72);
   backdrop-filter: blur(4px);
 }
+.victory-overlay {
+  z-index: 40; /* above the combat/country overlays */
+}
+.victory-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  max-width: min(92vw, 760px);
+}
+.victory-img {
+  width: 100%;
+  max-height: 72vh;
+  object-fit: contain;
+  border-radius: 16px;
+  border: 2px solid rgba(182, 138, 72, 0.6);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.65);
+}
+.victory-x {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1;
+}
+.victory-actions {
+  display: flex;
+  gap: 12px;
+}
 .overlay-card {
   width: 460px;
   max-width: calc(100vw - 32px);
