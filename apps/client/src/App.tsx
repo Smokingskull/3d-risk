@@ -13,6 +13,7 @@ import { CountryPopup } from "./CountryPopup.js";
 import { ContinentsPanel } from "./ContinentsPanel.js";
 import { PlayersPanel } from "./PlayersPanel.js";
 import { useHotseat } from "./game/useHotseat.js";
+import { loadFromJSON } from "@risk3d/engine";
 
 const _right = new THREE.Vector3();
 const _up = new THREE.Vector3();
@@ -107,6 +108,25 @@ export function App() {
     autostarted.current = true;
     const sp = new URLSearchParams(window.location.search);
     hs.start(mode, [{ kind: "human" }, { kind: "cpu", difficulty: "easy" }, { kind: "cpu", difficulty: "easy" }], sp.get("tutorial") === "1", ["Red", "Blue", "Green"], sp.get("campaign") === "1");
+  }, [hs]);
+
+  // Dev-only: ?load=<name> fetches public/saves/<name>.json, deserializes it via
+  // the engine, and loads that state — lets us pre-seed a specific scenario
+  // (a ready card hand, a near-win board, …) for inspection/testing without UI.
+  const loadedSave = useRef(false);
+  useEffect(() => {
+    if (!import.meta.env.DEV || loadedSave.current || hs.game) return;
+    const name = new URLSearchParams(window.location.search).get("load");
+    if (!name) return;
+    loadedSave.current = true;
+    const file = name.endsWith(".json") ? name : `${name}.json`;
+    fetch(`/saves/${file}`)
+      .then((r) => {
+        if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+        return r.text();
+      })
+      .then((txt) => hs.loadState(loadFromJSON(txt)))
+      .catch((e) => console.error(`[load] could not load save "${name}":`, e));
   }, [hs]);
 
   // Dev-only camera overrides for inspection: ?cam=<dist>, ?orbit=<degrees>.

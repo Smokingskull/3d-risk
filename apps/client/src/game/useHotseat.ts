@@ -78,6 +78,8 @@ export interface Hotseat {
   fortifyMove: (to: TerritoryId, count: number) => void;
   // Lifecycle / other controls.
   start: (mode: BoardMode, seats: SeatSpec[], tutorial: boolean, names: string[], campaign: boolean) => void;
+  /** Load a pre-built game state (e.g. a deserialized save) instead of starting fresh. */
+  loadState: (state: GameState) => void;
   reset: () => void;
   clickTerritory: (id: TerritoryId) => void;
   endAttack: () => void;
@@ -166,6 +168,20 @@ export function useHotseat(): Hotseat {
     setAutoAttacking(false);
     setLog([]);
     setTutorial(useTutorial);
+  }, []);
+
+  const loadState = useCallback((state: GameState) => {
+    runningTurn.current = -1;
+    autoRef.current = false;
+    gameRef.current = state;
+    setGame(state);
+    setSelectedFrom(null);
+    setSelection(null);
+    setEngagement(null);
+    setLastCombat(null);
+    setAutoAttacking(false);
+    setLog([]);
+    setTutorial(false);
   }, []);
 
   const toggleTutorial = useCallback(() => setTutorial((t) => !t), []);
@@ -383,6 +399,7 @@ export function useHotseat(): Hotseat {
     attackTarget,
     fortifyMove,
     start,
+    loadState,
     reset,
     clickTerritory,
     endAttack,
