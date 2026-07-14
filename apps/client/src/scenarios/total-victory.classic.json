@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "name": "Almost won (test)",
-  "description": "You hold the entire classic world except Greenland, which the CPU clings to with a single army. Your Canada — right next door — is stacked with 40 armies. It's your attack phase: strike Canada → Greenland, take the last territory, and the game is yours. A quick way to reach and test the win/elimination flow.",
-  "options": { "boardMode": "classic", "cardsEnabled": true },
+  "name": "Total victory",
+  "description": "Standard conquest, all but won. You hold the entire classic world except Greenland, which your rival clings to with a single army — and your Canada, right next door, is stacked with 40. It's your attack phase: strike Canada → Greenland, eliminate the last rival, and take the world. Demonstrates the standard total-victory win.",
+  "options": { "boardMode": "classic", "cardsEnabled": true, "campaign": false },
   "players": [
-    { "id": "p1", "name": "You", "color": "#e6194b", "kind": "human" },
-    { "id": "p2", "name": "CPU", "color": "#3cb44b", "kind": "cpu", "difficulty": "easy" }
+    { "id": "p1", "name": "You", "color": "#e6194b", "difficulty": "hard" },
+    { "id": "p2", "name": "General Vane", "color": "#3cb44b", "difficulty": "easy" }
   ],
   "activePlayer": "p1",
   "phase": "attack",

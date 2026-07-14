@@ -85,12 +85,6 @@ export interface ScenarioStateInput {
   winner?: PlayerId | null;
 }
 
-/** A named, described scenario file: game-state input plus presentation metadata. */
-export interface Scenario extends ScenarioStateInput {
-  name: string;
-  description: string;
-}
-
 const PHASES: Phase[] = ["reinforce", "attack", "fortify"];
 
 /** Deep-clone plain data by JSON round-trip (the value is JSON-bound anyway). */

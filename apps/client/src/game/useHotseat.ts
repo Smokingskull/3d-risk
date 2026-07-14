@@ -89,8 +89,6 @@ export interface Hotseat {
   /** How many sets the active hand can actually cash (disjoint), for the label. */
   tradeableSetCount: number;
   mustTrade: boolean;
-  /** True when the current game was loaded from a scenario (vs started fresh). */
-  isScenario: boolean;
   /** How the game was won, once there's a winner (drives the win screen). */
   winReason: "elimination" | "campaign" | null;
 }
@@ -108,7 +106,6 @@ export function useHotseat(): Hotseat {
   const [combatSeq, setCombatSeq] = useState(0);
   const [autoAttacking, setAutoAttacking] = useState(false);
   const [selection, setSelection] = useState<TerritoryId | null>(null);
-  const [isScenario, setIsScenario] = useState(false);
   const [winReason, setWinReason] = useState<"elimination" | "campaign" | null>(null);
 
   const gameRef = useRef<GameState | null>(null);
@@ -178,7 +175,6 @@ export function useHotseat(): Hotseat {
     setAutoAttacking(false);
     setLog([]);
     setTutorial(useTutorial);
-    setIsScenario(false);
     setWinReason(null);
   }, []);
 
@@ -194,7 +190,6 @@ export function useHotseat(): Hotseat {
     setAutoAttacking(false);
     setLog([]);
     setTutorial(false);
-    setIsScenario(true);
     setWinReason(null);
   }, []);
 
@@ -213,7 +208,6 @@ export function useHotseat(): Hotseat {
     setLastCombat(null);
     setAutoAttacking(false);
     setLog([]);
-    setIsScenario(false);
     setWinReason(null);
   }, []);
 
@@ -428,7 +422,6 @@ export function useHotseat(): Hotseat {
     tradeSet,
     tradeableSetCount,
     mustTrade: game ? mustTrade(game) : false,
-    isScenario,
     winReason,
   };
 }

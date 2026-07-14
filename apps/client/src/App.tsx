@@ -125,7 +125,7 @@ export function App() {
       return;
     }
     try {
-      hs.loadState(entry.load());
+      hs.loadState(entry.build(new Set([entry.defaultHuman])));
     } catch (e) {
       console.error(`[scenario] failed to load "${id}":`, e);
     }
