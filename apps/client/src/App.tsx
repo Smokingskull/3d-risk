@@ -12,12 +12,28 @@ import { ContinentsPanel } from "./ContinentsPanel.js";
 import { PlayersPanel } from "./PlayersPanel.js";
 import { useHotseat } from "./game/useHotseat.js";
 
-/** A directional light that tracks the camera — straight-on "headlight" so the
- * globe shows a subtle centre-bright, edge-dark 3D gradient as it rotates. */
-function CameraLight() {
+const _right = new THREE.Vector3();
+const _up = new THREE.Vector3();
+
+/** Key light offset up-and-left of the camera so it RAKES across the surface
+ * rather than lighting it head-on. This gives the globe a lit/shadow gradient
+ * (real spherical form) and lets the cracked-earth bevels catch the light. It
+ * stays camera-relative so the raking is consistent as you orbit. */
+function KeyLight() {
   const ref = useRef<THREE.DirectionalLight>(null);
-  useFrame(({ camera }) => ref.current?.position.copy(camera.position));
-  return <directionalLight ref={ref} intensity={0.6} />;
+  useFrame(({ camera }) => {
+    const light = ref.current;
+    if (!light) return;
+    const e = camera.matrixWorld.elements;
+    _right.set(e[0], e[1], e[2]); // camera right (world)
+    _up.set(e[4], e[5], e[6]); // camera up (world)
+    const dist = camera.position.length();
+    light.position
+      .copy(camera.position)
+      .addScaledVector(_right, -0.7 * dist)
+      .addScaledVector(_up, 0.7 * dist);
+  });
+  return <directionalLight ref={ref} intensity={1.25} />;
 }
 
 export function App() {
@@ -98,12 +114,13 @@ export function App() {
 
       <Canvas camera={{ position: [0, 0, camZ], fov: 45 }} dpr={[1, 2]}>
         <color attach="background" args={["#101417"]} />
-        {/* Base ambient + a camera-tracking headlight give a straight-on, centre-bright
-            3D gradient; a faint fixed fill keeps the far edge from going pure black. */}
-        <ambientLight intensity={0.5} />
-        <hemisphereLight args={["#dbe6ff", "#2a3242", 0.2]} />
-        <CameraLight />
-        <directionalLight position={[-5, -2, -3]} intensity={0.15} />
+        {/* A raking key light (offset from the camera) gives the globe spherical
+            form and makes the cracked-earth bevels catch light; low ambient +
+            a cool hemisphere fill keep the shadow side readable without washing
+            out the relief. */}
+        <ambientLight intensity={0.25} />
+        <hemisphereLight args={["#cdd8ee", "#20262e", 0.18]} />
+        <KeyLight />
         <Stars radius={120} depth={40} count={3000} factor={4} fade speed={0.5} />
 
         <Suspense fallback={null}>
