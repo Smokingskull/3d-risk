@@ -390,8 +390,9 @@ button.warn {
   gap: 12px;
   flex-wrap: wrap;
 }
-.options-btn {
-  width: 100%;
+.options-btn,
+.campaign-btn {
+  flex: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -403,6 +404,26 @@ button.warn {
   justify-content: space-between;
   gap: 12px;
   margin-top: 4px;
+}
+
+/* Campaign objective dialog: card art + aim text. */
+.campaign-card {
+  width: 420px;
+}
+.campaign-img {
+  align-self: center;
+  width: 230px;
+  max-width: 70%;
+  border-radius: 10px;
+  display: block;
+}
+.campaign-aim {
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text);
 }
 button.quiet {
   background: transparent;

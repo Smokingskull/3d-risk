@@ -3,6 +3,7 @@ import type { GameEvent, GameState } from "@risk3d/engine";
 import type { Hotseat } from "./game/useHotseat.js";
 import { Icon } from "./Icon.js";
 import { OptionsDialog } from "./OptionsDialog.js";
+import { CampaignDialog } from "./CampaignDialog.js";
 
 function describe(e: GameEvent): string {
   switch (e.type) {
@@ -51,6 +52,9 @@ export function Hud({ hs, hovered }: { hs: Hotseat; hovered: string | null }) {
   const isCpu = active.kind === "cpu" && !winner;
   const [open, setOpen] = useState(true);
   const [optionsOpen, setOptionsOpen] = useState(false);
+  // Auto-show the campaign card on start for a solo human (not in multi-human games).
+  const humanCount = game.players.filter((p) => p.kind === "human").length;
+  const [campaignOpen, setCampaignOpen] = useState(game.options.campaign && humanCount === 1 && active.kind === "human");
 
   return (
     <>
@@ -136,6 +140,11 @@ export function Hud({ hs, hovered }: { hs: Hotseat; hovered: string | null }) {
       )}
       {!winner && (
         <div className="footer-row">
+          {game.options.campaign && !isCpu && (
+            <button className="campaign-btn" onClick={() => setCampaignOpen(true)}>
+              <Icon name="star" /> Campaign
+            </button>
+          )}
           <button className="options-btn" onClick={() => setOptionsOpen(true)}>
             <Icon name="settings" /> Options
           </button>
@@ -145,6 +154,7 @@ export function Hud({ hs, hovered }: { hs: Hotseat; hovered: string | null }) {
       )}
     </div>
     {optionsOpen && !winner && <OptionsDialog hs={hs} onClose={() => setOptionsOpen(false)} />}
+    {campaignOpen && active.kind === "human" && <CampaignDialog game={game} onClose={() => setCampaignOpen(false)} />}
     </>
   );
 }
