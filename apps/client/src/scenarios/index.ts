@@ -1,9 +1,11 @@
 import { deserializeGame, type GameState, type ScenarioStateInput } from "@risk3d/engine";
-import cardSets from "./card-sets.classic.json";
-import totalVictory from "./total-victory.classic.json";
-import countryCampaign from "./country-campaign.classic.json";
-import continentCampaign from "./continent-campaign.classic.json";
-import assassinationCampaign from "./assassination-campaign.classic.json";
+import huns from "./huns.classic.json";
+import mongols from "./mongols.classic.json";
+import napoleon from "./napoleon.classic.json";
+import rome from "./rome.classic.json";
+import alexander from "./alexander.classic.json";
+import ww2Axis from "./ww2-axis.classic.json";
+import ww2Allied from "./ww2-allied.classic.json";
 
 /** The raw scenario-file shape. Players are "seats" — kind is assigned at load. */
 interface RawPlayer {
@@ -56,13 +58,15 @@ function toEntry(id: string, raw: RawScenario): ScenarioEntry {
   };
 }
 
-// Insertion order here is the display order in the menu.
+// Insertion order here is the display order in the menu (chronological).
 export const SCENARIOS: ScenarioEntry[] = [
-  toEntry("card-sets", cardSets as unknown as RawScenario),
-  toEntry("total-victory", totalVictory as unknown as RawScenario),
-  toEntry("country-campaign", countryCampaign as unknown as RawScenario),
-  toEntry("continent-campaign", continentCampaign as unknown as RawScenario),
-  toEntry("assassination-campaign", assassinationCampaign as unknown as RawScenario),
+  toEntry("alexander", alexander as unknown as RawScenario),
+  toEntry("rome", rome as unknown as RawScenario),
+  toEntry("huns", huns as unknown as RawScenario),
+  toEntry("mongols", mongols as unknown as RawScenario),
+  toEntry("napoleon", napoleon as unknown as RawScenario),
+  toEntry("ww2-axis", ww2Axis as unknown as RawScenario),
+  toEntry("ww2-allied", ww2Allied as unknown as RawScenario),
 ];
 
 export const scenarioById = (id: string): ScenarioEntry | undefined =>

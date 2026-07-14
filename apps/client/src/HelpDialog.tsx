@@ -55,9 +55,10 @@ const TOPICS: Topic[] = [
         <p>You only ever see your own objective — open the Campaign card from the Game box. Eliminating everyone still wins too.</p>
         <h3>Scenarios</h3>
         <p>
-          Jump straight into a pre-built situation instead of setting up a fresh game. Open{" "}
-          <strong>Scenarios</strong> from the main menu, choose one from the list, read its description and
-          press <strong>Play</strong>. These are test setups for now — historical battles are coming.
+          Refight history instead of setting up a fresh game. Open <strong>Scenarios</strong> from the main
+          menu, pick a campaign (Alexander, Rome, the Mongols, Napoleon, the World Wars…), choose which side
+          you command, and press <strong>Play</strong>. Each has its own victory objective, described before
+          you start.
         </p>
       </>
     ),

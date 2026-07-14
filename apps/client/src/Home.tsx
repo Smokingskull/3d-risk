@@ -30,7 +30,7 @@ export function Home({ onStart, onLoadScenario }: Props) {
           </button>
           <button className="home-btn primary" onClick={() => setDialog({ kind: "scenarios" })}>
             Scenarios
-            <span className="home-desc">Jump into a pre-built situation — test setups now, historical battles to come.</span>
+            <span className="home-desc">Refight history — Alexander, Rome, the Mongols, Napoleon, the World Wars. Pick a side and chase its objective.</span>
           </button>
           <button className="home-btn" onClick={() => setDialog({ kind: "help" })}>
             How To Play

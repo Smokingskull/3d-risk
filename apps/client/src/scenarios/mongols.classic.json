@@ -1,0 +1,213 @@
+{
+  "version": 1,
+  "name": "The Great Khan — Mongol Conquest",
+  "description": "From the open steppe, forge the largest land empire in history — bring every corner of Asia under the horsetail banner. You play Genghis Khan. Difficulty: Hard — you begin small, ringed by richer settled realms you must overrun one by one.",
+  "options": {
+    "boardMode": "classic",
+    "cardsEnabled": true,
+    "campaign": true
+  },
+  "players": [
+    {
+      "id": "p1",
+      "name": "Genghis Khan",
+      "color": "#e6194b",
+      "difficulty": "hard",
+      "campaign": {
+        "kind": "continent",
+        "continent": "asia"
+      }
+    },
+    {
+      "id": "p2",
+      "name": "The Jin Dynasty",
+      "color": "#f58231",
+      "difficulty": "medium",
+      "campaign": {
+        "kind": "continent",
+        "continent": "asia"
+      }
+    },
+    {
+      "id": "p3",
+      "name": "The Khwarezmian Shah",
+      "color": "#4363d8",
+      "difficulty": "medium",
+      "campaign": {
+        "kind": "continent",
+        "continent": "africa"
+      }
+    },
+    {
+      "id": "p4",
+      "name": "The Kievan Rus",
+      "color": "#911eb4",
+      "difficulty": "easy",
+      "campaign": {
+        "kind": "continent",
+        "continent": "europe"
+      }
+    }
+  ],
+  "activePlayer": "p1",
+  "phase": "reinforce",
+  "turn": 1,
+  "territories": {
+    "Afghanistan": {
+      "owner": "p1",
+      "armies": 3
+    },
+    "Arabia": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Argentina": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "Australia": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "Brazil": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Canada": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "Caribbean": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "Central Africa": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Central America": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "Central Asia": {
+      "owner": "p1",
+      "armies": 3
+    },
+    "Central Europe": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "China": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "East Africa": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "East Indies": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "Eastern Europe": {
+      "owner": "p1",
+      "armies": 3
+    },
+    "Egypt": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Far East": {
+      "owner": "p1",
+      "armies": 3
+    },
+    "Great Britain": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "Greenland": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "Iceland": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "India": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "Iran": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "Madagascar": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Mexico": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "Middle East": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "Mongolia": {
+      "owner": "p1",
+      "armies": 8
+    },
+    "New Guinea": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "New Zealand": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "North Africa": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "Peru": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Russia": {
+      "owner": "p1",
+      "armies": 3
+    },
+    "Scandinavia": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "Siam": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "Southern Africa": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Southern Europe": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "United States": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "Venezuela": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "West Africa": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "Western Europe": {
+      "owner": "p4",
+      "armies": 2
+    }
+  }
+}

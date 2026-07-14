@@ -1,0 +1,215 @@
+{
+  "version": 1,
+  "name": "Master of Europe — The Napoleonic Wars",
+  "description": "1805. The Grande Armée is the finest in the world and the continent is there for the taking. Seize and hold all of Europe before the coalitions grind you down. You play Napoleon. Difficulty: Hard — Britain is safe across the Channel and will bankroll enemy after enemy.",
+  "options": {
+    "boardMode": "classic",
+    "cardsEnabled": true,
+    "campaign": true
+  },
+  "players": [
+    {
+      "id": "p1",
+      "name": "Napoleon (France)",
+      "color": "#e6194b",
+      "difficulty": "hard",
+      "campaign": {
+        "kind": "continent",
+        "continent": "europe"
+      }
+    },
+    {
+      "id": "p2",
+      "name": "Wellington (Britain)",
+      "color": "#f58231",
+      "difficulty": "hard",
+      "campaign": {
+        "kind": "country",
+        "territory": "Western Europe",
+        "heldTurns": 0
+      }
+    },
+    {
+      "id": "p3",
+      "name": "Tsar Alexander I (Russia)",
+      "color": "#4363d8",
+      "difficulty": "medium",
+      "campaign": {
+        "kind": "continent",
+        "continent": "asia"
+      }
+    },
+    {
+      "id": "p4",
+      "name": "The Coalition",
+      "color": "#911eb4",
+      "difficulty": "easy",
+      "campaign": {
+        "kind": "country",
+        "territory": "Central Europe",
+        "heldTurns": 0
+      }
+    }
+  ],
+  "activePlayer": "p1",
+  "phase": "reinforce",
+  "turn": 1,
+  "territories": {
+    "Afghanistan": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Arabia": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "Argentina": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "Australia": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Brazil": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "Canada": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "Caribbean": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Central Africa": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "Central America": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "Central Asia": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Central Europe": {
+      "owner": "p1",
+      "armies": 3
+    },
+    "China": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "East Africa": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "East Indies": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Eastern Europe": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "Egypt": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "Far East": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Great Britain": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "Greenland": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "Iceland": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "India": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "Iran": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "Madagascar": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Mexico": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "Middle East": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "Mongolia": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "New Guinea": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "New Zealand": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "North Africa": {
+      "owner": "p1",
+      "armies": 3
+    },
+    "Peru": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Russia": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "Scandinavia": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "Siam": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Southern Africa": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "Southern Europe": {
+      "owner": "p1",
+      "armies": 3
+    },
+    "United States": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "Venezuela": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "West Africa": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "Western Europe": {
+      "owner": "p1",
+      "armies": 8
+    }
+  }
+}

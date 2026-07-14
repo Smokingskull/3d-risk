@@ -1,0 +1,213 @@
+{
+  "version": 1,
+  "name": "The Scourge of God — Attila and the Huns",
+  "description": "451 AD. Attila's horde has burst off the steppe into a crumbling Roman world. One prize matters — break the Western Empire and wipe it from the map. You play Attila. Difficulty: Hard — Rome is dug in to your west, and the other powers won't stand idle while you march.",
+  "options": {
+    "boardMode": "classic",
+    "cardsEnabled": true,
+    "campaign": true
+  },
+  "players": [
+    {
+      "id": "p1",
+      "name": "Attila the Hun",
+      "color": "#e6194b",
+      "difficulty": "hard",
+      "campaign": {
+        "kind": "assassination",
+        "target": "p2"
+      }
+    },
+    {
+      "id": "p2",
+      "name": "The Western Empire",
+      "color": "#f58231",
+      "difficulty": "medium",
+      "campaign": {
+        "kind": "continent",
+        "continent": "europe"
+      }
+    },
+    {
+      "id": "p3",
+      "name": "The Eastern Empire",
+      "color": "#4363d8",
+      "difficulty": "medium",
+      "campaign": {
+        "kind": "continent",
+        "continent": "asia"
+      }
+    },
+    {
+      "id": "p4",
+      "name": "The Distant Kingdoms",
+      "color": "#911eb4",
+      "difficulty": "easy",
+      "campaign": {
+        "kind": "continent",
+        "continent": "south-america"
+      }
+    }
+  ],
+  "activePlayer": "p1",
+  "phase": "reinforce",
+  "turn": 1,
+  "territories": {
+    "Afghanistan": {
+      "owner": "p1",
+      "armies": 3
+    },
+    "Arabia": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "Argentina": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "Australia": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "Brazil": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "Canada": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "Caribbean": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "Central Africa": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "Central America": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "Central Asia": {
+      "owner": "p1",
+      "armies": 3
+    },
+    "Central Europe": {
+      "owner": "p2",
+      "armies": 3
+    },
+    "China": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "East Africa": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "East Indies": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "Eastern Europe": {
+      "owner": "p1",
+      "armies": 8
+    },
+    "Egypt": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "Far East": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "Great Britain": {
+      "owner": "p2",
+      "armies": 3
+    },
+    "Greenland": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "Iceland": {
+      "owner": "p1",
+      "armies": 3
+    },
+    "India": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "Iran": {
+      "owner": "p1",
+      "armies": 3
+    },
+    "Madagascar": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "Mexico": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "Middle East": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "Mongolia": {
+      "owner": "p1",
+      "armies": 3
+    },
+    "New Guinea": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "New Zealand": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "North Africa": {
+      "owner": "p2",
+      "armies": 3
+    },
+    "Peru": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "Russia": {
+      "owner": "p1",
+      "armies": 3
+    },
+    "Scandinavia": {
+      "owner": "p1",
+      "armies": 3
+    },
+    "Siam": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "Southern Africa": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "Southern Europe": {
+      "owner": "p2",
+      "armies": 3
+    },
+    "United States": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "Venezuela": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "West Africa": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "Western Europe": {
+      "owner": "p2",
+      "armies": 3
+    }
+  }
+}
