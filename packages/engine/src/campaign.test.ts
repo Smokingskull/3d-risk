@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { applyAction, createGame, type GameConfig } from "./game.js";
+import { applyAction, createGame, isLegal, type GameConfig } from "./game.js";
+import { planTurn, type Difficulty } from "./ai/policy.js";
 import type { BoardDefinition, GameState } from "./types.js";
 
 // 4-territory ring A-B-C-D-A, one continent "c" (bonus 5).
@@ -87,5 +88,26 @@ describe("campaign win conditions", () => {
     }
     expect(cur.players.find((p) => p.id === "p2")!.eliminated).toBe(true);
     expect(cur.winner).toBe("p1");
+  });
+});
+
+describe("goal-seeking AI in a campaign game", () => {
+  it("a full campaign CPU game terminates with a winner", () => {
+    const specs: Difficulty[] = ["easy", "medium", "hard"];
+    let s = createGame({
+      players: specs.map((difficulty, i) => ({ id: `p${i + 1}`, name: `CPU ${i + 1}`, color: "#888", kind: "cpu" as const, difficulty })),
+      boardMode: "classic",
+      seed: 5,
+      campaign: true,
+    });
+    let guard = 0;
+    while (!s.winner && guard++ < 6000) {
+      for (const a of planTurn(s)) {
+        expect(isLegal(s, a)).toBe(true);
+        s = applyAction(s, a).state;
+        if (s.winner) break;
+      }
+    }
+    expect(s.winner).toBeTruthy();
   });
 });

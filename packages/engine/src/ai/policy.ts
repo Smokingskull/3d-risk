@@ -43,6 +43,20 @@ function mustTrade(s: GameState): boolean {
   return p.cards.length >= 5;
 }
 
+/** 0..1 bonus for attacking `to` when it advances the active player's campaign
+ * objective: capturing the target country, taking territory in the target
+ * continent, or hitting the assassination target's land. */
+function campaignAttackBonus(s: GameState, me: PlayerId, to: TerritoryId): number {
+  const c = s.players.find((p) => p.id === me)?.campaign;
+  if (!c) return 0;
+  if (c.kind === "country") {
+    if (to === c.territory) return 1;
+    return s.board.territories[to].neighbours.includes(c.territory) ? 0.3 : 0;
+  }
+  if (c.kind === "continent") return s.board.territories[to].continent === c.continent ? 1 : 0;
+  return s.territories[to].owner === c.target ? 1 : 0; // assassination
+}
+
 /** How valuable taking `to` is toward completing its continent (0..bonus·2). */
 function continentValue(s: GameState, me: PlayerId, to: TerritoryId): number {
   const cont = s.board.continents[s.board.territories[to].continent];
@@ -59,6 +73,25 @@ function chooseReinforceTarget(s: GameState, me: PlayerId, k: Knobs): TerritoryI
   const owned = territoriesOf(s, me);
   const borders = owned.filter((t) => isBorder(s, me, t));
   if (borders.length === 0) return owned[0];
+
+  // Campaign pursuit (any difficulty): reinforce the border best placed to hit
+  // the objective — adjacent to the target country/continent/assassination land.
+  if (s.players.find((p) => p.id === me)?.campaign) {
+    let best = borders[0];
+    let bestScore = -Infinity;
+    for (const t of borders) {
+      const en = enemyNeighbours(s, me, t);
+      const campScore = Math.max(0, ...en.map((n) => campaignAttackBonus(s, me, n)));
+      const weakest = Math.min(...en.map((n) => s.territories[n].armies));
+      const score = 10 * campScore - weakest;
+      if (score > bestScore) {
+        bestScore = score;
+        best = t;
+      }
+    }
+    return best;
+  }
+
   if (!k.eagerTrade && !k.continentAware) return borders[0]; // easy: first border
 
   // Spearhead: reinforce the border touching the weakest enemy territory,
@@ -92,8 +125,11 @@ function chooseAttack(s: GameState, me: PlayerId, k: Knobs): AttackChoice | null
     if (armies < 2) continue;
     for (const to of enemyNeighbours(s, me, from)) {
       const odds = conquestProbability(armies, s.territories[to].armies);
-      if (odds < k.attackThreshold) continue;
-      const score = odds + (k.continentAware ? 0.15 * continentValue(s, me, to) : 0);
+      const camp = campaignAttackBonus(s, me, to);
+      // Pursue campaign targets even at moderate odds (but not hopeless ones).
+      const threshold = camp > 0 ? Math.min(k.attackThreshold, 0.45) : k.attackThreshold;
+      if (odds < threshold) continue;
+      const score = odds + (k.continentAware ? 0.15 * continentValue(s, me, to) : 0) + 5 * camp;
       if (!best || score > best.score)
         best = { from, to, dice: Math.min(3, armies - 1), score };
     }
