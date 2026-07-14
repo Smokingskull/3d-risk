@@ -31,4 +31,4 @@ export type GameEvent =
   | { type: "playerEliminated"; player: PlayerId; by: PlayerId; cardsTaken: number }
   | { type: "phaseChanged"; phase: Phase; player: PlayerId }
   | { type: "turnEnded"; player: PlayerId; nextPlayer: PlayerId; turn: number }
-  | { type: "gameWon"; winner: PlayerId };
+  | { type: "gameWon"; winner: PlayerId; reason?: "elimination" | "campaign" };

@@ -14,6 +14,7 @@ import { mulberry32, rollDieAt, shuffle } from "./rng.js";
 import type {
   BoardDefinition,
   BoardMode,
+  CampaignKind,
   Card,
   ContinentId,
   GameState,
@@ -41,6 +42,36 @@ export interface GameConfig {
   seed: number;
   fortifyRule?: "connected" | "adjacent";
   cardsEnabled?: boolean;
+  /** Campaign mode: assign each player a secret objective; first to meet it wins. */
+  campaign?: boolean;
+}
+
+/** Number of consecutive owned turn-ends needed to win a "country" campaign. */
+const COUNTRY_HOLD_TURNS = 3;
+
+/** Assign each player a random secret objective (deterministic via rng). Country
+ * targets are never a territory the player starts owning. */
+function assignCampaigns(
+  players: Player[],
+  territories: GameState["territories"],
+  board: BoardDefinition,
+  rng: () => number,
+): void {
+  const kinds: CampaignKind[] = ["country", "continent", "assassination"];
+  const continentIds = Object.keys(board.continents);
+  const allTerritories = Object.keys(territories);
+  const pick = <T,>(arr: T[]): T => arr[Math.floor(rng() * arr.length)];
+  for (const p of players) {
+    const kind = pick(kinds);
+    if (kind === "country") {
+      const notOwned = allTerritories.filter((t) => territories[t].owner !== p.id);
+      p.campaign = { kind: "country", territory: pick(notOwned), heldTurns: 0 };
+    } else if (kind === "continent") {
+      p.campaign = { kind: "continent", continent: pick(continentIds) };
+    } else {
+      p.campaign = { kind: "assassination", target: pick(players.filter((o) => o.id !== p.id)).id };
+    }
+  }
 }
 
 // --- selectors --------------------------------------------------------------
@@ -145,11 +176,14 @@ export function createGame(config: GameConfig): GameState {
     }
   }
 
+  const campaign = config.campaign ?? false;
+  if (campaign) assignCampaigns(players, territories, board, rng);
+
   const deck = cardsEnabled ? shuffle(buildDeck(board), rng) : [];
 
   const state: GameState = {
     board,
-    options: { boardMode, fortifyRule: config.fortifyRule ?? "connected", cardsEnabled },
+    options: { boardMode, fortifyRule: config.fortifyRule ?? "connected", cardsEnabled, campaign },
     players,
     territories,
     turn: 1,
@@ -177,7 +211,7 @@ function cloneState(s: GameState): GameState {
   for (const k in s.territories) territories[k] = { ...s.territories[k] };
   return {
     ...s,
-    players: s.players.map((p) => ({ ...p, cards: [...p.cards] })),
+    players: s.players.map((p) => ({ ...p, cards: [...p.cards], campaign: p.campaign ? { ...p.campaign } : undefined })),
     territories,
     deck: [...s.deck],
     discard: [...s.discard],
@@ -307,13 +341,39 @@ function endTurn(s: GameState, events: GameEvent[]): void {
   s.reinforcementsRemaining = reinforcementsFor(s, s.activePlayer);
   events.push({ type: "turnEnded", player: prev, nextPlayer: s.activePlayer, turn: s.turn });
   events.push({ type: "phaseChanged", phase: "reinforce", player: s.activePlayer });
+
+  // Campaign: update the finishing player's country-hold streak, then check if
+  // their country/continent objective is met at this turn's end.
+  const prevPlayer = playerById(s, prev);
+  if (prevPlayer.campaign?.kind === "country") {
+    prevPlayer.campaign.heldTurns =
+      s.territories[prevPlayer.campaign.territory]?.owner === prev ? prevPlayer.campaign.heldTurns + 1 : 0;
+  }
+  setCampaignWinner(s, events, prevPlayer);
+}
+
+/** Is player p's campaign objective currently satisfied? */
+function campaignMet(s: GameState, p: Player): boolean {
+  const c = p.campaign;
+  if (!c || p.eliminated) return false;
+  if (c.kind === "country") return c.heldTurns >= COUNTRY_HOLD_TURNS;
+  if (c.kind === "continent") return ownsContinent(s, p.id, c.continent);
+  return playerById(s, c.target).eliminated; // assassination
+}
+
+/** Declare p the winner if they've met their campaign objective (and nobody has yet). */
+function setCampaignWinner(s: GameState, events: GameEvent[], p: Player): void {
+  if (s.winner || !campaignMet(s, p)) return;
+  s.winner = p.id;
+  events.push({ type: "gameWon", winner: p.id, reason: "campaign" });
 }
 
 function checkWin(s: GameState, events: GameEvent[]): void {
+  if (s.winner) return;
   const alive = activePlayers(s);
   if (alive.length === 1) {
     s.winner = alive[0].id;
-    events.push({ type: "gameWon", winner: s.winner });
+    events.push({ type: "gameWon", winner: s.winner, reason: "elimination" });
   }
 }
 
@@ -409,6 +469,10 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
           victim.cards = [];
           victim.eliminated = true;
           events.push({ type: "playerEliminated", player: defender, by: me, cardsTaken: taken });
+          // Assassination campaign: anyone who targeted the eliminated player wins.
+          for (const p of s.players)
+            if (p.campaign?.kind === "assassination" && p.campaign.target === defender)
+              setCampaignWinner(s, events, p);
           checkWin(s, events);
         }
       }

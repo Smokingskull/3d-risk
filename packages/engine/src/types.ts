@@ -54,6 +54,13 @@ export interface Card {
   symbol: CardSymbol;
 }
 
+/** A player's secret objective in a Campaign game. */
+export type CampaignKind = "country" | "continent" | "assassination";
+export type CampaignTarget =
+  | { kind: "country"; territory: TerritoryId; heldTurns: number }
+  | { kind: "continent"; continent: ContinentId }
+  | { kind: "assassination"; target: PlayerId };
+
 export interface Player {
   id: PlayerId;
   name: string;
@@ -65,6 +72,8 @@ export interface Player {
   eliminated: boolean;
   /** Cards held in hand. */
   cards: Card[];
+  /** Secret campaign objective (only set in Campaign games). */
+  campaign?: CampaignTarget;
 }
 
 export interface TerritoryState {
@@ -79,6 +88,8 @@ export interface GameOptions {
   /** "connected": fortify between any two owned territories linked by owned land. */
   fortifyRule: "connected" | "adjacent";
   cardsEnabled: boolean;
+  /** Campaign mode: each player has a secret objective; first to meet theirs wins. */
+  campaign: boolean;
 }
 
 /**
