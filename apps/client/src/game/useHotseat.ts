@@ -74,7 +74,7 @@ export interface Hotseat {
   attackTarget: (to: TerritoryId) => void;
   fortifyMove: (to: TerritoryId, count: number) => void;
   // Lifecycle / other controls.
-  start: (mode: BoardMode, seats: SeatSpec[], tutorial: boolean, names: string[]) => void;
+  start: (mode: BoardMode, seats: SeatSpec[], tutorial: boolean, names: string[], campaign: boolean) => void;
   reset: () => void;
   clickTerritory: (id: TerritoryId) => void;
   endAttack: () => void;
@@ -150,11 +150,11 @@ export function useHotseat(): Hotseat {
     return events;
   }, []);
 
-  const start = useCallback((mode: BoardMode, seats: SeatSpec[], useTutorial: boolean, names: string[]) => {
+  const start = useCallback((mode: BoardMode, seats: SeatSpec[], useTutorial: boolean, names: string[], campaign: boolean) => {
     const seed = Math.floor(Math.random() * 0x7fffffff);
     runningTurn.current = -1;
     autoRef.current = false;
-    setGame(createGame({ players: buildPlayers(seats, names), boardMode: mode, seed }));
+    setGame(createGame({ players: buildPlayers(seats, names), boardMode: mode, seed, campaign }));
     setSelectedFrom(null);
     setSelection(null);
     setEngagement(null);

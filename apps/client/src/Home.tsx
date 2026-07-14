@@ -4,10 +4,10 @@ import type { SeatSpec } from "./game/useHotseat.js";
 import { NewGameDialog } from "./NewGameDialog.js";
 import { RulesDialog } from "./RulesDialog.js";
 
-type Dialog = { kind: "new"; mode: BoardMode } | { kind: "rules" } | null;
+type Dialog = { kind: "new"; campaign: boolean } | { kind: "rules" } | null;
 
 interface Props {
-  onStart: (mode: BoardMode, seats: SeatSpec[], tutorial: boolean, names: string[]) => void;
+  onStart: (mode: BoardMode, seats: SeatSpec[], tutorial: boolean, names: string[], campaign: boolean) => void;
 }
 
 export function Home({ onStart }: Props) {
@@ -18,13 +18,13 @@ export function Home({ onStart }: Props) {
       <div className="home-inner">
         <img className="home-banner" src="/assets/images/banner.png" alt="3D Risk — Dominate. Conquer. Control." />
         <div className="home-actions">
-          <button className="home-btn primary" onClick={() => setDialog({ kind: "new", mode: "classic" })}>
-            New Classic Game
-            <span className="home-desc">Close to the classic board — country groups across the traditional six continents. A quicker game.</span>
+          <button className="home-btn primary" onClick={() => setDialog({ kind: "new", campaign: false })}>
+            New Game
+            <span className="home-desc">Standard RISK — choose the Classic or Modern map, then conquer the world.</span>
           </button>
-          <button className="home-btn primary" onClick={() => setDialog({ kind: "new", mode: "world" })}>
-            New Modern Game
-            <span className="home-desc">Every one of the world's 177 real countries as its own territory. A longer, sprawling campaign.</span>
+          <button className="home-btn primary" onClick={() => setDialog({ kind: "new", campaign: true })}>
+            New Campaign
+            <span className="home-desc">Every player gets a secret objective — hold a country, seize a continent, or assassinate a rival. First to complete theirs wins.</span>
           </button>
           <button className="home-btn" onClick={() => setDialog({ kind: "rules" })}>
             How To Play
@@ -34,7 +34,7 @@ export function Home({ onStart }: Props) {
       </div>
 
       {dialog?.kind === "new" && (
-        <NewGameDialog mode={dialog.mode} onStart={onStart} onClose={() => setDialog(null)} />
+        <NewGameDialog campaign={dialog.campaign} onStart={onStart} onClose={() => setDialog(null)} />
       )}
       {dialog?.kind === "rules" && <RulesDialog onClose={() => setDialog(null)} />}
     </div>

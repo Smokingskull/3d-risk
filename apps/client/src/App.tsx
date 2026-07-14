@@ -100,11 +100,8 @@ export function App() {
     const mode = new URLSearchParams(window.location.search).get("autostart");
     if (mode !== "classic" && mode !== "world") return;
     autostarted.current = true;
-    hs.start(mode, [{ kind: "human" }, { kind: "cpu", difficulty: "easy" }, { kind: "cpu", difficulty: "easy" }], false, [
-      "Red",
-      "Blue",
-      "Green",
-    ]);
+    const campaign = new URLSearchParams(window.location.search).get("campaign") === "1";
+    hs.start(mode, [{ kind: "human" }, { kind: "cpu", difficulty: "easy" }, { kind: "cpu", difficulty: "easy" }], false, ["Red", "Blue", "Green"], campaign);
   }, [hs]);
 
   // Dev-only camera overrides for inspection: ?cam=<dist>, ?orbit=<degrees>.

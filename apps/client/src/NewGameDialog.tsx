@@ -11,12 +11,13 @@ const toSpec = (c: SeatChoice): SeatSpec => (c === "human" ? { kind: "human" } :
 const defaultName = (i: number) => `Player ${i + 1}`;
 
 interface Props {
-  mode: BoardMode;
-  onStart: (mode: BoardMode, seats: SeatSpec[], tutorial: boolean, names: string[]) => void;
+  campaign: boolean;
+  onStart: (mode: BoardMode, seats: SeatSpec[], tutorial: boolean, names: string[], campaign: boolean) => void;
   onClose: () => void;
 }
 
-export function NewGameDialog({ mode, onStart, onClose }: Props) {
+export function NewGameDialog({ campaign, onStart, onClose }: Props) {
+  const [mode, setMode] = useState<BoardMode>("classic");
   const [seats, setSeats] = useState<SeatChoice[]>(["human", "medium", "medium"]);
   const [names, setNames] = useState<string[]>([0, 1, 2].map(defaultName));
   const [tutorial, setTutorial] = useState(true);
@@ -40,9 +41,21 @@ export function NewGameDialog({ mode, onStart, onClose }: Props) {
     <div className="overlay" onClick={onClose}>
       <div className="overlay-card new-game" onClick={(e) => e.stopPropagation()}>
         <div className="overlay-head">
-          <h2>New {mode === "classic" ? "Classic" : "Modern"} Game</h2>
+          <h2>New {campaign ? "Campaign" : "Game"}</h2>
           <button className="tut-x" aria-label="Close" onClick={onClose}><Icon name="close" size={18} /></button>
         </div>
+
+        <label className="field">
+          <span>Map</span>
+          <div className="segmented">
+            <button className={mode === "classic" ? "sel" : ""} onClick={() => setMode("classic")}>
+              Classic
+            </button>
+            <button className={mode === "world" ? "sel" : ""} onClick={() => setMode("world")}>
+              Modern
+            </button>
+          </div>
+        </label>
 
         <label className="field">
           <span>Players</span>
@@ -84,8 +97,8 @@ export function NewGameDialog({ mode, onStart, onClose }: Props) {
           <span>Tutorial tips — on-screen prompts for each phase (recommended for new players)</span>
         </label>
 
-        <button className="start" onClick={() => onStart(mode, seats.map(toSpec), tutorial, names)}>
-          Start game
+        <button className="start" onClick={() => onStart(mode, seats.map(toSpec), tutorial, names, campaign)}>
+          {campaign ? "Start campaign" : "Start game"}
         </button>
       </div>
     </div>
