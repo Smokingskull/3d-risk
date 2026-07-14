@@ -1,5 +1,5 @@
 import { Suspense, useEffect, useRef, useState } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, createPortal, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Stars } from "@react-three/drei";
 import * as THREE from "three";
 import { Globe } from "./Globe.js";
@@ -41,20 +41,20 @@ function RakingLights() {
   );
 }
 
-/** Star field locked to the camera so it reads as a stationary backdrop — the
- * globe rotates against fixed stars rather than the stars swinging with the view. */
+/** Star field parented to the camera (via a portal) so it reads as a stationary
+ * backdrop: the stars inherit the camera's world matrix at render time, so the
+ * globe rotates against fixed stars instead of the stars swinging with the view.
+ * The camera is added to the scene so its portaled children get rendered. */
 function BackdropStars() {
-  const ref = useRef<THREE.Group>(null);
-  useFrame(({ camera }) => {
-    if (!ref.current) return;
-    ref.current.position.copy(camera.position);
-    ref.current.quaternion.copy(camera.quaternion);
-  });
-  return (
-    <group ref={ref}>
-      <Stars radius={120} depth={40} count={3000} factor={4} fade speed={0.5} />
-    </group>
-  );
+  const camera = useThree((s) => s.camera);
+  const scene = useThree((s) => s.scene);
+  useEffect(() => {
+    scene.add(camera);
+    return () => {
+      scene.remove(camera);
+    };
+  }, [scene, camera]);
+  return <>{createPortal(<Stars radius={120} depth={40} count={3000} factor={4} fade speed={0} />, camera)}</>;
 }
 
 export function App() {
@@ -81,9 +81,11 @@ export function App() {
     ]);
   }, [hs]);
 
-  // Dev-only camera distance override (?cam=2.2) for inspecting the globe surface.
-  const camZ =
-    import.meta.env.DEV ? Number(new URLSearchParams(window.location.search).get("cam")) || 4 : 4;
+  // Dev-only camera overrides for inspection: ?cam=<dist>, ?orbit=<degrees>.
+  const params = import.meta.env.DEV ? new URLSearchParams(window.location.search) : new URLSearchParams();
+  const camZ = Number(params.get("cam")) || 4;
+  const orbitRad = ((Number(params.get("orbit")) || 0) * Math.PI) / 180;
+  const camPos: [number, number, number] = [camZ * Math.sin(orbitRad), 0, camZ * Math.cos(orbitRad)];
 
   if (!hs.game) return <Home onStart={hs.start} />;
 
@@ -133,7 +135,7 @@ export function App() {
       </div>
 
       <Canvas
-        camera={{ position: [0, 0, camZ], fov: 45 }}
+        camera={{ position: camPos, fov: 45 }}
         dpr={[1, 2]}
         style={{ cursor: hs.mode === "rotate" ? "grab" : "pointer" }}
       >
