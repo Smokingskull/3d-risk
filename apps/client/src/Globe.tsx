@@ -21,10 +21,74 @@ const POLE_FIX = new THREE.Euler(-Math.PI / 2, 0, 0);
 // turns. Crack lines darken the per-owner tint (and roughen it a touch) so each
 // territory reads as parched earth in its player colour. Back-facing fragments
 // are dimmed so the far side of the transparent globe reads as "the back".
-const CRACK_TEX_URL = "/assets/textures/mud03_diff_2k.jpg";
-const CRACK_REPEATS = 11; // texture tiles across the globe diameter (tune)
-const CRACK_DARK = 0.55; // how much crack lines darken the tint
-const CRACK_ROUGH = 0.15; // extra roughness in the cracks
+const CRACK_REPEATS = 9; // crack texture tiles across the globe diameter (tune)
+const CRACK_DARK = 0.72; // how much crack lines darken the tint
+const CRACK_ROUGH = 0.2; // extra roughness in the cracks
+
+// Small deterministic RNG so the generated crack pattern is stable across runs.
+function mulberry32(seed: number): () => number {
+  return () => {
+    seed |= 0;
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// Generate a tileable dried-earth crack pattern (Worley F2−F1 cell edges): thin
+// dark lines at cell borders, light inside. Synchronous DataTexture — no asset
+// download, renders immediately, and reads as parched earth when tiled.
+function makeCrackTexture(size = 512, cells = 14, seed = 20260714): THREE.DataTexture {
+  const rnd = mulberry32(seed);
+  const fx = new Float32Array(cells * cells);
+  const fy = new Float32Array(cells * cells);
+  for (let i = 0; i < cells * cells; i++) {
+    fx[i] = rnd();
+    fy[i] = rnd();
+  }
+  const data = new Uint8Array(size * size * 4);
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const u = (x / size) * cells;
+      const v = (y / size) * cells;
+      const cx = Math.floor(u);
+      const cy = Math.floor(v);
+      let f1 = 1e9;
+      let f2 = 1e9;
+      for (let oy = -1; oy <= 1; oy++) {
+        for (let ox = -1; ox <= 1; ox++) {
+          const gx = (((cx + ox) % cells) + cells) % cells;
+          const gy = (((cy + oy) % cells) + cells) % cells;
+          const dx = u - (cx + ox + fx[gy * cells + gx]);
+          const dy = v - (cy + oy + fy[gy * cells + gx]);
+          const d = Math.sqrt(dx * dx + dy * dy);
+          if (d < f1) {
+            f2 = f1;
+            f1 = d;
+          } else if (d < f2) {
+            f2 = d;
+          }
+        }
+      }
+      const edge = f2 - f1; // ~0 on a cell border (crack), larger inside
+      let c = Math.min(1, edge / 0.16); // wider → thicker cracks that survive minification
+      c = c * c * (3 - 2 * c); // smoothstep
+      const val = 12 + Math.round(c * 243); // near-black cracks for strong contrast
+      const i = (y * size + x) * 4;
+      data[i] = data[i + 1] = data[i + 2] = val;
+      data[i + 3] = 255;
+    }
+  }
+  const tex = new THREE.DataTexture(data, size, size);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.magFilter = THREE.LinearFilter;
+  tex.minFilter = THREE.LinearMipmapLinearFilter;
+  tex.generateMipmaps = true;
+  tex.anisotropy = 8; // keep crack lines crisp when the surface is minified
+  tex.needsUpdate = true;
+  return tex;
+}
 import { getBoard, type GameState, type TerritoryId } from "@risk3d/engine";
 import { NEUTRAL_COLOR } from "./players.js";
 
@@ -89,6 +153,7 @@ function Labels({ entries }: { entries: LabelEntry[] }) {
 
 export function Globe({ game, selectedFrom, validTargets, selection, highlightContinent, focus, onHover, onPick }: GlobeProps) {
   const { scene } = useGLTF(MODEL_URL);
+  const crackTex = useMemo(() => makeCrackTexture(), []);
   const camera = useThree((s) => s.camera);
   const controls = useThree((s) => s.controls) as unknown as { enabled: boolean; update?: () => void } | null;
 
@@ -102,24 +167,15 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
   }, [board]);
 
   // Prepare the scene once per board: per-territory material grouping + centroids.
-  const { group, meshesByTerritory, outlinesByTerritory, outlineMaterials, centroids, crackUniforms } = useMemo(() => {
+  const { group, meshesByTerritory, outlinesByTerritory, outlineMaterials, centroids } = useMemo(() => {
     const root = scene.clone(true);
 
     // Shared crack shader. One function reference for every material, so three
     // dedups to a single compiled program while still injecting each material's
     // uniforms. uScale is filled in once the object-space radius is known.
-    // Placeholder (1x1 gray) until the crack texture loads, so the globe renders
-    // immediately and the detail pops in. applyCrack collects each material's
-    // uCrack uniform so the effect below can swap the loaded texture into all.
-    const placeholder = new THREE.DataTexture(new Uint8Array([128, 128, 128, 255]), 1, 1);
-    placeholder.needsUpdate = true;
-    placeholder.wrapS = placeholder.wrapT = THREE.RepeatWrapping;
-    const crackUniforms: { value: THREE.Texture }[] = [];
     const scaleHolder = { value: 0.5 };
     const applyCrack = (shader: THREE.WebGLProgramParametersWithUniforms) => {
-      const uCrack = { value: placeholder as THREE.Texture };
-      crackUniforms.push(uCrack);
-      shader.uniforms.uCrack = uCrack;
+      shader.uniforms.uCrack = { value: crackTex };
       shader.uniforms.uScale = { value: scaleHolder.value };
       shader.uniforms.uDark = { value: CRACK_DARK };
       shader.uniforms.uRough = { value: CRACK_ROUGH };
@@ -243,25 +299,8 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
       contCount.set(cont, (contCount.get(cont) ?? 0) + n);
     }
     for (const [cont, acc] of contSum) centroidDirs.set(cont, toDir(acc.clone().multiplyScalar(1 / (contCount.get(cont) || 1))));
-    return { group: g, meshesByTerritory: byTerritory, outlinesByTerritory: outlines, outlineMaterials, centroids: centroidDirs, crackUniforms };
-  }, [scene, countryToTerritory, board]);
-
-  // Load the crack texture off the critical path (fetch-based ImageBitmapLoader,
-  // robust in headless) and swap it into every country material once ready.
-  useEffect(() => {
-    let cancelled = false;
-    new THREE.ImageBitmapLoader().load(CRACK_TEX_URL, (bitmap) => {
-      if (cancelled) return;
-      const tex = new THREE.Texture(bitmap as unknown as HTMLImageElement);
-      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-      tex.colorSpace = THREE.SRGBColorSpace;
-      tex.needsUpdate = true;
-      for (const u of crackUniforms) u.value = tex;
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [crackUniforms]);
+    return { group: g, meshesByTerritory: byTerritory, outlinesByTerritory: outlines, outlineMaterials, centroids: centroidDirs };
+  }, [scene, countryToTerritory, board, crackTex]);
 
   // Fat lines need the viewport resolution for correct pixel width.
   const size = useThree((s) => s.size);
