@@ -41,6 +41,22 @@ function RakingLights() {
   );
 }
 
+/** Star field locked to the camera so it reads as a stationary backdrop — the
+ * globe rotates against fixed stars rather than the stars swinging with the view. */
+function BackdropStars() {
+  const ref = useRef<THREE.Group>(null);
+  useFrame(({ camera }) => {
+    if (!ref.current) return;
+    ref.current.position.copy(camera.position);
+    ref.current.quaternion.copy(camera.quaternion);
+  });
+  return (
+    <group ref={ref}>
+      <Stars radius={120} depth={40} count={3000} factor={4} fade speed={0.5} />
+    </group>
+  );
+}
+
 export function App() {
   const hs = useHotseat();
   const [hovered, setHovered] = useState<string | null>(null);
@@ -129,7 +145,7 @@ export function App() {
         <ambientLight intensity={0.14} />
         <hemisphereLight args={["#cdd8ee", "#20262e", 0.1]} />
         <RakingLights />
-        <Stars radius={120} depth={40} count={3000} factor={4} fade speed={0.5} />
+        <BackdropStars />
 
         <Suspense fallback={null}>
           <Globe
