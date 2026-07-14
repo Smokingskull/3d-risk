@@ -55,6 +55,9 @@ export interface Hotseat {
   /** Globe interaction mode: "select" picks territories, "rotate" only spins. */
   mode: "rotate" | "select";
   toggleMode: () => void;
+  /** Bumps to (re)play the guided interface tour. */
+  tourNonce: number;
+  startTour: () => void;
   // Combat engagement (the centre-screen battle dialog).
   engagement: Engagement | null;
   lastCombat: AttackedEvent | null;
@@ -91,6 +94,7 @@ export function useHotseat(): Hotseat {
   const [tutorial, setTutorial] = useState(false);
   const [autoRotate, setAutoRotate] = useState(true);
   const [mode, setMode] = useState<"rotate" | "select">("select");
+  const [tourNonce, setTourNonce] = useState(0);
   const [engagement, setEngagement] = useState<Engagement | null>(null);
   const [lastCombat, setLastCombat] = useState<AttackedEvent | null>(null);
   const [combatSeq, setCombatSeq] = useState(0);
@@ -167,6 +171,7 @@ export function useHotseat(): Hotseat {
   const toggleTutorial = useCallback(() => setTutorial((t) => !t), []);
   const toggleAutoRotate = useCallback(() => setAutoRotate((a) => !a), []);
   const toggleMode = useCallback(() => setMode((m) => (m === "select" ? "rotate" : "select")), []);
+  const startTour = useCallback(() => setTourNonce((n) => n + 1), []);
 
   const reset = useCallback(() => {
     runningTurn.current = -1;
@@ -359,6 +364,8 @@ export function useHotseat(): Hotseat {
     toggleAutoRotate,
     mode,
     toggleMode,
+    tourNonce,
+    startTour,
     engagement,
     lastCombat,
     combatSeq,

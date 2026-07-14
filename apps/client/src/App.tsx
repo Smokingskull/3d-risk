@@ -6,6 +6,8 @@ import { Globe } from "./Globe.js";
 import { Hud } from "./Hud.js";
 import { Home } from "./Home.js";
 import { Tutorial } from "./Tutorial.js";
+import { HelpBox } from "./HelpBox.js";
+import { HelpDialog } from "./HelpDialog.js";
 import { CombatModal } from "./CombatModal.js";
 import { CountryPopup } from "./CountryPopup.js";
 import { ContinentsPanel } from "./ContinentsPanel.js";
@@ -88,6 +90,9 @@ export function App() {
   const [hovered, setHovered] = useState<string | null>(null);
   const [highlightContinent, setHighlightContinent] = useState<string | null>(null);
   const [focus, setFocus] = useState<{ id: string; n: number } | null>(null);
+  const [helpOpen, setHelpOpen] = useState(
+    import.meta.env.DEV && new URLSearchParams(window.location.search).get("help") === "1",
+  );
 
   // Dev-only test hook so headless checks can drive the game deterministically.
   if (import.meta.env.DEV) (window as unknown as { __risk: typeof hs }).__risk = hs;
@@ -142,8 +147,10 @@ export function App() {
 
   return (
     <>
-      <Hud hs={hs} hovered={hovered} />
+      <Hud hs={hs} hovered={hovered} onOpenHelp={() => setHelpOpen(true)} />
+      <HelpBox hs={hs} onOpenHelp={() => setHelpOpen(true)} />
       <Tutorial hs={hs} />
+      {helpOpen && <HelpDialog onClose={() => setHelpOpen(false)} />}
       <CombatModal hs={hs} />
       <CountryPopup hs={hs} />
       <div className="right-stack">

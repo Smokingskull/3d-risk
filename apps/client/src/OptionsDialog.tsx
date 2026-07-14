@@ -3,7 +3,7 @@ import { Icon } from "./Icon.js";
 
 /** Centred options popup opened from the Game box: tutorial + auto-rotate
  *  toggles, and Quit-to-Menu / Resume at the bottom. */
-export function OptionsDialog({ hs, onClose }: { hs: Hotseat; onClose: () => void }) {
+export function OptionsDialog({ hs, onClose, onHelp }: { hs: Hotseat; onClose: () => void; onHelp: () => void }) {
   return (
     <div className="overlay" onClick={onClose}>
       <div className="overlay-card options-card" onClick={(e) => e.stopPropagation()}>
@@ -22,6 +22,16 @@ export function OptionsDialog({ hs, onClose }: { hs: Hotseat; onClose: () => voi
           <input type="checkbox" checked={hs.autoRotate} onChange={hs.toggleAutoRotate} />
           <span>Auto-rotate the globe when picking from the Continents box</span>
         </label>
+
+        <button
+          className="options-help"
+          onClick={() => {
+            onClose();
+            onHelp();
+          }}
+        >
+          <Icon name="help" /> Help &amp; how to play
+        </button>
 
         <div className="options-actions">
           <button className="quiet" onClick={hs.reset}>

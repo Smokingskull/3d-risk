@@ -44,7 +44,7 @@ const PHASE_ICON: Record<GameState["phase"], string> = {
   fortify: "shield",
 };
 
-export function Hud({ hs, hovered }: { hs: Hotseat; hovered: string | null }) {
+export function Hud({ hs, hovered, onOpenHelp }: { hs: Hotseat; hovered: string | null; onOpenHelp: () => void }) {
   const game = hs.game!;
   const active = game.players.find((p) => p.id === game.activePlayer)!;
   const winner = game.winner ? game.players.find((p) => p.id === game.winner) : null;
@@ -158,7 +158,7 @@ export function Hud({ hs, hovered }: { hs: Hotseat; hovered: string | null }) {
         </>
       )}
     </div>
-    {optionsOpen && !winner && <OptionsDialog hs={hs} onClose={() => setOptionsOpen(false)} />}
+    {optionsOpen && !winner && <OptionsDialog hs={hs} onClose={() => setOptionsOpen(false)} onHelp={onOpenHelp} />}
     {campaignOpen && active.kind === "human" && <CampaignDialog game={game} onClose={() => setCampaignOpen(false)} />}
     </>
   );

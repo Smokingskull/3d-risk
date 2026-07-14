@@ -25,13 +25,19 @@ export function Tutorial({ hs }: { hs: Hotseat }) {
   const show = !!game && hs.tutorial && !done && active?.kind === "human";
   const step = STEPS[i];
 
-  // Restart the tour whenever the tutorial is (re)enabled.
+  // Reset when the tutorial is disabled, and replay when startTour bumps the nonce.
   useEffect(() => {
     if (!hs.tutorial) {
       setI(0);
       setDone(false);
     }
   }, [hs.tutorial]);
+  useEffect(() => {
+    if (hs.tourNonce > 0) {
+      setI(0);
+      setDone(false);
+    }
+  }, [hs.tourNonce]);
 
   useLayoutEffect(() => {
     if (!show) return;

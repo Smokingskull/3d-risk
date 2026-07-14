@@ -2,24 +2,17 @@ import { setBonus, validSetsInHand, type Card } from "@risk3d/engine";
 import type { Hotseat } from "./game/useHotseat.js";
 import { Icon } from "./Icon.js";
 
-const ART: Record<string, string | undefined> = {
+const ART: Record<string, string> = {
   infantry: "/assets/cards/infantry-unit-card.png",
   cavalry: "/assets/cards/cavalry-unit-card.png",
   artillery: "/assets/cards/artillery-unit-card.png",
+  wild: "/assets/cards/wild-unit-card.png",
 };
 
 function CardFace({ card, owned, inSet }: { card: Card; owned: boolean; inSet: boolean }) {
-  const art = ART[card.symbol];
   return (
     <div className={`card-face${inSet ? " in-set" : ""}`}>
-      {art ? (
-        <img src={art} alt={card.symbol} draggable={false} />
-      ) : (
-        <div className="card-wild">
-          <Icon name="star" size={40} />
-          <span>WILD</span>
-        </div>
-      )}
+      <img src={ART[card.symbol]} alt={card.symbol} draggable={false} />
       <div className="card-terr">
         {card.territory ?? "Wild"}
         {owned && <Icon name="shield" style={{ color: "var(--accent-bright)" }} />}

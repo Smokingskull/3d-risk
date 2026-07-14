@@ -491,6 +491,88 @@ button.warn {
   line-height: 1.5;
   color: var(--text);
 }
+
+/* Help box (bottom-left) action row + Options "Help" button. */
+.help-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.help-actions .quiet {
+  flex: 1;
+}
+.options-help {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Help topics dialog: subject nav + content. */
+.overlay-card.help-dialog {
+  width: 720px;
+}
+.help-body {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.help-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: none;
+  width: 160px;
+}
+.help-nav button {
+  text-align: left;
+}
+.help-nav button.sel {
+  border-color: var(--accent);
+  background: linear-gradient(180deg, rgba(213, 174, 105, 0.3), rgba(182, 138, 72, 0.16));
+  color: var(--text);
+}
+.help-content {
+  flex: 1;
+  min-width: 260px;
+  max-height: 60vh;
+  overflow-y: auto;
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-dim);
+}
+.help-content h3 {
+  margin: 16px 0 4px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--accent-bright);
+}
+.help-content h3:first-child {
+  margin-top: 0;
+}
+.help-content p {
+  margin: 8px 0;
+}
+.help-content .lede {
+  color: var(--text);
+  font-size: 15px;
+}
+.help-content ul {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+.help-content li {
+  margin: 6px 0;
+}
+.help-content strong {
+  color: var(--text);
+}
 button.quiet {
   background: transparent;
   border-color: rgba(101, 80, 54, 0.5);
