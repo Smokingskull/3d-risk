@@ -15,27 +15,30 @@ import { useHotseat } from "./game/useHotseat.js";
 const _right = new THREE.Vector3();
 const _up = new THREE.Vector3();
 
-/** Key light offset up-and-left of the camera so it RAKES across the surface
- * rather than lighting it head-on. This gives the globe a lit/shadow gradient
- * (real spherical form) and lets the cracked-earth bevels catch the light. It
- * stays camera-relative so the raking is consistent as you orbit. */
-function KeyLight() {
-  const ref = useRef<THREE.DirectionalLight>(null);
+/** Two opposing raking lights, camera-relative. A single light only reveals the
+ * cracked-earth relief in the grazing band near its terminator; the lit cap
+ * flattens out. A brighter key from the left plus a dimmer fill from the right
+ * each graze their own half, so the relief reads across the whole visible disc
+ * while the key still carries the spherical shading. */
+function RakingLights() {
+  const key = useRef<THREE.DirectionalLight>(null);
+  const fill = useRef<THREE.DirectionalLight>(null);
   useFrame(({ camera }) => {
-    const light = ref.current;
-    if (!light) return;
     const e = camera.matrixWorld.elements;
     _right.set(e[0], e[1], e[2]); // camera right (world)
     _up.set(e[4], e[5], e[6]); // camera up (world)
-    const dist = camera.position.length();
-    // Push well to the side (mostly left, a little up) so the light grazes across
-    // the whole visible disc — relief shows broadly and a real terminator forms.
-    light.position
-      .copy(camera.position)
-      .addScaledVector(_right, -1.3 * dist)
-      .addScaledVector(_up, 0.55 * dist);
+    const d = camera.position.length();
+    if (key.current)
+      key.current.position.copy(camera.position).addScaledVector(_right, -1.5 * d).addScaledVector(_up, 0.45 * d);
+    if (fill.current)
+      fill.current.position.copy(camera.position).addScaledVector(_right, 1.5 * d).addScaledVector(_up, -0.4 * d);
   });
-  return <directionalLight ref={ref} intensity={1.5} />;
+  return (
+    <>
+      <directionalLight ref={key} intensity={1.35} />
+      <directionalLight ref={fill} intensity={0.7} color="#cfe0ff" />
+    </>
+  );
 }
 
 export function App() {
@@ -120,9 +123,9 @@ export function App() {
             form and makes the cracked-earth bevels catch light; low ambient +
             a cool hemisphere fill keep the shadow side readable without washing
             out the relief. */}
-        <ambientLight intensity={0.12} />
+        <ambientLight intensity={0.14} />
         <hemisphereLight args={["#cdd8ee", "#20262e", 0.1]} />
-        <KeyLight />
+        <RakingLights />
         <Stars radius={120} depth={40} count={3000} factor={4} fade speed={0.5} />
 
         <Suspense fallback={null}>

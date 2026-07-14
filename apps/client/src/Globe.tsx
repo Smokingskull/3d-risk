@@ -24,7 +24,7 @@ const POLE_FIX = new THREE.Euler(-Math.PI / 2, 0, 0);
 const CRACK_REPEATS = 9; // crack texture tiles across the globe diameter (tune)
 const CRACK_DARK = 0.55; // how much crack lines darken the tint (0 = bevel only)
 const CRACK_ROUGH = 0.2; // extra roughness in the cracks
-const CRACK_BUMP = 1.2; // relief strength — scales the baked normal so cracks catch light
+const CRACK_BUMP = 1.7; // relief strength — scales the baked normal so cracks catch light
 
 // Small deterministic RNG so the generated crack pattern is stable across runs.
 function mulberry32(seed: number): () => number {
