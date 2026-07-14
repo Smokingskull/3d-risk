@@ -94,7 +94,7 @@ export function Hud({ hs, hovered }: { hs: Hotseat; hovered: string | null }) {
 
       {!isCpu && !hs.engagement && game.phase === "attack" && !pending && (
         <div className="row">
-          <button onClick={hs.endAttack}>End attack →</button>
+          <button onClick={hs.endAttack}>End attack <Icon name="arrow-right" size={14} /></button>
           <span className="hint">
             {hs.selectedFrom ? `Attacking from ${hs.selectedFrom} — pick a highlighted enemy.` : "Select one of your territories (2+ armies)."}
           </span>
@@ -112,7 +112,7 @@ export function Hud({ hs, hovered }: { hs: Hotseat; hovered: string | null }) {
 
       {!isCpu && game.phase === "fortify" && (
         <div className="row">
-          <button onClick={hs.endTurn}>End turn ⏭</button>
+          <button onClick={hs.endTurn}>End turn <Icon name="skip-forward" size={14} /></button>
           <span className="hint">
             {hs.selectedFrom ? `Move from ${hs.selectedFrom} to a highlighted territory.` : "Optionally fortify: select a territory (2+ armies)."}
           </span>

@@ -48,7 +48,7 @@ export function CardPanel({ hs, onClose }: { hs: Hotseat; onClose: () => void })
         <div className="overlay-head">
           <h2>{me.name} — Cards</h2>
           <button className="tut-x" aria-label="Close" onClick={onClose}>
-            ×
+            <Icon name="close" size={18} />
           </button>
         </div>
 

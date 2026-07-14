@@ -1,4 +1,5 @@
 import type { Hotseat } from "./game/useHotseat.js";
+import { Icon } from "./Icon.js";
 
 /** Centred options popup opened from the Game box: tutorial + auto-rotate
  *  toggles, and Quit-to-Menu / Resume at the bottom. */
@@ -9,7 +10,7 @@ export function OptionsDialog({ hs, onClose }: { hs: Hotseat; onClose: () => voi
         <div className="overlay-head">
           <h2>Options</h2>
           <button className="tut-x" aria-label="Close" onClick={onClose}>
-            ×
+            <Icon name="close" size={18} />
           </button>
         </div>
 

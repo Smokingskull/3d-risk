@@ -917,13 +917,15 @@ button.quiet:hover:not(:disabled) {
   font-weight: 700;
 }
 .tut-x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   margin-left: auto;
   background: transparent;
   border: none;
-  color: var(--text);
-  font-size: 26px;
-  line-height: 0.7;
-  padding: 0 6px;
+  color: var(--text-dim);
+  line-height: 1;
+  padding: 2px 4px;
   cursor: pointer;
 }
 .tut-x:hover {

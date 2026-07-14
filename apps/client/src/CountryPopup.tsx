@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Hotseat } from "./game/useHotseat.js";
+import { Icon } from "./Icon.js";
 
 function Stepper({ min, max, value, onChange }: { min: number; max: number; value: number; onChange: (n: number) => void }) {
   const clamp = (n: number) => Math.min(max, Math.max(min, n));
@@ -101,7 +102,7 @@ export function CountryPopup({ hs }: { hs: Hotseat }) {
       <div className="pop-head">
         <span className="pop-dot" style={{ background: ownerColor }} />
         <strong>{id}</strong>
-        <button className="tut-x" aria-label="Close" onClick={hs.closeDialog}>×</button>
+        <button className="tut-x" aria-label="Close" onClick={hs.closeDialog}><Icon name="close" size={18} /></button>
       </div>
       <div className="pop-info">{mine ? `Your territory · ${t.armies} armies` : `Held by ${ownerName} · ${t.armies} armies`}</div>
       <div className="pop-body">{body}</div>

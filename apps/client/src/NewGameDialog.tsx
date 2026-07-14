@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { BoardMode } from "@risk3d/engine";
 import type { SeatSpec } from "./game/useHotseat.js";
 import { PLAYER_COLORS } from "./players.js";
+import { Icon } from "./Icon.js";
 
 type SeatChoice = "human" | "easy" | "medium" | "hard";
 const CHOICES: SeatChoice[] = ["human", "easy", "medium", "hard"];
@@ -40,7 +41,7 @@ export function NewGameDialog({ mode, onStart, onClose }: Props) {
       <div className="overlay-card new-game" onClick={(e) => e.stopPropagation()}>
         <div className="overlay-head">
           <h2>New {mode === "classic" ? "Classic" : "Modern"} Game</h2>
-          <button className="tut-x" aria-label="Close" onClick={onClose}>×</button>
+          <button className="tut-x" aria-label="Close" onClick={onClose}><Icon name="close" size={18} /></button>
         </div>
 
         <label className="field">
