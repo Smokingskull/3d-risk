@@ -27,7 +27,10 @@ export function ContinentsPanel({ game, highlight, selection, onToggle, onSelect
         </button>
       </div>
       {open && (
-        <p className="hint">Click a continent to highlight it (gold = still needed). Then click a country to rotate to it.</p>
+        <p className="hint">
+          Click a continent to highlight it (gold = still needed), then a country to rotate to it. The
+          <span className="cont-bonus"> +N</span> is the bonus armies you earn each turn for holding all of it.
+        </p>
       )}
       {open &&
         continents.map((c) => {
@@ -47,7 +50,9 @@ export function ContinentsPanel({ game, highlight, selection, onToggle, onSelect
                 {owned}/{total}
                 {complete ? " ✓" : ""}
               </span>
-              <span className="cont-bonus">+{c.bonus}</span>
+              <span className="cont-bonus" title={`+${c.bonus} armies per turn for holding all of ${c.name}`}>
+                +{c.bonus}
+              </span>
             </button>
 
             {active && (

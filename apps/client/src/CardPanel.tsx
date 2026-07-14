@@ -66,12 +66,17 @@ export function CardPanel({ hs, onClose }: { hs: Hotseat; onClose: () => void })
           <div className="card-bonus">
             Set bonus <strong>+{nextBonus}</strong>
           </div>
-          <button className="start" disabled={hs.availableSets === 0} onClick={hs.tradeFirstSet}>
+          <button
+            className="start"
+            disabled={hs.availableSets === 0 || game.phase !== "reinforce"}
+            onClick={hs.tradeFirstSet}
+          >
             Trade set (+{nextBonus})
           </button>
         </div>
 
         {hs.mustTrade && <p className="hint">You hold 5+ cards — you must trade a set before placing armies.</p>}
+        {game.phase !== "reinforce" && <p className="hint">You can trade a set during your reinforce phase.</p>}
         {hand.some((c) => owns(c.territory)) && (
           <p className="hint">
             <Icon name="shield" /> = you hold the pictured territory (grants +2 armies there when traded).

@@ -67,7 +67,7 @@ export function App() {
       <CombatModal hs={hs} />
       <CountryPopup hs={hs} />
       <div className="right-stack">
-        <PlayersPanel game={hs.game} />
+        <PlayersPanel hs={hs} />
         <ContinentsPanel
           game={hs.game}
           highlight={highlightContinent}
