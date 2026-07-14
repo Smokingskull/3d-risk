@@ -513,12 +513,15 @@ button.warn {
 /* Help topics dialog: subject nav + content. */
 .overlay-card.help-dialog {
   width: 720px;
+  overflow: hidden;
 }
 .help-body {
   display: flex;
   gap: 16px;
-  align-items: flex-start;
+  align-items: stretch;
   flex-wrap: wrap;
+  flex: 1;
+  min-height: 0;
 }
 .help-nav {
   display: flex;
@@ -538,7 +541,7 @@ button.warn {
 .help-content {
   flex: 1;
   min-width: 260px;
-  max-height: 60vh;
+  min-height: 0;
   overflow-y: auto;
   font-family: var(--font-body);
   font-size: 14px;

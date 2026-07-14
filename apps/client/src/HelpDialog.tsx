@@ -90,14 +90,14 @@ const TOPICS: Topic[] = [
       <>
         <p>Capture at least one territory during your turn and you earn one card. Each card shows a symbol:</p>
         <ul>
-          <li><strong>Infantry</strong>, <strong>Cavalry</strong> or <strong>Artillery</strong>, or a <strong>Wild</strong>.</li>
+          <li><strong>Infantry</strong>, <strong>Cavalry</strong>, <strong>Artillery</strong> or <strong>Wild</strong>.</li>
         </ul>
         <h3>Trading a set</h3>
         <p>
           A set is three cards that are <strong>all the same symbol</strong>, <strong>one of each</strong>{" "}
           (infantry + cavalry + artillery), or <strong>any three including a Wild</strong>. Trade a set during
           Reinforce for bonus armies — the payout escalates each time any set is cashed in over the game (4, 6,
-          8, 10, 12, 15, then +5 each). If a card pictures a territory you own, you get +2 armies there.
+          8, 10, 12, 15, then +5 each). If the set includes a card showing a territory you still own, you get +2 bonus armies to place.
         </p>
         <p>Hold five or more cards and you must trade before placing. Eliminate a player and you seize their whole hand.</p>
       </>
