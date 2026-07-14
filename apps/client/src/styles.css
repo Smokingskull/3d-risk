@@ -544,6 +544,64 @@ button.warn {
   gap: 10px;
   flex: none;
 }
+.overlay-card.scenarios-dialog {
+  width: 860px;
+  overflow: hidden; /* the list and detail scroll internally; the card doesn't */
+}
+.scenarios-body {
+  display: flex;
+  gap: 18px;
+  align-items: stretch;
+  flex: 1;
+  min-height: 0;
+}
+/* True list box on the left — scrolls, and is wide enough that names wrap to at
+   most a couple of lines. Grows cleanly as more scenarios are added. */
+.scenario-list {
+  width: 300px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  overflow-y: auto;
+  border: 1px solid rgba(182, 138, 72, 0.35);
+  border-radius: 10px;
+  background: rgba(16, 20, 23, 0.5);
+}
+.scenario-list li {
+  margin: 0;
+}
+.scenario-list button {
+  width: 100%;
+  text-align: left;
+  white-space: normal;
+  line-height: 1.25;
+  padding: 9px 12px;
+}
+.scenario-list button.sel {
+  border-color: var(--accent);
+  background: linear-gradient(180deg, rgba(213, 174, 105, 0.3), rgba(182, 138, 72, 0.16));
+  color: var(--text);
+}
+.scenario-detail {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-dim);
+}
+.scenario-detail h3 {
+  margin: 0 0 8px;
+  font-family: var(--font-ui);
+  font-size: 15px;
+  color: var(--accent-bright);
+}
 .scenario-seats {
   display: flex;
   flex-direction: column;
