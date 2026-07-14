@@ -62,7 +62,7 @@ export function ContinentsPanel({ game, highlight, selection, onToggle, onSelect
                   const mine = st.owner === me;
                   return (
                     <li key={t}>
-                      <button className={`cont-member${selection === t ? " active" : ""}`} onClick={() => onSelectRegion(t)} title={`${t} — held by ${ownerName(st.owner)} — ${st.armies} armies (click to select & rotate here)`}>
+                      <button className={`cont-member${selection === t ? " active" : ""}`} onClick={() => onSelectRegion(t)} title={`${t} — held by ${ownerName(st.owner)} — ${st.armies} armies (click to rotate the globe here)`}>
                         <span className="cont-dot" style={{ background: ownerColor(st.owner) }} />
                         <span className={`cont-mname${mine ? "" : " need"}`}>{t}</span>
                         <span className="cont-marmy">{st.armies}</span>

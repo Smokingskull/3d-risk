@@ -144,6 +144,24 @@ const CANONICAL_BY_SANITIZED = new Map(
 const _labelDir = new THREE.Vector3();
 const _camDir = new THREE.Vector3();
 
+// Seconds for a rotate-to-territory glide (smooth, eased — no jump).
+const FOCUS_DURATION = 0.6;
+// Only allow selecting/hovering territories on the near (camera-facing)
+// hemisphere; below this dot the point is round the back.
+const NEAR_SIDE_MIN = 0.12;
+
+/** Spherical interpolation between two unit direction vectors. */
+function slerpDir(a: THREE.Vector3, b: THREE.Vector3, t: number): THREE.Vector3 {
+  const d = THREE.MathUtils.clamp(a.dot(b), -1, 1);
+  const theta = Math.acos(d);
+  if (theta < 1e-4) return a.clone();
+  const s = Math.sin(theta);
+  return a
+    .clone()
+    .multiplyScalar(Math.sin((1 - t) * theta) / s)
+    .add(b.clone().multiplyScalar(Math.sin(t * theta) / s));
+}
+
 /** Requested camera focus: rotate so this territory faces front (rotation only). */
 export interface FocusRequest {
   id: TerritoryId;
@@ -157,6 +175,8 @@ interface GlobeProps {
   selection: TerritoryId | null;
   highlightContinent: string | null;
   focus: FocusRequest | null;
+  /** Selection mode: picking/hover enabled. In rotate mode the globe only spins. */
+  selectable: boolean;
   onHover: (territory: TerritoryId | null) => void;
   onPick: (territory: TerritoryId) => void;
 }
@@ -189,7 +209,7 @@ function Labels({ entries }: { entries: LabelEntry[] }) {
   );
 }
 
-export function Globe({ game, selectedFrom, validTargets, selection, highlightContinent, focus, onHover, onPick }: GlobeProps) {
+export function Globe({ game, selectedFrom, validTargets, selection, highlightContinent, focus, selectable, onHover, onPick }: GlobeProps) {
   const { scene } = useGLTF(MODEL_URL);
   const crackTex = useMemo(() => makeCrackTexture(), []);
   const camera = useThree((s) => s.camera);
@@ -371,7 +391,7 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
 
   const playable = useMemo(() => new Set(Object.keys(board.territories)), [board]);
 
-  const refs = useRef({ game, selectedFrom, validTargets, selection, ownerColor, playable, highlightContinent, hovered: null as string | null });
+  const refs = useRef({ game, selectedFrom, validTargets, selection, ownerColor, playable, highlightContinent, selectable, hovered: null as string | null });
   refs.current.game = game;
   refs.current.selectedFrom = selectedFrom;
   refs.current.validTargets = validTargets;
@@ -379,6 +399,7 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
   refs.current.ownerColor = ownerColor;
   refs.current.playable = playable;
   refs.current.highlightContinent = highlightContinent;
+  refs.current.selectable = selectable;
 
   const paint = (territory: string) => {
     const meshes = meshesByTerritory.get(territory);
@@ -433,8 +454,17 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
     onHover(territory);
   };
 
+  // A hit is on the near hemisphere if its point faces the camera. Blocks
+  // hovering/selecting territories round the back of the globe.
+  const nearSide = (e: ThreeEvent<PointerEvent | MouseEvent>) =>
+    e.point.clone().normalize().dot(_camDir.copy(camera.position).normalize()) > NEAR_SIDE_MIN;
+
   const handleMove = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
+    if (!refs.current.selectable || !nearSide(e)) {
+      setHovered(null);
+      return;
+    }
     const territory = e.object.userData.territory as string | undefined;
     setHovered(territory && playable.has(territory) ? territory : null);
   };
@@ -444,37 +474,48 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
   };
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
+    if (!refs.current.selectable || !nearSide(e)) return; // rotate mode / back of globe
     const territory = e.object.userData.territory as string | undefined;
     if (territory && playable.has(territory)) onPick(territory);
   };
 
   useEffect(() => () => setHovered(null), []);
+  // Clear any hover highlight when leaving selection mode.
+  useEffect(() => {
+    if (!selectable) setHovered(null);
+  }, [selectable]);
 
-  // Rotate the globe so a requested territory faces front (rotation only).
-  const focusDir = useRef<THREE.Vector3 | null>(null);
+  // Rotate the globe so a requested territory faces front — a smooth, eased
+  // glide (slerp over FOCUS_DURATION) rather than a per-frame lerp that jumps.
+  const anim = useRef<{ from: THREE.Vector3; to: THREE.Vector3; t: number; radius: number } | null>(null);
   useEffect(() => {
     if (!focus) return;
     const c = centroids.get(focus.id);
-    if (c) focusDir.current = c.clone().normalize();
-  }, [focus, centroids]);
+    if (!c) return;
+    anim.current = {
+      from: camera.position.clone().normalize(),
+      to: c.clone().normalize(),
+      t: 0,
+      radius: camera.position.length(),
+    };
+  }, [focus, centroids, camera]);
 
-  useFrame(() => {
+  useFrame((_, delta) => {
     if (import.meta.env.DEV) (window as unknown as { __camDir: number[] }).__camDir = camera.position.clone().normalize().toArray();
-    const target = focusDir.current;
-    if (!target) return;
-    if (controls) controls.enabled = false;
-    const radius = camera.position.length();
-    const cur = camera.position.clone().normalize();
-    if (cur.angleTo(target) < 0.02) {
-      focusDir.current = null;
+    const a = anim.current;
+    if (!a) return;
+    if (controls) controls.enabled = false; // don't fight the glide
+    a.t = Math.min(1, a.t + delta / FOCUS_DURATION);
+    const e = a.t * a.t * (3 - 2 * a.t); // smoothstep ease in/out
+    camera.position.copy(slerpDir(a.from, a.to, e).multiplyScalar(a.radius));
+    camera.lookAt(0, 0, 0);
+    if (a.t >= 1) {
+      anim.current = null;
       if (controls) {
         controls.enabled = true;
         controls.update?.();
       }
-      return;
     }
-    camera.position.copy(cur.lerp(target, 0.15).normalize().multiplyScalar(radius));
-    camera.lookAt(0, 0, 0);
   });
 
   const labels = useMemo<LabelEntry[]>(() => {

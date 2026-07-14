@@ -85,16 +85,15 @@ export function App() {
     hs.clearSource();
     focusOn(id);
   };
-  // Click a country in the list: select it (open its dialog) + rotate to it.
+  // Click a country in the Continents list: rotate the globe to it only (no select).
   const selectRegion = (id: string) => {
-    hs.clickTerritory(id);
     focusOn(id);
   };
-  // Click a country on the globe: select it + reflect its continent in the list (symmetry).
+  // Click a country on the globe: select it + reflect its continent in the list.
+  // Selection never rotates the globe (that only happens from the Continents box).
   const pickCountry = (id: string) => {
     hs.clickTerritory(id);
     setHighlightContinent(hs.game!.board.territories[id]?.continent ?? null);
-    focusOn(id); // auto-rotate to the selected country (when auto-rotate is on)
   };
 
   if (import.meta.env.DEV)
@@ -117,7 +116,11 @@ export function App() {
         />
       </div>
 
-      <Canvas camera={{ position: [0, 0, camZ], fov: 45 }} dpr={[1, 2]}>
+      <Canvas
+        camera={{ position: [0, 0, camZ], fov: 45 }}
+        dpr={[1, 2]}
+        style={{ cursor: hs.mode === "rotate" ? "grab" : "pointer" }}
+      >
         <color attach="background" args={["#101417"]} />
         {/* A raking key light (offset from the camera) gives the globe spherical
             form and makes the cracked-earth bevels catch light; low ambient +
@@ -136,12 +139,21 @@ export function App() {
             selection={hs.selection}
             highlightContinent={highlightContinent}
             focus={focus}
+            selectable={hs.mode === "select"}
             onHover={setHovered}
             onPick={pickCountry}
           />
         </Suspense>
 
-        <OrbitControls makeDefault enablePan={false} minDistance={1.6} maxDistance={8} rotateSpeed={0.6} zoomSpeed={0.7} />
+        <OrbitControls
+          makeDefault
+          enablePan={false}
+          enableRotate={hs.mode === "rotate"}
+          minDistance={1.6}
+          maxDistance={8}
+          rotateSpeed={0.6}
+          zoomSpeed={0.7}
+        />
       </Canvas>
     </>
   );

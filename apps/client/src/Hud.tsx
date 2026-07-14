@@ -71,6 +71,15 @@ export function Hud({ hs, hovered }: { hs: Hotseat; hovered: string | null }) {
             <span className="turnno">turn {game.turn}</span>
           </div>
 
+          <div className="segmented mode-seg">
+            <button className={hs.mode === "rotate" ? "sel" : ""} onClick={() => hs.mode !== "rotate" && hs.toggleMode()}>
+              Rotate
+            </button>
+            <button className={hs.mode === "select" ? "sel" : ""} onClick={() => hs.mode !== "select" && hs.toggleMode()}>
+              Select
+            </button>
+          </div>
+
 
       {isCpu && <div className="row cpu">🤖 {active.name} ({active.difficulty}) is planning…</div>}
 
