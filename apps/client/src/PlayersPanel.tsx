@@ -45,7 +45,9 @@ export function PlayersPanel({ hs }: { hs: Hotseat }) {
             const won = game.winner === p.id;
             return (
               <div key={p.id} className={`player-row${isActive ? " active" : ""}${p.eliminated ? " dead" : ""}`}>
-                <span className="player-arrow">{isActive && <Icon name="chevron-right" size={13} />}</span>
+                <span className="player-arrow" data-tut={isActive ? "player-current" : undefined}>
+                  {isActive && <Icon name="chevron-right" size={13} />}
+                </span>
                 <span className="player-sw" style={{ background: p.color }} />
                 <div className="player-id">
                   <span className="player-name">
@@ -75,7 +77,7 @@ export function PlayersPanel({ hs }: { hs: Hotseat }) {
           })}
 
         {open && activeHuman && game.options.cardsEnabled && (
-          <button className={`players-cards${hs.mustTrade ? " warn" : ""}`} onClick={() => setCardsOpen(true)}>
+          <button className={`players-cards${hs.mustTrade ? " warn" : ""}`} data-tut="cards" onClick={() => setCardsOpen(true)}>
             Cards ({activeHuman.cards.length}){hs.availableSets ? ` · ${hs.availableSets} set${hs.availableSets > 1 ? "s" : ""}` : ""}
           </button>
         )}

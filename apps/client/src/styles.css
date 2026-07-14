@@ -72,6 +72,72 @@ body {
   box-sizing: border-box;
 }
 
+/* ---- guided tutorial series (speech bubbles pointing at elements) ---- */
+.tut-ring {
+  position: fixed;
+  z-index: 51;
+  border: 2px solid var(--accent-bright);
+  border-radius: 8px;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.5), 0 0 20px rgba(213, 174, 105, 0.6);
+  pointer-events: none;
+}
+.tut-bubble {
+  position: fixed;
+  z-index: 52;
+  width: 268px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(45, 55, 62, 0.98), rgba(27, 34, 39, 0.98));
+  border: 1px solid var(--accent-bright);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+  color: var(--text);
+}
+.tut-bubble p {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.tut-arrow {
+  position: absolute;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  background: linear-gradient(135deg, rgba(45, 55, 62, 0.98), rgba(45, 55, 62, 0.98));
+  border: 1px solid var(--accent-bright);
+  transform: rotate(45deg);
+}
+.tut-arrow.up {
+  top: -7px;
+  border-right: none;
+  border-bottom: none;
+}
+.tut-arrow.down {
+  bottom: -7px;
+  border-left: none;
+  border-top: none;
+}
+.tut-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 12px;
+}
+.tut-actions .quiet {
+  padding: 4px 8px;
+}
+.tut-actions .start {
+  padding: 6px 16px;
+  font-size: 13px;
+}
+.tut-step {
+  font-size: 12px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
 /* Monochrome mask icon — inherits currentColor. See Icon.tsx. Sized in em by
    default so it stays a touch larger than the text it sits beside; centred on
    the text's middle line (flex parents use align-items:center, inline uses

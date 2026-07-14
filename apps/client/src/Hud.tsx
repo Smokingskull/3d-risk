@@ -70,19 +70,24 @@ export function Hud({ hs, hovered }: { hs: Hotseat; hovered: string | null }) {
         <>
           <div className="turn">
             <span className="dot" style={{ background: active.color }} />
-            <strong>{active.name}</strong>
+            <strong data-tut="player">{active.name}</strong>
             <button
               className={`mode-btn${hs.mode === "rotate" ? " on" : ""}`}
+              data-tut="mode"
               onClick={hs.toggleMode}
               aria-pressed={hs.mode === "rotate"}
               title={hs.mode === "rotate" ? "Rotate lock ON — selection disabled. Click to enable selecting." : "Rotate lock OFF — click to lock rotation only (no selecting)."}
             >
               <Icon name="rotate" />
             </button>
-            <span className="phase">
+            <span className="phase" data-tut="phase">
               <Icon name={PHASE_ICON[game.phase]} />
               {PHASE_LABEL[game.phase]}
-              {game.phase === "reinforce" && <strong className="phase-count">{game.reinforcementsRemaining}</strong>}
+              {game.phase === "reinforce" && (
+                <strong className="phase-count" data-tut="reinforcements">
+                  {game.reinforcementsRemaining}
+                </strong>
+              )}
             </span>
             <span className="turnno">turn {game.turn}</span>
           </div>
@@ -145,7 +150,7 @@ export function Hud({ hs, hovered }: { hs: Hotseat; hovered: string | null }) {
               <Icon name="star" /> Campaign
             </button>
           )}
-          <button className="options-btn" onClick={() => setOptionsOpen(true)}>
+          <button className="options-btn" data-tut="options" onClick={() => setOptionsOpen(true)}>
             <Icon name="settings" /> Options
           </button>
         </div>

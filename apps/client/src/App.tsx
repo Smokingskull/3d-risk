@@ -5,7 +5,7 @@ import * as THREE from "three";
 import { Globe } from "./Globe.js";
 import { Hud } from "./Hud.js";
 import { Home } from "./Home.js";
-import { TutorialTips } from "./TutorialTips.js";
+import { Tutorial } from "./Tutorial.js";
 import { CombatModal } from "./CombatModal.js";
 import { CountryPopup } from "./CountryPopup.js";
 import { ContinentsPanel } from "./ContinentsPanel.js";
@@ -100,8 +100,8 @@ export function App() {
     const mode = new URLSearchParams(window.location.search).get("autostart");
     if (mode !== "classic" && mode !== "world") return;
     autostarted.current = true;
-    const campaign = new URLSearchParams(window.location.search).get("campaign") === "1";
-    hs.start(mode, [{ kind: "human" }, { kind: "cpu", difficulty: "easy" }, { kind: "cpu", difficulty: "easy" }], false, ["Red", "Blue", "Green"], campaign);
+    const sp = new URLSearchParams(window.location.search);
+    hs.start(mode, [{ kind: "human" }, { kind: "cpu", difficulty: "easy" }, { kind: "cpu", difficulty: "easy" }], sp.get("tutorial") === "1", ["Red", "Blue", "Green"], sp.get("campaign") === "1");
   }, [hs]);
 
   // Dev-only camera overrides for inspection: ?cam=<dist>, ?orbit=<degrees>.
@@ -143,7 +143,7 @@ export function App() {
   return (
     <>
       <Hud hs={hs} hovered={hovered} />
-      <TutorialTips hs={hs} />
+      <Tutorial hs={hs} />
       <CombatModal hs={hs} />
       <CountryPopup hs={hs} />
       <div className="right-stack">

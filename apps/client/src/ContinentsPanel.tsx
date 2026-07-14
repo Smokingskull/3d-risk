@@ -34,24 +34,25 @@ export function ContinentsPanel({ game, highlight, selection, onToggle, onSelect
         </p>
       )}
       {open &&
-        continents.map((c) => {
+        continents.map((c, idx) => {
         const owned = c.territories.filter((t) => game.territories[t].owner === me).length;
         const total = c.territories.length;
         const complete = owned === total;
         const active = highlight === c.id;
+        const tut = idx === 0; // mark the first continent's parts for the tutorial
         return (
           <div className="cont-item" key={c.id}>
-            <button className={`cont-row${active ? " active" : ""}`} onClick={() => onToggle(c.id)}>
+            <button className={`cont-row${active ? " active" : ""}`} data-tut={tut ? "continent-row" : undefined} onClick={() => onToggle(c.id)}>
               <span className="cont-sw" style={{ background: CONTINENT_COLORS[c.id] ?? "#888" }} />
               <span className="cont-name">{c.name}</span>
-              <span className="cont-bar" aria-hidden>
+              <span className="cont-bar" data-tut={tut ? "progress" : undefined} aria-hidden>
                 <span className="cont-fill" style={{ width: `${(owned / total) * 100}%`, background: complete ? "#22c55e" : "#6ea8ff" }} />
               </span>
               <span className={`cont-prog${complete ? " done" : ""}`}>
                 {owned}/{total}
                 {complete ? " ✓" : ""}
               </span>
-              <span className="cont-bonus" title={`+${c.bonus} armies per turn for holding all of ${c.name}`}>
+              <span className="cont-bonus" data-tut={tut ? "bonus" : undefined} title={`+${c.bonus} armies per turn for holding all of ${c.name}`}>
                 +{c.bonus}
               </span>
             </button>
