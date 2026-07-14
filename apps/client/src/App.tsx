@@ -54,7 +54,33 @@ function BackdropStars() {
       scene.remove(camera);
     };
   }, [scene, camera]);
-  return <>{createPortal(<Stars radius={120} depth={40} count={3000} factor={4} fade speed={0} />, camera)}</>;
+  return <>{createPortal(<Stars radius={120} depth={40} count={6500} factor={4} fade speed={0} />, camera)}</>;
+}
+
+/** Vertical gradient scene background (navy at the top -> near-black at the
+ * bottom) for a sense of depth behind the globe. Screen-fixed, behind the stars. */
+function SkyBackground() {
+  const scene = useThree((s) => s.scene);
+  useEffect(() => {
+    const c = document.createElement("canvas");
+    c.width = 4;
+    c.height = 256;
+    const ctx = c.getContext("2d")!;
+    const g = ctx.createLinearGradient(0, 0, 0, 256);
+    g.addColorStop(0, "#00092e"); // top
+    g.addColorStop(1, "#101417"); // bottom (current background colour)
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 4, 256);
+    const tex = new THREE.CanvasTexture(c);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    const prev = scene.background;
+    scene.background = tex;
+    return () => {
+      scene.background = prev;
+      tex.dispose();
+    };
+  }, [scene]);
+  return null;
 }
 
 export function App() {
@@ -139,7 +165,7 @@ export function App() {
         dpr={[1, 2]}
         style={{ cursor: hs.mode === "rotate" ? "grab" : "pointer" }}
       >
-        <color attach="background" args={["#101417"]} />
+        <SkyBackground />
         {/* A raking key light (offset from the camera) gives the globe spherical
             form and makes the cracked-earth bevels catch light; low ambient +
             a cool hemisphere fill keep the shadow side readable without washing
