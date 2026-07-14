@@ -51,18 +51,19 @@ After that, every push to `main` redeploys.
 
 ### Staging deploy (branch previews)
 
-The `ui-redesign` branch deploys to a **separate** site so production is never
-touched. Pushing that branch runs `.github/workflows/deploy-staging.yml`, which
+The current work-in-progress branch deploys to a **separate** site so production
+is never touched. Pushing it runs `.github/workflows/deploy-staging.yml`, which
 builds and rsyncs to `/srv/3drisk-staging/`, served at
 **`staging.3drisk.iainwilson.uk`**. Reverting to the stable app is just a normal
 deploy from `main` (`git push origin main`, or re-run *Deploy* via
 workflow_dispatch) — the two sites share nothing but the VPS.
 
-One-time setup for staging (owner-only):
+To point staging at a different branch, change the `branches:` filter in
+`deploy-staging.yml` (currently `game-changing`; previously `ui-redesign`).
 
-1. **DNS** — Cloudflare A record `staging.3drisk` → `167.233.119.140` (DNS-only).
-2. **Caddy** — append `deploy/3drisk-staging.Caddyfile` to `/etc/caddy/Caddyfile`
-   on the VPS, then `sudo systemctl reload caddy`.
+The staging site's DNS + Caddy are already set up (Cloudflare A record
+`staging.3drisk` → `167.233.119.140`, DNS-only; `deploy/3drisk-staging.Caddyfile`
+appended to `/etc/caddy/Caddyfile`), so no per-branch infra work is needed.
 
 ## Build order (roadmap)
 

@@ -1,12 +1,12 @@
 name: Deploy (staging)
 
-# Isolated staging deploy for the ui-redesign branch. Builds the client and syncs
-# it to /srv/3drisk-staging on the VPS, served at staging.3drisk.iainwilson.uk
+# Isolated staging deploy for the game-changing branch. Builds the client and
+# syncs it to /srv/3drisk-staging on the VPS, served at staging.3drisk.iainwilson.uk
 # (see deploy/3drisk-staging.Caddyfile). Production (/srv/3drisk, main) is never
 # touched by this workflow, so reverting is just a normal deploy from main.
 on:
   push:
-    branches: [ui-redesign]
+    branches: [game-changing]
     paths-ignore:
       - "**.md"
   workflow_dispatch:
