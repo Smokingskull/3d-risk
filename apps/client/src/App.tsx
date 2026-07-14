@@ -13,7 +13,7 @@ import { CountryPopup } from "./CountryPopup.js";
 import { ContinentsPanel } from "./ContinentsPanel.js";
 import { PlayersPanel } from "./PlayersPanel.js";
 import { useHotseat } from "./game/useHotseat.js";
-import { loadFromJSON } from "@risk3d/engine";
+import { scenarioById } from "./scenarios/index.js";
 
 const _right = new THREE.Vector3();
 const _up = new THREE.Vector3();
@@ -110,23 +110,24 @@ export function App() {
     hs.start(mode, [{ kind: "human" }, { kind: "cpu", difficulty: "easy" }, { kind: "cpu", difficulty: "easy" }], sp.get("tutorial") === "1", ["Red", "Blue", "Green"], sp.get("campaign") === "1");
   }, [hs]);
 
-  // Dev-only: ?load=<name> fetches public/saves/<name>.json, deserializes it via
-  // the engine, and loads that state — lets us pre-seed a specific scenario
-  // (a ready card hand, a near-win board, …) for inspection/testing without UI.
-  const loadedSave = useRef(false);
+  // Dev-only: ?scenario=<id> boots straight into a bundled scenario, so headless
+  // checks and quick manual testing can jump to a specific setup.
+  const loadedScenario = useRef(false);
   useEffect(() => {
-    if (!import.meta.env.DEV || loadedSave.current || hs.game) return;
-    const name = new URLSearchParams(window.location.search).get("load");
-    if (!name) return;
-    loadedSave.current = true;
-    const file = name.endsWith(".json") ? name : `${name}.json`;
-    fetch(`/saves/${file}`)
-      .then((r) => {
-        if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
-        return r.text();
-      })
-      .then((txt) => hs.loadState(loadFromJSON(txt)))
-      .catch((e) => console.error(`[load] could not load save "${name}":`, e));
+    if (!import.meta.env.DEV || loadedScenario.current || hs.game) return;
+    const id = new URLSearchParams(window.location.search).get("scenario");
+    if (!id) return;
+    loadedScenario.current = true;
+    const entry = scenarioById(id);
+    if (!entry) {
+      console.error(`[scenario] no scenario "${id}"`);
+      return;
+    }
+    try {
+      hs.loadState(entry.load());
+    } catch (e) {
+      console.error(`[scenario] failed to load "${id}":`, e);
+    }
   }, [hs]);
 
   // Dev-only camera overrides for inspection: ?cam=<dist>, ?orbit=<degrees>.
@@ -135,7 +136,7 @@ export function App() {
   const orbitRad = ((Number(params.get("orbit")) || 0) * Math.PI) / 180;
   const camPos: [number, number, number] = [camZ * Math.sin(orbitRad), 0, camZ * Math.cos(orbitRad)];
 
-  if (!hs.game) return <Home onStart={hs.start} />;
+  if (!hs.game) return <Home onStart={hs.start} onLoadScenario={hs.loadState} />;
 
   const focusOn = (id: string) => {
     if (!hs.autoRotate) return; // auto-rotate disabled → never rotate the globe

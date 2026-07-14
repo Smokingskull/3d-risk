@@ -1,16 +1,18 @@
 import { useState } from "react";
-import type { BoardMode } from "@risk3d/engine";
+import type { BoardMode, GameState } from "@risk3d/engine";
 import type { SeatSpec } from "./game/useHotseat.js";
 import { NewGameDialog } from "./NewGameDialog.js";
 import { HelpDialog } from "./HelpDialog.js";
+import { ScenariosDialog } from "./ScenariosDialog.js";
 
-type Dialog = { kind: "new"; campaign: boolean } | { kind: "help" } | null;
+type Dialog = { kind: "new"; campaign: boolean } | { kind: "help" } | { kind: "scenarios" } | null;
 
 interface Props {
   onStart: (mode: BoardMode, seats: SeatSpec[], tutorial: boolean, names: string[], campaign: boolean) => void;
+  onLoadScenario: (state: GameState) => void;
 }
 
-export function Home({ onStart }: Props) {
+export function Home({ onStart, onLoadScenario }: Props) {
   const [dialog, setDialog] = useState<Dialog>(null);
 
   return (
@@ -26,6 +28,10 @@ export function Home({ onStart }: Props) {
             New Campaign
             <span className="home-desc">Every player gets a secret objective — hold a country, seize a continent, or assassinate a rival. First to complete theirs wins.</span>
           </button>
+          <button className="home-btn primary" onClick={() => setDialog({ kind: "scenarios" })}>
+            Scenarios
+            <span className="home-desc">Jump into a pre-built situation — test setups now, historical battles to come.</span>
+          </button>
           <button className="home-btn" onClick={() => setDialog({ kind: "help" })}>
             How To Play
           </button>
@@ -35,6 +41,9 @@ export function Home({ onStart }: Props) {
 
       {dialog?.kind === "new" && (
         <NewGameDialog campaign={dialog.campaign} onStart={onStart} onClose={() => setDialog(null)} />
+      )}
+      {dialog?.kind === "scenarios" && (
+        <ScenariosDialog onPlay={onLoadScenario} onClose={() => setDialog(null)} />
       )}
       {dialog?.kind === "help" && <HelpDialog onClose={() => setDialog(null)} />}
     </div>

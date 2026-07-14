@@ -538,6 +538,12 @@ button.warn {
   background: linear-gradient(180deg, rgba(213, 174, 105, 0.3), rgba(182, 138, 72, 0.16));
   color: var(--text);
 }
+.dialog-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex: none;
+}
 .help-content {
   flex: 1;
   min-width: 260px;

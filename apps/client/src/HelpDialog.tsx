@@ -53,6 +53,12 @@ const TOPICS: Topic[] = [
           <li><strong>Assassination</strong> — eliminate an assigned rival (by any means).</li>
         </ul>
         <p>You only ever see your own objective — open the Campaign card from the Game box. Eliminating everyone still wins too.</p>
+        <h3>Scenarios</h3>
+        <p>
+          Jump straight into a pre-built situation instead of setting up a fresh game. Open{" "}
+          <strong>Scenarios</strong> from the main menu, choose one from the list, read its description and
+          press <strong>Play</strong>. These are test setups for now — historical battles are coming.
+        </p>
       </>
     ),
   },
@@ -95,9 +101,14 @@ const TOPICS: Topic[] = [
         <h3>Trading a set</h3>
         <p>
           A set is three cards that are <strong>all the same symbol</strong>, <strong>one of each</strong>{" "}
-          (infantry + cavalry + artillery), or <strong>any three including a Wild</strong>. Trade a set during
-          Reinforce for bonus armies — the payout escalates each time any set is cashed in over the game (4, 6,
-          8, 10, 12, 15, then +5 each). If the set includes a card showing a territory you still own, you get +2 bonus armies to place.
+          (infantry + cavalry + artillery), or <strong>any three including a Wild</strong>. Open the Cards
+          panel during Reinforce, <strong>pick the three cards yourself</strong> and trade them for bonus
+          armies — the payout escalates each time any set is cashed in over the game (4, 6, 8, 10, 12, 15,
+          then +5 each).
+        </p>
+        <p>
+          If the set pictures a country you own, <strong>place +2 extra armies on it</strong> — and when more
+          than one of the three is yours, you choose which country gets them.
         </p>
         <p>Hold five or more cards and you must trade before placing. Eliminate a player and you seize their whole hand.</p>
       </>
