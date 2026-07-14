@@ -24,6 +24,7 @@ const POLE_FIX = new THREE.Euler(-Math.PI / 2, 0, 0);
 const CRACK_REPEATS = 9; // crack texture tiles across the globe diameter (tune)
 const CRACK_DARK = 0.72; // how much crack lines darken the tint
 const CRACK_ROUGH = 0.2; // extra roughness in the cracks
+const CRACK_BUMP = 0.5; // relief strength — perturbs the normal so cracks catch light
 
 // Small deterministic RNG so the generated crack pattern is stable across runs.
 function mulberry32(seed: number): () => number {
@@ -187,6 +188,7 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
       shader.uniforms.uScale = { value: scaleHolder.value };
       shader.uniforms.uDark = { value: CRACK_DARK };
       shader.uniforms.uRough = { value: CRACK_ROUGH };
+      shader.uniforms.uBump = { value: CRACK_BUMP };
       shader.vertexShader = shader.vertexShader
         .replace("#include <common>", "#include <common>\nvarying vec3 vObjPos;\nvarying vec3 vObjNrm;")
         .replace("#include <begin_vertex>", "#include <begin_vertex>\n  vObjPos = position;\n  vObjNrm = normal;");
@@ -201,6 +203,7 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
             "uniform float uScale;",
             "uniform float uDark;",
             "uniform float uRough;",
+            "uniform float uBump;",
             "float triCrack(){",
             "  vec3 n = normalize(abs(vObjNrm));",
             "  n /= (n.x + n.y + n.z);",
@@ -219,6 +222,28 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
         .replace(
           "#include <color_fragment>",
           "#include <color_fragment>\n  diffuseColor.rgb *= mix(1.0 - uDark, 1.0, triCrack());\n  if (!gl_FrontFacing) diffuseColor.rgb *= 0.4;",
+        )
+        // Derivative-based bump: perturb the normal from the crack height using
+        // screen-space gradients (no UVs/tangents needed). Cracks become grooves
+        // that catch light — the raised-plate relief.
+        .replace(
+          "#include <normal_fragment_maps>",
+          [
+            "#include <normal_fragment_maps>",
+            "{",
+            "  float _h = triCrack();",
+            "  vec2 _dH = vec2(dFdx(_h), dFdy(_h)) * uBump;",
+            "  vec3 _sp = -vViewPosition;",
+            "  vec3 _sx = dFdx(_sp);",
+            "  vec3 _sy = dFdy(_sp);",
+            "  vec3 _R1 = cross(_sy, normal);",
+            "  vec3 _R2 = cross(normal, _sx);",
+            "  float _fd = gl_FrontFacing ? 1.0 : -1.0;",
+            "  float _det = dot(_sx, _R1) * _fd;",
+            "  vec3 _grad = sign(_det) * (_dH.x * _R1 + _dH.y * _R2);",
+            "  normal = normalize(abs(_det) * normal - _grad);",
+            "}",
+          ].join("\n"),
         );
     };
 
