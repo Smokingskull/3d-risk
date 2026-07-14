@@ -43,9 +43,11 @@ function makeCrackTexture(size = 512, cells = 14, seed = 20260714): THREE.DataTe
   const rnd = mulberry32(seed);
   const fx = new Float32Array(cells * cells);
   const fy = new Float32Array(cells * cells);
+  const cb = new Float32Array(cells * cells); // per-cell (plate) base brightness
   for (let i = 0; i < cells * cells; i++) {
     fx[i] = rnd();
     fy[i] = rnd();
+    cb[i] = 0.5 + rnd() * 0.5; // 0.5..1.0 so plates differ in shade
   }
   const data = new Uint8Array(size * size * 4);
   for (let y = 0; y < size; y++) {
@@ -56,6 +58,7 @@ function makeCrackTexture(size = 512, cells = 14, seed = 20260714): THREE.DataTe
       const cy = Math.floor(v);
       let f1 = 1e9;
       let f2 = 1e9;
+      let owner = 0;
       for (let oy = -1; oy <= 1; oy++) {
         for (let ox = -1; ox <= 1; ox++) {
           const gx = (((cx + ox) % cells) + cells) % cells;
@@ -66,15 +69,20 @@ function makeCrackTexture(size = 512, cells = 14, seed = 20260714): THREE.DataTe
           if (d < f1) {
             f2 = f1;
             f1 = d;
+            owner = gy * cells + gx;
           } else if (d < f2) {
             f2 = d;
           }
         }
       }
       const edge = f2 - f1; // ~0 on a cell border (crack), larger inside
-      let c = Math.min(1, edge / 0.16); // wider → thicker cracks that survive minification
+      let c = Math.min(1, edge / 0.14); // wider → thicker cracks that survive minification
       c = c * c * (3 - 2 * c); // smoothstep
-      const val = 12 + Math.round(c * 243); // near-black cracks for strong contrast
+      // Each plate has its own shade; borders drop toward dark. Together the
+      // surface reads as a patchwork of parched plates split by cracks — so the
+      // whole territory is textured, not just the deepest crack lines.
+      const b = cb[owner] * (0.16 + 0.84 * c);
+      const val = Math.round(Math.max(0, Math.min(1, b)) * 255);
       const i = (y * size + x) * 4;
       data[i] = data[i + 1] = data[i + 2] = val;
       data[i + 3] = 255;
@@ -206,11 +214,11 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
         )
         .replace(
           "#include <roughnessmap_fragment>",
-          "#include <roughnessmap_fragment>\n  float _crack = smoothstep(0.12, 0.62, triCrack());\n  roughnessFactor = clamp(roughnessFactor + (1.0 - _crack) * uRough, 0.0, 1.0);",
+          "#include <roughnessmap_fragment>\n  roughnessFactor = clamp(roughnessFactor + (1.0 - triCrack()) * uRough, 0.0, 1.0);",
         )
         .replace(
           "#include <color_fragment>",
-          "#include <color_fragment>\n  diffuseColor.rgb *= mix(1.0 - uDark, 1.0, smoothstep(0.2, 0.62, triCrack()));\n  if (!gl_FrontFacing) diffuseColor.rgb *= 0.4;",
+          "#include <color_fragment>\n  diffuseColor.rgb *= mix(1.0 - uDark, 1.0, triCrack());\n  if (!gl_FrontFacing) diffuseColor.rgb *= 0.4;",
         );
     };
 
