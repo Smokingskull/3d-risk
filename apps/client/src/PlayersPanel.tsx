@@ -35,7 +35,7 @@ export function PlayersPanel({ hs }: { hs: Hotseat }) {
         <div className="cont-header">
           <h1>{open ? "Players" : `Players (${alive} left)`}</h1>
           <button className="collapse" aria-label={open ? "Collapse" : "Expand"} onClick={() => setOpen((o) => !o)}>
-            {open ? "▾" : "▸"}
+            <Icon name={open ? "chevron-down" : "chevron-right"} size={16} />
           </button>
         </div>
 
@@ -45,7 +45,7 @@ export function PlayersPanel({ hs }: { hs: Hotseat }) {
             const won = game.winner === p.id;
             return (
               <div key={p.id} className={`player-row${isActive ? " active" : ""}${p.eliminated ? " dead" : ""}`}>
-                <span className="player-arrow">{isActive ? "▸" : ""}</span>
+                <span className="player-arrow">{isActive && <Icon name="chevron-right" size={13} />}</span>
                 <span className="player-sw" style={{ background: p.color }} />
                 <div className="player-id">
                   <span className="player-name">

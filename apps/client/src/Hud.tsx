@@ -58,7 +58,7 @@ export function Hud({ hs, hovered }: { hs: Hotseat; hovered: string | null }) {
       <div className="panel-header">
         <h1>{open ? "Game" : `Game (${active.name})`}</h1>
         <button className="collapse" aria-label={open ? "Collapse" : "Expand"} onClick={() => setOpen((o) => !o)}>
-          {open ? "▾" : "▸"}
+          <Icon name={open ? "chevron-down" : "chevron-right"} size={16} />
         </button>
       </div>
 

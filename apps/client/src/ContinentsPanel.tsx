@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { GameState, TerritoryId } from "@risk3d/engine";
 import { CONTINENT_COLORS } from "./continents.js";
+import { Icon } from "./Icon.js";
 
 interface Props {
   game: GameState;
@@ -23,7 +24,7 @@ export function ContinentsPanel({ game, highlight, selection, onToggle, onSelect
       <div className="cont-header">
         <h1>{open ? "Continents" : `Continents (${held} held)`}</h1>
         <button className="collapse" aria-label={open ? "Collapse" : "Expand"} onClick={() => setOpen((o) => !o)}>
-          {open ? "▾" : "▸"}
+          <Icon name={open ? "chevron-down" : "chevron-right"} size={16} />
         </button>
       </div>
       {open && (

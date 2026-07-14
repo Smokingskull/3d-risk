@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Hotseat } from "./game/useHotseat.js";
+import { Icon } from "./Icon.js";
 
 /** One tip per stage. Keyed by the stage the player is currently in. */
 const TIPS: Record<string, { title: string; body: string }> = {
@@ -38,7 +39,7 @@ export function TutorialTips({ hs }: { hs: Hotseat }) {
       <div className="panel-header">
         <h1>{open ? "Tutorial" : `Tutorial (${TAG[key] ?? ""})`}</h1>
         <button className="collapse" aria-label={open ? "Collapse" : "Expand"} onClick={() => setOpen((o) => !o)}>
-          {open ? "▾" : "▸"}
+          <Icon name={open ? "chevron-down" : "chevron-right"} size={16} />
         </button>
       </div>
       {open && (
