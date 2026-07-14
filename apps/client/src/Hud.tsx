@@ -64,20 +64,19 @@ export function Hud({ hs, hovered }: { hs: Hotseat; hovered: string | null }) {
           <div className="turn">
             <span className="dot" style={{ background: active.color }} />
             <strong>{active.name}</strong>
+            <button
+              className={`mode-btn${hs.mode === "rotate" ? " on" : ""}`}
+              onClick={hs.toggleMode}
+              aria-pressed={hs.mode === "rotate"}
+              title={hs.mode === "rotate" ? "Rotate lock ON — selection disabled. Click to enable selecting." : "Rotate lock OFF — click to lock rotation only (no selecting)."}
+            >
+              <Icon name="rotate" />
+            </button>
             <span className="phase">
               <Icon name={PHASE_ICON[game.phase]} />
               {PHASE_LABEL[game.phase]}
             </span>
             <span className="turnno">turn {game.turn}</span>
-          </div>
-
-          <div className="segmented mode-seg">
-            <button className={hs.mode === "rotate" ? "sel" : ""} onClick={() => hs.mode !== "rotate" && hs.toggleMode()}>
-              Rotate
-            </button>
-            <button className={hs.mode === "select" ? "sel" : ""} onClick={() => hs.mode !== "select" && hs.toggleMode()}>
-              Select
-            </button>
           </div>
 
 

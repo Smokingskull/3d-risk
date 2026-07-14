@@ -145,15 +145,7 @@ export function App() {
           />
         </Suspense>
 
-        <OrbitControls
-          makeDefault
-          enablePan={false}
-          enableRotate={hs.mode === "rotate"}
-          minDistance={1.6}
-          maxDistance={8}
-          rotateSpeed={0.6}
-          zoomSpeed={0.7}
-        />
+        <OrbitControls makeDefault enablePan={false} minDistance={1.6} maxDistance={8} rotateSpeed={0.6} zoomSpeed={0.7} />
       </Canvas>
     </>
   );

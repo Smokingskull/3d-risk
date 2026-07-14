@@ -472,9 +472,21 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
     e.stopPropagation();
     setHovered(null);
   };
+  // Track where the pointer went down so a drag (globe rotation) doesn't count as
+  // a click. Selection fires on pointer-up only if the pointer barely moved.
+  const downPos = useRef<{ x: number; y: number } | null>(null);
+  const handleDown = (e: ThreeEvent<PointerEvent>) => {
+    downPos.current = { x: e.nativeEvent.clientX, y: e.nativeEvent.clientY };
+  };
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
-    if (!refs.current.selectable || !nearSide(e)) return; // rotate mode / back of globe
+    if (!refs.current.selectable || !nearSide(e)) return; // rotate-lock / back of globe
+    const d = downPos.current;
+    if (d) {
+      const dx = e.nativeEvent.clientX - d.x;
+      const dy = e.nativeEvent.clientY - d.y;
+      if (dx * dx + dy * dy > 36) return; // moved >6px → it was a drag, not a click
+    }
     const territory = e.object.userData.territory as string | undefined;
     if (territory && playable.has(territory)) onPick(territory);
   };
@@ -530,7 +542,7 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
 
   return (
     <group>
-      <primitive object={group} onPointerMove={handleMove} onPointerOut={handleOut} onClick={handleClick} />
+      <primitive object={group} onPointerDown={handleDown} onPointerMove={handleMove} onPointerOut={handleOut} onClick={handleClick} />
       <Labels entries={labels} />
     </group>
   );
