@@ -17,7 +17,7 @@ import { useHotseat } from "./game/useHotseat.js";
 function CameraLight() {
   const ref = useRef<THREE.DirectionalLight>(null);
   useFrame(({ camera }) => ref.current?.position.copy(camera.position));
-  return <directionalLight ref={ref} intensity={0.85} />;
+  return <directionalLight ref={ref} intensity={0.6} />;
 }
 
 export function App() {
