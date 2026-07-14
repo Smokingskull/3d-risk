@@ -28,12 +28,14 @@ function KeyLight() {
     _right.set(e[0], e[1], e[2]); // camera right (world)
     _up.set(e[4], e[5], e[6]); // camera up (world)
     const dist = camera.position.length();
+    // Push well to the side (mostly left, a little up) so the light grazes across
+    // the whole visible disc — relief shows broadly and a real terminator forms.
     light.position
       .copy(camera.position)
-      .addScaledVector(_right, -0.7 * dist)
-      .addScaledVector(_up, 0.7 * dist);
+      .addScaledVector(_right, -1.3 * dist)
+      .addScaledVector(_up, 0.55 * dist);
   });
-  return <directionalLight ref={ref} intensity={1.25} />;
+  return <directionalLight ref={ref} intensity={1.5} />;
 }
 
 export function App() {
@@ -118,8 +120,8 @@ export function App() {
             form and makes the cracked-earth bevels catch light; low ambient +
             a cool hemisphere fill keep the shadow side readable without washing
             out the relief. */}
-        <ambientLight intensity={0.25} />
-        <hemisphereLight args={["#cdd8ee", "#20262e", 0.18]} />
+        <ambientLight intensity={0.12} />
+        <hemisphereLight args={["#cdd8ee", "#20262e", 0.1]} />
         <KeyLight />
         <Stars radius={120} depth={40} count={3000} factor={4} fade speed={0.5} />
 
