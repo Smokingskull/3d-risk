@@ -130,6 +130,21 @@ export interface PendingOccupation {
   min: number;
   /** Maximum armies that may be moved (attacking territory must keep ≥1). */
   max: number;
+  /** A Minefield was laid: the occupation loses armies on arrival (see occupy). */
+  mined?: boolean;
+}
+
+/**
+ * A defender's optional reaction during another player's attack (an action-card
+ * decision window). While set, the only legal action is that player's
+ * `resolveDecision` (play or decline). `territory` is the contested territory,
+ * `from` the attacker's source.
+ */
+export interface PendingDecision {
+  kind: "minefield" | "tacticalRetreat";
+  player: PlayerId;
+  territory: TerritoryId;
+  from: TerritoryId;
 }
 
 export interface GameState {
@@ -146,6 +161,8 @@ export interface GameState {
   /** Armies the active player still has to place this reinforce phase. */
   reinforcementsRemaining: number;
   pendingOccupation: PendingOccupation | null;
+  /** A defender's open action-card reaction window, if any (blocks all else). */
+  pendingDecision: PendingDecision | null;
   /** Active Misinformation bluffs, keyed by territory (empty unless a card set one). */
   misinformation: Record<TerritoryId, Misinformation>;
   /** Whether the active player has captured a territory this turn (earns a card). */

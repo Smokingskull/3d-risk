@@ -504,6 +504,26 @@ button.warn {
 .combat-note {
   color: #8fd6cf;
 }
+/* Defender decision prompt (Minefield / Tactical Retreat) — reuses the combat card. */
+.decision-prompt {
+  max-width: 380px;
+  text-align: center;
+}
+.decision-img {
+  width: 132px;
+  height: 132px;
+  object-fit: contain;
+  align-self: center;
+  border-radius: 10px;
+}
+.decision-prompt .combat-actions {
+  flex-direction: column;
+  gap: 8px;
+}
+.decision-prompt .combat-actions button {
+  width: 100%;
+}
+
 /* Misinformation: the owner's "shown to enemies as N" note + the bluff stepper. */
 .misinfo-note {
   color: #c9a0e0;

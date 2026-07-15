@@ -39,6 +39,12 @@ export type Action =
    * territory (issued when they commit to attacking it — opening combat or rolling).
    * Idempotent; adds the active player to that territory's `revealedTo`.
    */
-  | { type: "revealMisinformation"; territory: TerritoryId };
+  | { type: "revealMisinformation"; territory: TerritoryId }
+  /**
+   * Resolve an open defender decision window (pendingDecision). `play` lays the
+   * card (Minefield, or Tactical Retreat with `to` — the adjacent territory to
+   * retreat into); `play: false` declines. Attributed to pendingDecision.player.
+   */
+  | { type: "resolveDecision"; play: boolean; to?: TerritoryId };
 
 export type ActionType = Action["type"];

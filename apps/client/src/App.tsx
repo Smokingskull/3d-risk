@@ -15,6 +15,7 @@ import { ContinentsPanel } from "./ContinentsPanel.js";
 import { PlayersPanel } from "./PlayersPanel.js";
 import { CardPanel } from "./CardPanel.js";
 import { ActionCardPanel } from "./ActionCardPanel.js";
+import { DecisionPrompt } from "./DecisionPrompt.js";
 import { useHotseat } from "./game/useHotseat.js";
 import { scenarioById } from "./scenarios/index.js";
 
@@ -181,6 +182,7 @@ export function App() {
       <Tutorial hs={hs} />
       {helpOpen && <HelpDialog onClose={() => setHelpOpen(false)} />}
       <CombatModal hs={hs} />
+      <DecisionPrompt hs={hs} />
       <CountryPopup hs={hs} />
       <VictoryOverlay hs={hs} />
       {cardsOpen && <CardPanel hs={hs} onClose={() => setCardsOpen(false)} />}

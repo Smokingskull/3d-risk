@@ -1,0 +1,41 @@
+import type { Hotseat } from "./game/useHotseat.js";
+import { actionCardInfo } from "./actionCards.js";
+
+/**
+ * Prompts a human defender to resolve an open decision window during another
+ * player's attack. Phase 4 handles Minefield (Tactical Retreat is added later).
+ */
+export function DecisionPrompt({ hs }: { hs: Hotseat }) {
+  const game = hs.game;
+  const pd = game?.pendingDecision;
+  if (!game || !pd) return null;
+  const decider = game.players.find((p) => p.id === pd.player);
+  if (decider?.kind !== "human") return null; // CPU resolves automatically
+  const attacker = game.players.find((p) => p.id === game.territories[pd.from]?.owner);
+
+  if (pd.kind === "minefield") {
+    const info = actionCardInfo("minefield");
+    return (
+      <div className="combat-backdrop">
+        <div className="combat decision-prompt">
+          <h2 className="combat-title">Minefield?</h2>
+          <img className="decision-img" src={info.image} alt={info.name} draggable={false} />
+          <p className="combat-result">
+            {attacker?.name ?? "The enemy"} took <strong>{pd.territory}</strong>. Lay a minefield to
+            destroy some of the armies they move in?
+          </p>
+          <div className="combat-actions">
+            <button className="start" onClick={() => hs.resolveDecision(true)}>
+              💣 Lay Minefield
+            </button>
+            <button className="quiet" onClick={() => hs.resolveDecision(false)}>
+              No, let them pass
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}

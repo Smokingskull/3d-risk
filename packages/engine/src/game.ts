@@ -211,6 +211,7 @@ export function createGame(config: GameConfig): GameState {
     phase: "reinforce",
     reinforcementsRemaining: 0,
     pendingOccupation: null,
+    pendingDecision: null,
     misinformation: {},
     conqueredThisTurn: false,
     fortifyAnywhere: false,
@@ -238,6 +239,7 @@ function cloneState(s: GameState): GameState {
     deck: [...s.deck],
     discard: [...s.discard],
     pendingOccupation: s.pendingOccupation ? { ...s.pendingOccupation } : null,
+    pendingDecision: s.pendingDecision ? { ...s.pendingDecision } : null,
     misinformation: Object.fromEntries(
       Object.entries(s.misinformation).map(([k, v]) => [k, { fake: v.fake, revealedTo: [...v.revealedTo] }]),
     ),
@@ -268,6 +270,9 @@ function mustTrade(state: GameState): boolean {
 /** Returns a reason string if the action is illegal in this state, else null. */
 export function validateAction(state: GameState, action: Action): string | null {
   if (state.winner) return "game is over";
+  // A pending defender decision blocks everything except resolving it.
+  if (state.pendingDecision && action.type !== "resolveDecision")
+    return "a defender decision is pending";
   const me = state.activePlayer;
 
   switch (action.type) {
@@ -345,6 +350,20 @@ export function validateAction(state: GameState, action: Action): string | null 
       if (!t) return "unknown territory";
       if (t.owner === me) return "you own that territory";
       return null; // idempotent / no-op if there's no bluff to reveal
+    }
+    case "resolveDecision": {
+      const pd = state.pendingDecision;
+      if (!pd) return "no decision is pending";
+      if (!action.play) return null; // declining is always allowed
+      const card: ActionCardType = pd.kind === "minefield" ? "minefield" : "tacticalRetreat";
+      if (!playerById(state, pd.player).actionCards.includes(card)) return "you no longer hold that card";
+      if (pd.kind === "tacticalRetreat") {
+        if (!action.to) return "choose a territory to retreat into";
+        const dest = state.territories[action.to];
+        if (!dest || dest.owner !== pd.player) return "retreat target must be yours";
+        if (!areAdjacent(state, pd.territory, action.to)) return "retreat target must be adjacent";
+      }
+      return null;
     }
   }
 }
@@ -583,17 +602,23 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
             if (p.campaign?.kind === "assassination" && p.campaign.target === defender)
               setCampaignWinner(s, events, p);
           checkWin(s, events);
+        } else if (holdsActionCard(s, defender, "minefield") && !s.winner) {
+          // Defender may lay a Minefield before the attacker moves in.
+          s.pendingDecision = { kind: "minefield", player: defender, territory: action.to, from: action.from };
         }
       }
       break;
     }
 
     case "occupy": {
-      const { from, to } = s.pendingOccupation!;
+      const po = s.pendingOccupation!;
+      const { from, to } = po;
       s.territories[from].armies -= action.count;
-      s.territories[to].armies += action.count;
+      let mineLoss = 0;
+      if (po.mined) mineLoss = Math.min(action.count >= 4 ? 2 : 1, action.count - 1); // keep ≥1
+      s.territories[to].armies += action.count - mineLoss;
       s.pendingOccupation = null;
-      events.push({ type: "occupied", from, to, count: action.count });
+      events.push({ type: "occupied", from, to, count: action.count, mineLoss: mineLoss || undefined });
       break;
     }
 
@@ -621,9 +646,29 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
     case "revealMisinformation":
       revealMisinformationTo(s, action.territory, me);
       break;
+
+    case "resolveDecision":
+      applyDecision(s, action, events);
+      break;
   }
 
   return { state: s, events };
+}
+
+/** Resolve an open defender decision window (Minefield here; Tactical Retreat added later). */
+function applyDecision(
+  s: GameState,
+  action: Extract<Action, { type: "resolveDecision" }>,
+  events: GameEvent[],
+): void {
+  const pd = s.pendingDecision!;
+  s.pendingDecision = null;
+  if (!action.play) return;
+  if (pd.kind === "minefield") {
+    consumeActionCard(s, pd.player, "minefield");
+    if (s.pendingOccupation) s.pendingOccupation.mined = true;
+    events.push({ type: "actionCardPlayed", player: pd.player, card: "minefield", target: pd.territory });
+  }
 }
 
 /** Add `viewer` to a territory's Misinformation revealedTo set (no-op if none). */
@@ -691,6 +736,19 @@ function applyActionCard(
  */
 export function listLegalActions(state: GameState): Action[] {
   if (state.winner) return [];
+  // An open defender decision window: the only moves are that player's resolution.
+  if (state.pendingDecision) {
+    const pd = state.pendingDecision;
+    const out: Action[] = [{ type: "resolveDecision", play: false }];
+    const card: ActionCardType = pd.kind === "minefield" ? "minefield" : "tacticalRetreat";
+    if (holdsActionCard(state, pd.player, card)) {
+      if (pd.kind === "minefield") out.push({ type: "resolveDecision", play: true });
+      else
+        for (const to of state.board.territories[pd.territory].neighbours)
+          if (state.territories[to].owner === pd.player) out.push({ type: "resolveDecision", play: true, to });
+    }
+    return out;
+  }
   const me = state.activePlayer;
   const out: Action[] = [];
 

@@ -137,7 +137,11 @@ export function CombatModal({ hs }: { hs: Hotseat }) {
 
         <div className="combat-actions">
           {captured && pending ? (
-            <OccupyControls min={pending.min} max={pending.max} onOccupy={hs.occupy} />
+            game.pendingDecision ? (
+              <span className="hint">Defender is reacting…</span>
+            ) : (
+              <OccupyControls min={pending.min} max={pending.max} onOccupy={hs.occupy} />
+            )
           ) : from.armies < 2 ? (
             <>
               <span className="hint">Not enough armies to keep attacking.</span>

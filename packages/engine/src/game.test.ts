@@ -396,6 +396,54 @@ describe("action cards", () => {
     expect(isLegal(s, { type: "playActionCard", card: "misinformation", territory: "A", fake: 0 })).toBe(false); // <1
   });
 
+  it("conquering a defender who holds Minefield opens a decision window (blocking occupy)", () => {
+    const s = cardGame();
+    s.players.find((p) => p.id === "p2")!.actionCards = ["minefield"];
+    // p2 owns B and C, so conquering B doesn't eliminate them.
+    setBoard(s, { A: ["p1", 20], B: ["p2", 1], C: ["p2", 1], D: ["p1", 1] });
+    s.phase = "attack";
+    let st = s;
+    for (let i = 0; i < 12 && !st.pendingDecision; i++) {
+      if (st.pendingOccupation) break;
+      st = applyAction(st, { type: "attack", from: "A", to: "B", dice: 3 }).state;
+    }
+    expect(st.pendingDecision).toMatchObject({ kind: "minefield", player: "p2", territory: "B" });
+    expect(isLegal(st, { type: "occupy", count: 1 })).toBe(false); // blocked until resolved
+    expect(isLegal(st, { type: "resolveDecision", play: true })).toBe(true);
+  });
+
+  it("Minefield destroys 2 of the incoming armies (1 if <4 move), destination ≥1", () => {
+    const s = cardGame();
+    s.players.find((p) => p.id === "p2")!.actionCards = ["minefield"];
+    setBoard(s, { A: ["p1", 6], B: ["p1", 0], C: ["p2", 1], D: ["p1", 1] });
+    s.phase = "attack";
+    s.pendingOccupation = { from: "A", to: "B", min: 1, max: 5 };
+    s.pendingDecision = { kind: "minefield", player: "p2", territory: "B", from: "A" };
+    const { state } = applyAction(s, { type: "resolveDecision", play: true });
+    expect(state.pendingDecision).toBeNull();
+    expect(state.pendingOccupation!.mined).toBe(true);
+    expect(state.players.find((p) => p.id === "p2")!.actionCards).not.toContain("minefield");
+    const big = applyAction(state, { type: "occupy", count: 5 }).state; // 5≥4 → −2
+    expect(big.territories.B.armies).toBe(3);
+    expect(big.territories.A.armies).toBe(1);
+    const small = applyAction(state, { type: "occupy", count: 3 }).state; // <4 → −1
+    expect(small.territories.B.armies).toBe(2);
+  });
+
+  it("declining Minefield leaves the occupation untouched", () => {
+    const s = cardGame();
+    s.players.find((p) => p.id === "p2")!.actionCards = ["minefield"];
+    setBoard(s, { A: ["p1", 6], B: ["p1", 0], C: ["p2", 1], D: ["p1", 1] });
+    s.phase = "attack";
+    s.pendingOccupation = { from: "A", to: "B", min: 1, max: 5 };
+    s.pendingDecision = { kind: "minefield", player: "p2", territory: "B", from: "A" };
+    const { state } = applyAction(s, { type: "resolveDecision", play: false });
+    expect(state.pendingOccupation!.mined).toBeUndefined();
+    expect(state.players.find((p) => p.id === "p2")!.actionCards).toContain("minefield"); // not consumed
+    const occ = applyAction(state, { type: "occupy", count: 5 }).state;
+    expect(occ.territories.B.armies).toBe(5);
+  });
+
   it("attacking a bluffed territory reveals it to that attacker only; combat uses the real count", () => {
     const s = threeCardGame();
     // A is bluffed (real 10, shown as 8). B (p2) borders A and attacks it.

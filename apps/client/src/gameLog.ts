@@ -16,7 +16,7 @@ export function describe(e: GameEvent, nameOf: (id: string) => string): string {
     case "territoryConquered":
       return `${nameOf(e.newOwner)} took ${e.to} from ${nameOf(e.previousOwner)}`;
     case "occupied":
-      return `moved ${e.count} into ${e.to}`;
+      return `moved ${e.count} into ${e.to}${e.mineLoss ? ` (−${e.mineLoss} to a minefield)` : ""}`;
     case "cardAwarded":
       return `${nameOf(e.player)} earned a card`;
     case "fortified":

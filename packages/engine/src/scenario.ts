@@ -24,6 +24,7 @@ import type {
   Card,
   GameOptions,
   GameState,
+  PendingDecision,
   PendingOccupation,
   Phase,
   Player,
@@ -54,6 +55,7 @@ export interface ScenarioState {
   phase: Phase;
   reinforcementsRemaining: number;
   pendingOccupation: PendingOccupation | null;
+  pendingDecision: PendingDecision | null;
   misinformation: Record<TerritoryId, { fake: number; revealedTo: PlayerId[] }>;
   conqueredThisTurn: boolean;
   fortifyAnywhere: boolean;
@@ -78,6 +80,7 @@ export interface ScenarioStateInput {
   phase?: Phase;
   reinforcementsRemaining?: number;
   pendingOccupation?: PendingOccupation | null;
+  pendingDecision?: PendingDecision | null;
   misinformation?: Record<TerritoryId, { fake: number; revealedTo: PlayerId[] }>;
   conqueredThisTurn?: boolean;
   fortifyAnywhere?: boolean;
@@ -255,6 +258,7 @@ export function deserializeGame(input: ScenarioStateInput): GameState {
     phase,
     reinforcementsRemaining: 0, // set below once state is assembled
     pendingOccupation: pendingOccupation ? clone(pendingOccupation) : null,
+    pendingDecision: input.pendingDecision ? clone(input.pendingDecision) : null,
     misinformation: input.misinformation ? clone(input.misinformation) : {},
     conqueredThisTurn: input.conqueredThisTurn ?? false,
     fortifyAnywhere: input.fortifyAnywhere ?? false,

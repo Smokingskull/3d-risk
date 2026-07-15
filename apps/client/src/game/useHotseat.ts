@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   applyAction,
+  createAI,
   createGame,
+  decideReaction,
   isLegal,
   maxDisjointSets,
   pathExists,
@@ -14,6 +16,25 @@ import {
   type TerritoryId,
 } from "@risk3d/engine";
 import { PLAYER_COLORS } from "../players.js";
+
+/**
+ * The next action for whichever CPU must act — the player owing a pending
+ * decision (a defender reaction), else the active CPU. Returns null when a human
+ * must act (their turn, or their decision window). Run on the main thread: the
+ * heuristic AI is cheap and this avoids re-serializing the board to a worker each
+ * step (needed now that reactive cards make turns interactive rather than
+ * plannable up front).
+ */
+function nextAiAction(state: GameState): Action | null {
+  if (state.winner) return null;
+  if (state.pendingDecision) {
+    const decider = state.players.find((p) => p.id === state.pendingDecision!.player);
+    return decider?.kind === "cpu" ? decideReaction(state) : null;
+  }
+  const active = state.players.find((p) => p.id === state.activePlayer);
+  if (active?.kind !== "cpu") return null;
+  return createAI((active.difficulty as Difficulty) ?? "medium").decide(state);
+}
 
 export type SeatSpec = { kind: "human" } | { kind: "cpu"; difficulty: Difficulty };
 export type AttackedEvent = Extract<GameEvent, { type: "attacked" }>;
@@ -71,6 +92,8 @@ export interface Hotseat {
   autoAttacking: boolean;
   /** Play one of the active human's action cards (Air Strike, Troop Transport, …). */
   playActionCard: (a: Extract<Action, { type: "playActionCard" }>) => void;
+  /** Resolve a human defender's open decision window (Minefield / Tactical Retreat). */
+  resolveDecision: (play: boolean, to?: TerritoryId) => void;
   rollOnce: () => void;
   startAuto: () => void;
   stopAuto: () => void;
@@ -134,36 +157,8 @@ export function useHotseat(): Hotseat {
   const reinforceTotalRef = useRef(0);
   const reinforceKeyRef = useRef("");
 
-  // --- AI worker ---
-  const workerRef = useRef<Worker | null>(null);
-  const pending = useRef(new Map<number, (a: Action[]) => void>());
-  const reqId = useRef(0);
-  const runningTurn = useRef(-1);
-
-  useEffect(() => {
-    const w = new Worker(new URL("./ai.worker.ts", import.meta.url), { type: "module" });
-    w.onmessage = (e: MessageEvent) => {
-      const { id, actions } = e.data as { id: number; actions: Action[] };
-      const resolve = pending.current.get(id);
-      if (resolve) {
-        pending.current.delete(id);
-        resolve(actions);
-      }
-    };
-    workerRef.current = w;
-    return () => {
-      w.terminate();
-      workerRef.current = null;
-    };
-  }, []);
-
-  const requestPlan = useCallback((state: GameState) => {
-    return new Promise<Action[]>((resolve) => {
-      const id = ++reqId.current;
-      pending.current.set(id, resolve);
-      workerRef.current!.postMessage({ id, state });
-    });
-  }, []);
+  // Whether the CPU step-loop is currently running (prevents re-entry).
+  const cpuRunning = useRef(false);
 
   const activePlayer = game?.players.find((p) => p.id === game.activePlayer) ?? null;
   const isHumanTurn = !!game && !game.winner && activePlayer?.kind === "human";
@@ -197,7 +192,7 @@ export function useHotseat(): Hotseat {
 
   const start = useCallback((mode: BoardMode, seats: SeatSpec[], useTutorial: boolean, names: string[], campaign: boolean, actionCards: boolean) => {
     const seed = Math.floor(Math.random() * 0x7fffffff);
-    runningTurn.current = -1;
+    cpuRunning.current = false;
     autoRef.current = false;
     lastHumanRef.current = null;
     setGame(createGame({ players: buildPlayers(seats, names), boardMode: mode, seed, campaign, actionCardsEnabled: actionCards }));
@@ -212,7 +207,7 @@ export function useHotseat(): Hotseat {
   }, []);
 
   const loadState = useCallback((state: GameState) => {
-    runningTurn.current = -1;
+    cpuRunning.current = false;
     autoRef.current = false;
     lastHumanRef.current = null;
     gameRef.current = state;
@@ -233,7 +228,7 @@ export function useHotseat(): Hotseat {
   const startTour = useCallback(() => setTourNonce((n) => n + 1), []);
 
   const reset = useCallback(() => {
-    runningTurn.current = -1;
+    cpuRunning.current = false;
     autoRef.current = false;
     lastHumanRef.current = null;
     setGame(null);
@@ -246,29 +241,33 @@ export function useHotseat(): Hotseat {
     setWinReason(null);
   }, []);
 
-  // Drive CPU turns via the worker (unchanged logic; uses applyAndStore).
+  // Drive CPU turns and CPU defender reactions one action at a time. Stepping
+  // (rather than planning a whole turn) is required because reactive cards make a
+  // turn interactive: an attack may open a defender decision window mid-turn. The
+  // loop runs while a CPU must act and pauses whenever a human must (their turn,
+  // or their own decision window) — resuming when the state next changes.
   useEffect(() => {
     const g = game;
-    if (!g || g.winner) return;
-    const cpu = g.players.find((p) => p.id === g.activePlayer)!;
-    if (cpu.kind !== "cpu" || runningTurn.current === g.turn) return;
-    runningTurn.current = g.turn;
-    const plannedTurn = g.turn;
+    if (!g || g.winner || cpuRunning.current) return;
+    const actorId = g.pendingDecision ? g.pendingDecision.player : g.activePlayer;
+    if (g.players.find((p) => p.id === actorId)?.kind !== "cpu") return;
+    cpuRunning.current = true;
 
     (async () => {
-      const actions = await requestPlan(g);
-      const stillActing = () => {
-        const c = gameRef.current;
-        return c && !c.winner && c.turn === plannedTurn && c.activePlayer === cpu.id;
-      };
-      for (const a of actions) {
-        if (!stillActing()) return;
-        await sleep(delayFor(a));
-        if (!stillActing()) return;
-        applyAndStore(a);
+      while (true) {
+        const cur = gameRef.current;
+        if (!cur || cur.winner) break;
+        const id = cur.pendingDecision ? cur.pendingDecision.player : cur.activePlayer;
+        if (cur.players.find((p) => p.id === id)?.kind !== "cpu") break; // a human must act
+        const action = nextAiAction(cur);
+        if (!action) break;
+        await sleep(delayFor(action));
+        if (gameRef.current?.winner) break;
+        if (!applyAndStore(action)) break; // became illegal (state moved) — avoid a busy loop
       }
+      cpuRunning.current = false;
     })();
-  }, [game?.activePlayer, game?.turn, game?.winner, requestPlan, applyAndStore]);
+  }, [game?.activePlayer, game?.turn, game?.winner, game?.pendingDecision, applyAndStore]);
 
   // Drop stale selection/engagement when they stop being valid.
   useEffect(() => {
@@ -401,6 +400,17 @@ export function useHotseat(): Hotseat {
     [isHumanTurn, applyAndStore],
   );
 
+  // Resolve a human defender's decision window (Minefield now, Tactical Retreat later).
+  const resolveDecision = useCallback(
+    (play: boolean, to?: TerritoryId) => {
+      const g = gameRef.current;
+      if (!g?.pendingDecision) return;
+      if (g.players.find((p) => p.id === g.pendingDecision!.player)?.kind !== "human") return;
+      applyAndStore({ type: "resolveDecision", play, to });
+    },
+    [applyAndStore],
+  );
+
   const stopAuto = useCallback(() => {
     autoRef.current = false;
     setAutoAttacking(false);
@@ -498,6 +508,7 @@ export function useHotseat(): Hotseat {
     combatNote,
     autoAttacking,
     playActionCard,
+    resolveDecision,
     rollOnce,
     startAuto,
     stopAuto,

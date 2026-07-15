@@ -218,6 +218,18 @@ export function createAI(difficulty: Difficulty): AIController {
 }
 
 /**
+ * Resolve an open defender decision window (Minefield / Tactical Retreat) for the
+ * CPU whose reaction is pending. Deterministic; difficulty-tuned later. For now:
+ * always lay a Minefield (free defensive damage); decline Tactical Retreat unless
+ * that logic lands in a later phase.
+ */
+export function decideReaction(state: GameState): Action {
+  const pd = state.pendingDecision;
+  if (pd?.kind === "minefield") return { type: "resolveDecision", play: true };
+  return { type: "resolveDecision", play: false };
+}
+
+/**
  * Plan the active (CPU) player's entire turn as a list of actions, by running the
  * policy against a private simulation. The list replays identically on the real
  * game because the engine is deterministic.
