@@ -1,0 +1,886 @@
+{
+  "format_version": 1,
+  "radius": 1.0,
+  "territories": [
+    {
+      "name": "Alaska",
+      "object_name": "Alaska",
+      "continent": "North America",
+      "anchor_xyz": [
+        -0.38913156314059466,
+        -0.22466521272940215,
+        0.9212638974566462
+      ],
+      "anchor_lat_lon": [
+        64,
+        -150
+      ],
+      "adjacent": [
+        "Northwest Territory",
+        "Alberta",
+        "Kamchatka"
+      ],
+      "triangle_count": 772
+    },
+    {
+      "name": "Northwest Territory",
+      "object_name": "Northwest_Territory",
+      "continent": "North America",
+      "anchor_xyz": [
+        -0.17619169141001545,
+        -0.3778443015650628,
+        0.9363840940836659
+      ],
+      "anchor_lat_lon": [
+        66,
+        -115
+      ],
+      "adjacent": [
+        "Alaska",
+        "Alberta",
+        "Ontario",
+        "Greenland"
+      ],
+      "triangle_count": 1163
+    },
+    {
+      "name": "Greenland",
+      "object_name": "Greenland",
+      "continent": "North America",
+      "anchor_xyz": [
+        0.22270638246772412,
+        -0.20052572746488034,
+        0.9802123748621112
+      ],
+      "anchor_lat_lon": [
+        73,
+        -42
+      ],
+      "adjacent": [
+        "Northwest Territory",
+        "Ontario",
+        "Quebec",
+        "Iceland"
+      ],
+      "triangle_count": 1810
+    },
+    {
+      "name": "Alberta",
+      "object_name": "Alberta",
+      "continent": "North America",
+      "anchor_xyz": [
+        -0.25461900114068,
+        -0.5460322100394196,
+        0.8292424192343211
+      ],
+      "anchor_lat_lon": [
+        54,
+        -115
+      ],
+      "adjacent": [
+        "Alaska",
+        "Northwest Territory",
+        "Ontario",
+        "Western United States"
+      ],
+      "triangle_count": 764
+    },
+    {
+      "name": "Ontario",
+      "object_name": "Ontario",
+      "continent": "North America",
+      "anchor_xyz": [
+        0.044996650618283375,
+        -0.6434820831619416,
+        0.7965746104933951
+      ],
+      "anchor_lat_lon": [
+        51,
+        -86
+      ],
+      "adjacent": [
+        "Northwest Territory",
+        "Greenland",
+        "Quebec",
+        "Eastern United States",
+        "Western United States",
+        "Alberta"
+      ],
+      "triangle_count": 581
+    },
+    {
+      "name": "Quebec",
+      "object_name": "Quebec",
+      "continent": "North America",
+      "anchor_xyz": [
+        0.21097868198585437,
+        -0.5796591647424324,
+        0.8186013977984751
+      ],
+      "anchor_lat_lon": [
+        53,
+        -70
+      ],
+      "adjacent": [
+        "Greenland",
+        "Ontario",
+        "Eastern United States"
+      ],
+      "triangle_count": 615
+    },
+    {
+      "name": "Western United States",
+      "object_name": "Western_United_States",
+      "continent": "North America",
+      "anchor_xyz": [
+        -0.2984021012385378,
+        -0.7385711178073033,
+        0.6450534008260833
+      ],
+      "anchor_lat_lon": [
+        39,
+        -112
+      ],
+      "adjacent": [
+        "Alberta",
+        "Ontario",
+        "Eastern United States",
+        "Central America"
+      ],
+      "triangle_count": 902
+    },
+    {
+      "name": "Eastern United States",
+      "object_name": "Eastern_United_States",
+      "continent": "North America",
+      "anchor_xyz": [
+        0.11241164767355871,
+        -0.7998504342997608,
+        0.6310530122087997
+      ],
+      "anchor_lat_lon": [
+        38,
+        -82
+      ],
+      "adjacent": [
+        "Ontario",
+        "Quebec",
+        "Western United States",
+        "Central America"
+      ],
+      "triangle_count": 614
+    },
+    {
+      "name": "Central America",
+      "object_name": "Central_America",
+      "continent": "North America",
+      "anchor_xyz": [
+        -0.017107064760948434,
+        -0.9800630837696545,
+        0.29968099734080517
+      ],
+      "anchor_lat_lon": [
+        17,
+        -91
+      ],
+      "adjacent": [
+        "Western United States",
+        "Eastern United States",
+        "Venezuela"
+      ],
+      "triangle_count": 337
+    },
+    {
+      "name": "Venezuela",
+      "object_name": "Venezuela",
+      "continent": "South America",
+      "anchor_xyz": [
+        0.4137975120618053,
+        -0.929404429040888,
+        0.12491607699027615
+      ],
+      "anchor_lat_lon": [
+        7,
+        -66
+      ],
+      "adjacent": [
+        "Central America",
+        "Peru",
+        "Brazil"
+      ],
+      "triangle_count": 548
+    },
+    {
+      "name": "Peru",
+      "object_name": "Peru",
+      "continent": "South America",
+      "anchor_xyz": [
+        0.2612591773002832,
+        -0.9750325236283026,
+        -0.17798938210860357
+      ],
+      "anchor_lat_lon": [
+        -10,
+        -75
+      ],
+      "adjacent": [
+        "Venezuela",
+        "Brazil",
+        "Argentina"
+      ],
+      "triangle_count": 549
+    },
+    {
+      "name": "Brazil",
+      "object_name": "Brazil",
+      "continent": "South America",
+      "anchor_xyz": [
+        0.6214658989849335,
+        -0.7954400770991149,
+        -0.17798938210860357
+      ],
+      "anchor_lat_lon": [
+        -10,
+        -52
+      ],
+      "adjacent": [
+        "Venezuela",
+        "Peru",
+        "Argentina",
+        "North Africa"
+      ],
+      "triangle_count": 1164
+    },
+    {
+      "name": "Argentina",
+      "object_name": "Argentina",
+      "continent": "South America",
+      "anchor_xyz": [
+        0.3504529897784611,
+        -0.7515488618931755,
+        -0.6024798835997849
+      ],
+      "anchor_lat_lon": [
+        -36,
+        -65
+      ],
+      "adjacent": [
+        "Peru",
+        "Brazil"
+      ],
+      "triangle_count": 888
+    },
+    {
+      "name": "Iceland",
+      "object_name": "Iceland",
+      "continent": "Europe",
+      "anchor_xyz": [
+        0.4095832522849085,
+        -0.14103082370268138,
+        0.9289654817125661
+      ],
+      "anchor_lat_lon": [
+        65,
+        -19
+      ],
+      "adjacent": [
+        "Greenland",
+        "Great Britain",
+        "Scandinavia"
+      ],
+      "triangle_count": 63
+    },
+    {
+      "name": "Great Britain",
+      "object_name": "Great_Britain",
+      "continent": "Europe",
+      "anchor_xyz": [
+        0.601654205858243,
+        -0.031531360825332234,
+        0.8292424192343211
+      ],
+      "anchor_lat_lon": [
+        54,
+        -3
+      ],
+      "adjacent": [
+        "Iceland",
+        "Scandinavia",
+        "Northern Europe",
+        "Western Europe"
+      ],
+      "triangle_count": 89
+    },
+    {
+      "name": "Scandinavia",
+      "object_name": "Scandinavia",
+      "continent": "Europe",
+      "anchor_xyz": [
+        0.4473137696625097,
+        0.12826515943710287,
+        0.9132816872930769
+      ],
+      "anchor_lat_lon": [
+        63,
+        16
+      ],
+      "adjacent": [
+        "Iceland",
+        "Great Britain",
+        "Northern Europe",
+        "Ukraine"
+      ],
+      "triangle_count": 624
+    },
+    {
+      "name": "Northern Europe",
+      "object_name": "Northern_Europe",
+      "continent": "Europe",
+      "anchor_xyz": [
+        0.6123080407997926,
+        0.1526655409374331,
+        0.80771102244689
+      ],
+      "anchor_lat_lon": [
+        52,
+        14
+      ],
+      "adjacent": [
+        "Great Britain",
+        "Scandinavia",
+        "Ukraine",
+        "Southern Europe",
+        "Western Europe"
+      ],
+      "triangle_count": 284
+    },
+    {
+      "name": "Western Europe",
+      "object_name": "Western_Europe",
+      "continent": "Europe",
+      "anchor_xyz": [
+        0.7115910834324735,
+        0.02484930819692843,
+        0.7373232953471173
+      ],
+      "anchor_lat_lon": [
+        46,
+        2
+      ],
+      "adjacent": [
+        "Great Britain",
+        "Northern Europe",
+        "Southern Europe",
+        "North Africa"
+      ],
+      "triangle_count": 436
+    },
+    {
+      "name": "Southern Europe",
+      "object_name": "Southern_Europe",
+      "continent": "Europe",
+      "anchor_xyz": [
+        0.7244420470418329,
+        0.23538548986317717,
+        0.6858588715178296
+      ],
+      "anchor_lat_lon": [
+        42,
+        18
+      ],
+      "adjacent": [
+        "Western Europe",
+        "Northern Europe",
+        "Ukraine",
+        "Middle East",
+        "Egypt",
+        "North Africa"
+      ],
+      "triangle_count": 271
+    },
+    {
+      "name": "Ukraine",
+      "object_name": "Ukraine",
+      "continent": "Europe",
+      "anchor_xyz": [
+        0.5587426788432998,
+        0.3491411756128942,
+        0.7851955541969524
+      ],
+      "anchor_lat_lon": [
+        50,
+        32
+      ],
+      "adjacent": [
+        "Scandinavia",
+        "Northern Europe",
+        "Southern Europe",
+        "Ural",
+        "Afghanistan",
+        "Middle East"
+      ],
+      "triangle_count": 719
+    },
+    {
+      "name": "North Africa",
+      "object_name": "North_Africa",
+      "continent": "Africa",
+      "anchor_xyz": [
+        0.915921854993236,
+        0.1946852002557908,
+        0.41690505915269516
+      ],
+      "anchor_lat_lon": [
+        24,
+        12
+      ],
+      "adjacent": [
+        "Brazil",
+        "Western Europe",
+        "Southern Europe",
+        "Egypt",
+        "East Africa",
+        "Congo"
+      ],
+      "triangle_count": 1825
+    },
+    {
+      "name": "Egypt",
+      "object_name": "Egypt",
+      "continent": "Africa",
+      "anchor_xyz": [
+        0.7909251420069205,
+        0.45664084364653845,
+        0.4653402622330354
+      ],
+      "anchor_lat_lon": [
+        27,
+        30
+      ],
+      "adjacent": [
+        "North Africa",
+        "Southern Europe",
+        "Middle East",
+        "East Africa"
+      ],
+      "triangle_count": 572
+    },
+    {
+      "name": "East Africa",
+      "object_name": "East_Africa",
+      "continent": "Africa",
+      "anchor_xyz": [
+        0.8281059713187273,
+        0.601654205858243,
+        0.05364435514901743
+      ],
+      "anchor_lat_lon": [
+        3,
+        36
+      ],
+      "adjacent": [
+        "Egypt",
+        "North Africa",
+        "Congo",
+        "South Africa",
+        "Madagascar",
+        "Middle East"
+      ],
+      "triangle_count": 823
+    },
+    {
+      "name": "Congo",
+      "object_name": "Congo",
+      "continent": "Africa",
+      "anchor_xyz": [
+        0.9480484133295891,
+        0.38303642234656265,
+        -0.07150038558772843
+      ],
+      "anchor_lat_lon": [
+        -4,
+        22
+      ],
+      "adjacent": [
+        "North Africa",
+        "East Africa",
+        "South Africa"
+      ],
+      "triangle_count": 1019
+    },
+    {
+      "name": "South Africa",
+      "object_name": "South_Africa",
+      "continent": "Africa",
+      "anchor_xyz": [
+        0.8124915175580523,
+        0.37887101682329627,
+        -0.49692986075249546
+      ],
+      "anchor_lat_lon": [
+        -29,
+        25
+      ],
+      "adjacent": [
+        "Congo",
+        "East Africa",
+        "Madagascar"
+      ],
+      "triangle_count": 614
+    },
+    {
+      "name": "Madagascar",
+      "object_name": "Madagascar",
+      "continent": "Africa",
+      "anchor_xyz": [
+        0.6568905469972912,
+        0.7044288685108934,
+        -0.3505706469088104
+      ],
+      "anchor_lat_lon": [
+        -20,
+        47
+      ],
+      "adjacent": [
+        "South Africa",
+        "East Africa"
+      ],
+      "triangle_count": 220
+    },
+    {
+      "name": "Middle East",
+      "object_name": "Middle_East",
+      "continent": "Asia",
+      "anchor_xyz": [
+        0.6339107640246004,
+        0.6339107640246003,
+        0.49692986075249546
+      ],
+      "anchor_lat_lon": [
+        29,
+        45
+      ],
+      "adjacent": [
+        "Southern Europe",
+        "Ukraine",
+        "Afghanistan",
+        "India",
+        "East Africa",
+        "Egypt"
+      ],
+      "triangle_count": 826
+    },
+    {
+      "name": "Afghanistan",
+      "object_name": "Afghanistan",
+      "continent": "Asia",
+      "anchor_xyz": [
+        0.34562995822586645,
+        0.776297596338274,
+        0.5731727260575156
+      ],
+      "anchor_lat_lon": [
+        34,
+        66
+      ],
+      "adjacent": [
+        "Ukraine",
+        "Ural",
+        "China",
+        "India",
+        "Middle East"
+      ],
+      "triangle_count": 1063
+    },
+    {
+      "name": "Ural",
+      "object_name": "Ural",
+      "continent": "Asia",
+      "anchor_xyz": [
+        0.27158362291951754,
+        0.4703966334002317,
+        0.8692492985603365
+      ],
+      "anchor_lat_lon": [
+        58,
+        60
+      ],
+      "adjacent": [
+        "Ukraine",
+        "Siberia",
+        "China",
+        "Afghanistan"
+      ],
+      "triangle_count": 1419
+    },
+    {
+      "name": "Siberia",
+      "object_name": "Siberia",
+      "continent": "Asia",
+      "anchor_xyz": [
+        0.01568140570163295,
+        0.44905670550411664,
+        0.9212638974566462
+      ],
+      "anchor_lat_lon": [
+        64,
+        88
+      ],
+      "adjacent": [
+        "Ural",
+        "Yakutsk",
+        "Irkutsk",
+        "Mongolia",
+        "China"
+      ],
+      "triangle_count": 1277
+    },
+    {
+      "name": "Yakutsk",
+      "object_name": "Yakutsk",
+      "continent": "Asia",
+      "anchor_xyz": [
+        -0.2354076448110302,
+        0.32401082625860167,
+        0.9435174747887513
+      ],
+      "anchor_lat_lon": [
+        67,
+        126
+      ],
+      "adjacent": [
+        "Siberia",
+        "Kamchatka",
+        "Irkutsk"
+      ],
+      "triangle_count": 1389
+    },
+    {
+      "name": "Kamchatka",
+      "object_name": "Kamchatka",
+      "continent": "Asia",
+      "anchor_xyz": [
+        -0.49607691537717663,
+        0.1805572311038861,
+        0.8785964832196651
+      ],
+      "anchor_lat_lon": [
+        59,
+        160
+      ],
+      "adjacent": [
+        "Yakutsk",
+        "Irkutsk",
+        "Mongolia",
+        "Japan",
+        "Alaska"
+      ],
+      "triangle_count": 731
+    },
+    {
+      "name": "Irkutsk",
+      "object_name": "Irkutsk",
+      "continent": "Asia",
+      "anchor_xyz": [
+        -0.16757948701801395,
+        0.5481278039171001,
+        0.8497635118689177
+      ],
+      "anchor_lat_lon": [
+        56,
+        107
+      ],
+      "adjacent": [
+        "Siberia",
+        "Yakutsk",
+        "Kamchatka",
+        "Mongolia"
+      ],
+      "triangle_count": 800
+    },
+    {
+      "name": "Mongolia",
+      "object_name": "Mongolia",
+      "continent": "Asia",
+      "anchor_xyz": [
+        -0.1722543965200073,
+        0.6908746492801682,
+        0.7373232953471173
+      ],
+      "anchor_lat_lon": [
+        46,
+        104
+      ],
+      "adjacent": [
+        "Siberia",
+        "Irkutsk",
+        "Kamchatka",
+        "Japan",
+        "China"
+      ],
+      "triangle_count": 901
+    },
+    {
+      "name": "Japan",
+      "object_name": "Japan",
+      "continent": "Asia",
+      "anchor_xyz": [
+        -0.6083393929024986,
+        0.5477512496751027,
+        0.6168603987308494
+      ],
+      "anchor_lat_lon": [
+        37,
+        138
+      ],
+      "adjacent": [
+        "Kamchatka",
+        "Mongolia"
+      ],
+      "triangle_count": 400
+    },
+    {
+      "name": "China",
+      "object_name": "China",
+      "continent": "Asia",
+      "anchor_xyz": [
+        -0.20557639960275934,
+        0.8245219039116928,
+        0.5731727260575156
+      ],
+      "anchor_lat_lon": [
+        34,
+        104
+      ],
+      "adjacent": [
+        "Ural",
+        "Siberia",
+        "Mongolia",
+        "Siam",
+        "India",
+        "Afghanistan"
+      ],
+      "triangle_count": 1006
+    },
+    {
+      "name": "India",
+      "object_name": "India",
+      "continent": "Asia",
+      "anchor_xyz": [
+        0.18133789531472225,
+        0.9329025975889575,
+        0.3839717582513098
+      ],
+      "anchor_lat_lon": [
+        22,
+        79
+      ],
+      "adjacent": [
+        "Middle East",
+        "Afghanistan",
+        "China",
+        "Siam"
+      ],
+      "triangle_count": 666
+    },
+    {
+      "name": "Siam",
+      "object_name": "Siam",
+      "continent": "Asia",
+      "anchor_xyz": [
+        -0.22372577281740993,
+        0.9690627874141889,
+        0.2479699429896594
+      ],
+      "anchor_lat_lon": [
+        14,
+        103
+      ],
+      "adjacent": [
+        "India",
+        "China",
+        "Indonesia"
+      ],
+      "triangle_count": 442
+    },
+    {
+      "name": "Indonesia",
+      "object_name": "Indonesia",
+      "continent": "Australia",
+      "anchor_xyz": [
+        -0.4642067167421554,
+        0.9110569790042081,
+        -0.07150038558772843
+      ],
+      "anchor_lat_lon": [
+        -4,
+        117
+      ],
+      "adjacent": [
+        "Siam",
+        "New Guinea",
+        "Western Australia"
+      ],
+      "triangle_count": 265
+    },
+    {
+      "name": "New Guinea",
+      "object_name": "New_Guinea",
+      "continent": "Australia",
+      "anchor_xyz": [
+        -0.8350312597731109,
+        0.5846951827338824,
+        -0.1071416748493448
+      ],
+      "anchor_lat_lon": [
+        -6,
+        145
+      ],
+      "adjacent": [
+        "Indonesia",
+        "Western Australia",
+        "Eastern Australia"
+      ],
+      "triangle_count": 201
+    },
+    {
+      "name": "Western Australia",
+      "object_name": "Western_Australia",
+      "continent": "Australia",
+      "anchor_xyz": [
+        -0.47845259335913126,
+        0.7962788344049978,
+        -0.43318371828421687
+      ],
+      "anchor_lat_lon": [
+        -25,
+        121
+      ],
+      "adjacent": [
+        "Indonesia",
+        "New Guinea",
+        "Eastern Australia"
+      ],
+      "triangle_count": 618
+    },
+    {
+      "name": "Eastern Australia",
+      "object_name": "Eastern_Australia",
+      "continent": "Australia",
+      "anchor_xyz": [
+        -0.7701472879464107,
+        0.5194709049429509,
+        -0.43318371828421687
+      ],
+      "anchor_lat_lon": [
+        -25,
+        146
+      ],
+      "adjacent": [
+        "Western Australia",
+        "New Guinea"
+      ],
+      "triangle_count": 790
+    }
+  ]
+}
