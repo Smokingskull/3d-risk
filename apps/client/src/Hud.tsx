@@ -4,6 +4,7 @@ import { Icon } from "./Icon.js";
 import { OptionsDialog } from "./OptionsDialog.js";
 import { CampaignDialog } from "./CampaignDialog.js";
 import { PhaseRail } from "./PhaseRail.js";
+import { TurnStats } from "./TurnStats.js";
 
 export function Hud({ hs, hovered, onOpenHelp, onOpenCards }: { hs: Hotseat; hovered: string | null; onOpenHelp: () => void; onOpenCards: () => void }) {
   const game = hs.game!;
@@ -77,6 +78,8 @@ export function Hud({ hs, hovered, onOpenHelp, onOpenCards }: { hs: Hotseat; hov
           </span>
         </div>
       )}
+
+      <TurnStats game={game} playerId={active.id} />
 
       <div className="hovered">{hovered ? `${hovered}${game.territories[hovered] ? ` — ${game.territories[hovered].armies} armies` : " (not in play)"}` : " "}</div>
 
