@@ -618,7 +618,8 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       if (po.mined) mineLoss = Math.min(action.count >= 4 ? 2 : 1, action.count - 1); // keep ≥1
       s.territories[to].armies += action.count - mineLoss;
       s.pendingOccupation = null;
-      events.push({ type: "occupied", from, to, count: action.count, mineLoss: mineLoss || undefined });
+      // Report mineLoss on any mined occupation (even 0) so the UI can show the outcome.
+      events.push({ type: "occupied", from, to, count: action.count, mineLoss: po.mined ? mineLoss : undefined });
       break;
     }
 

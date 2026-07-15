@@ -8,6 +8,7 @@ import {
   maxDisjointSets,
   pathExists,
   type Action,
+  type ActionCardType,
   type BoardMode,
   type Difficulty,
   type GameEvent,
@@ -38,6 +39,11 @@ function nextAiAction(state: GameState): Action | null {
 
 export type SeatSpec = { kind: "human" } | { kind: "cpu"; difficulty: Difficulty };
 export type AttackedEvent = Extract<GameEvent, { type: "attacked" }>;
+/** A dismissible outcome banner shown after a reactive card resolves. */
+export interface ActionOutcome {
+  card: ActionCardType;
+  text: string;
+}
 export interface Engagement {
   from: TerritoryId;
   to: TerritoryId;
@@ -94,6 +100,9 @@ export interface Hotseat {
   playActionCard: (a: Extract<Action, { type: "playActionCard" }>) => void;
   /** Resolve a human defender's open decision window (Minefield / Tactical Retreat). */
   resolveDecision: (play: boolean, to?: TerritoryId) => void;
+  /** Outcome popup after a reactive card resolves (null when none showing). */
+  actionOutcome: ActionOutcome | null;
+  dismissOutcome: () => void;
   rollOnce: () => void;
   startAuto: () => void;
   stopAuto: () => void;
@@ -141,6 +150,8 @@ export function useHotseat(): Hotseat {
   const [combatSeq, setCombatSeq] = useState(0);
   /** Transient combat feedback for a played action card (e.g. Air Strike result). */
   const [combatNote, setCombatNote] = useState<string | null>(null);
+  /** Dismissible popup summarising a reactive card's outcome (Minefield, Retreat). */
+  const [actionOutcome, setActionOutcome] = useState<ActionOutcome | null>(null);
   const [autoAttacking, setAutoAttacking] = useState(false);
   const [selection, setSelection] = useState<TerritoryId | null>(null);
   const [winReason, setWinReason] = useState<"elimination" | "campaign" | null>(null);
@@ -187,6 +198,18 @@ export function useHotseat(): Hotseat {
     setLog((prev) => prev.concat(events));
     const won = events.find((e) => e.type === "gameWon");
     if (won && won.type === "gameWon") setWinReason(won.reason ?? null);
+    // Surface a reactive card's outcome (Minefield here; Tactical Retreat later).
+    const mined = events.find((e) => e.type === "occupied" && e.mineLoss !== undefined);
+    if (mined && mined.type === "occupied") {
+      const attacker = state.players.find((p) => p.id === state.territories[mined.to].owner)?.name ?? "The attacker";
+      const n = mined.mineLoss ?? 0;
+      setActionOutcome({
+        card: "minefield",
+        text: n
+          ? `${attacker} took ${mined.to}, but a minefield destroyed ${n} of the ${n === 1 ? "incoming army" : "incoming armies"}.`
+          : `${attacker} took ${mined.to} — the minefield caught nothing (only 1 army moved in).`,
+      });
+    }
     return events;
   }, []);
 
@@ -195,6 +218,7 @@ export function useHotseat(): Hotseat {
     cpuRunning.current = false;
     autoRef.current = false;
     lastHumanRef.current = null;
+    setActionOutcome(null);
     setGame(createGame({ players: buildPlayers(seats, names), boardMode: mode, seed, campaign, actionCardsEnabled: actionCards }));
     setSelectedFrom(null);
     setSelection(null);
@@ -210,6 +234,7 @@ export function useHotseat(): Hotseat {
     cpuRunning.current = false;
     autoRef.current = false;
     lastHumanRef.current = null;
+    setActionOutcome(null);
     gameRef.current = state;
     setGame(state);
     setSelectedFrom(null);
@@ -231,6 +256,7 @@ export function useHotseat(): Hotseat {
     cpuRunning.current = false;
     autoRef.current = false;
     lastHumanRef.current = null;
+    setActionOutcome(null);
     setGame(null);
     setSelectedFrom(null);
     setSelection(null);
@@ -411,6 +437,8 @@ export function useHotseat(): Hotseat {
     [applyAndStore],
   );
 
+  const dismissOutcome = useCallback(() => setActionOutcome(null), []);
+
   const stopAuto = useCallback(() => {
     autoRef.current = false;
     setAutoAttacking(false);
@@ -509,6 +537,8 @@ export function useHotseat(): Hotseat {
     autoAttacking,
     playActionCard,
     resolveDecision,
+    actionOutcome,
+    dismissOutcome,
     rollOnce,
     startAuto,
     stopAuto,
