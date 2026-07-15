@@ -76,15 +76,15 @@ After that, every push to `main` redeploys.
 
 ### Staging deploy (branch previews)
 
-The current work-in-progress branch deploys to a **separate** site so production
-is never touched. Pushing it runs `.github/workflows/deploy-staging.yml`, which
-builds and rsyncs to `/srv/3drisk-staging/`, served at
-**`staging.3drisk.iainwilson.uk`**. Reverting to the stable app is just a normal
-deploy from `main` (`git push origin main`, or re-run *Deploy* via
-workflow_dispatch) — the two sites share nothing but the VPS.
+Staging is a **separate** site so production is never touched while previewing
+changes. `.github/workflows/deploy-staging.yml` builds and rsyncs to
+`/srv/3drisk-staging/`, served at **`staging.3drisk.iainwilson.uk`**. It shares
+nothing with production but the VPS.
 
-To point staging at a different branch, change the `branches:` filter in
-`deploy-staging.yml` (currently `game-changing`; previously `ui-redesign`).
+Staging tracks `main` by default. To preview a large feature branch, point staging
+at it by setting the `branches:` filter in `deploy-staging.yml` to that branch;
+each push then deploys to staging without touching production. Revert the filter
+back to `main` when the branch merges.
 
 The staging site's DNS + Caddy are already set up (Cloudflare A record
 `staging.3drisk` → `167.233.119.140`, DNS-only; `deploy/3drisk-staging.Caddyfile`
