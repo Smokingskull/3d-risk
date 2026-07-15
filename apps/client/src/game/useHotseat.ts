@@ -92,6 +92,8 @@ export interface Hotseat {
   mustTrade: boolean;
   /** How the game was won, once there's a winner (drives the win screen). */
   winReason: "elimination" | "campaign" | null;
+  /** Total armies to place this reinforce phase (peak, incl. trade bonuses), for the meter. */
+  reinforceTotal: number;
 }
 
 export function useHotseat(): Hotseat {
@@ -108,12 +110,18 @@ export function useHotseat(): Hotseat {
   const [autoAttacking, setAutoAttacking] = useState(false);
   const [selection, setSelection] = useState<TerritoryId | null>(null);
   const [winReason, setWinReason] = useState<"elimination" | "campaign" | null>(null);
+  const [reinforceTotal, setReinforceTotal] = useState(0);
 
   const gameRef = useRef<GameState | null>(null);
   gameRef.current = game;
   const engagementRef = useRef<Engagement | null>(null);
   engagementRef.current = engagement;
   const autoRef = useRef(false);
+  // Reinforce-meter tracking: the peak reinforcementsRemaining seen during the
+  // current reinforce phase (captures trade bonuses added mid-phase), keyed by
+  // turn+player so it resets each new reinforce phase.
+  const reinforceTotalRef = useRef(0);
+  const reinforceKeyRef = useRef("");
 
   // --- AI worker ---
   const workerRef = useRef<Worker | null>(null);
@@ -256,6 +264,20 @@ export function useHotseat(): Hotseat {
       setSelection(null);
     }
   }, [game, selectedFrom]);
+
+  // Track the total armies to place this reinforce phase (for the meter). The
+  // running peak captures the base plus any trade bonuses added mid-phase; the
+  // turn+player key resets it when a new reinforce phase opens.
+  useEffect(() => {
+    if (!game || game.phase !== "reinforce") return;
+    const key = `${game.turn}:${game.activePlayer}`;
+    if (reinforceKeyRef.current !== key) {
+      reinforceKeyRef.current = key;
+      reinforceTotalRef.current = 0;
+    }
+    reinforceTotalRef.current = Math.max(reinforceTotalRef.current, game.reinforcementsRemaining);
+    if (reinforceTotalRef.current !== reinforceTotal) setReinforceTotal(reinforceTotalRef.current);
+  }, [game, reinforceTotal]);
 
   const validTargets = useMemo<Set<TerritoryId>>(() => {
     if (!game || !selectedFrom) return new Set();
@@ -426,5 +448,6 @@ export function useHotseat(): Hotseat {
     tradeableSetCount,
     mustTrade: game ? mustTrade(game) : false,
     winReason,
+    reinforceTotal,
   };
 }

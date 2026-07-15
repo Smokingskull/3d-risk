@@ -1,21 +1,9 @@
 import { useState } from "react";
-import type { GameState } from "@risk3d/engine";
 import type { Hotseat } from "./game/useHotseat.js";
 import { Icon } from "./Icon.js";
 import { OptionsDialog } from "./OptionsDialog.js";
 import { CampaignDialog } from "./CampaignDialog.js";
-
-const PHASE_LABEL: Record<GameState["phase"], string> = {
-  reinforce: "Reinforce",
-  attack: "Attack",
-  fortify: "Fortify",
-};
-
-const PHASE_ICON: Record<GameState["phase"], string> = {
-  reinforce: "target",
-  attack: "swords",
-  fortify: "shield",
-};
+import { PhaseRail } from "./PhaseRail.js";
 
 export function Hud({ hs, hovered, onOpenHelp }: { hs: Hotseat; hovered: string | null; onOpenHelp: () => void }) {
   const game = hs.game!;
@@ -44,16 +32,9 @@ export function Hud({ hs, hovered, onOpenHelp }: { hs: Hotseat; hovered: string 
           <div className="turn">
             <span className="dot" style={{ background: active.color }} />
             <strong data-tut="player">{active.name}</strong>
-            <span className="phase" data-tut="phase">
-              <Icon name={PHASE_ICON[game.phase]} />
-              {PHASE_LABEL[game.phase]}
-              {game.phase === "reinforce" && (
-                <strong className="phase-count" data-tut="reinforcements">
-                  {game.reinforcementsRemaining}
-                </strong>
-              )}
-            </span>
           </div>
+
+          <PhaseRail game={game} reinforceTotal={hs.reinforceTotal} />
 
 
       {isCpu && <div className="row cpu">🤖 {active.name} ({active.difficulty}) is planning…</div>}
