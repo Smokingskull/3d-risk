@@ -73,10 +73,11 @@ CPU card use scales with difficulty (easy ignores them; hard uses all six).
 
 ## The game board asset
 
-`apps/client/public/assets/models/transparent_country_globe_gameboard.glb` is a glTF 2.0 binary
-containing **177 country meshes**, each a named node (Natural Earth country names)
-under a single `world` root. No materials are baked in — the client assigns colours
-per country at runtime.
+`apps/client/public/assets/models/risk_42_territory_globe_smoothed.glb` is a glTF 2.0 binary
+containing the **42 classic-Risk territory meshes**, each a named node (the territory
+name, spaces sanitised to underscores) under a single `world` root. No materials are
+baked in — the client assigns colours per territory at runtime. A companion
+`*_manifest.json` ships the continent, adjacency, and label-anchor data.
 
 ## Deployment
 
@@ -136,33 +137,19 @@ with `pnpm --filter @risk3d/engine test`.
 
 ### Board data
 
-`packages/engine/src/data/` holds the board. Land adjacency is **derived from the
-mesh geometry** (adjacent Natural Earth countries share exact border vertices) by
-`scripts/build-board.mjs`, then merged with hand-authored continents
-(`world.continents.json`) and sea routes (`world.searoutes.json`). Regenerate with:
+`packages/engine/src/data/classic.board.json` holds the board — the authentic
+**42-territory classic-Risk** map (6 continents; bonuses NA 5, SA 2, Europe 5,
+Africa 3, Asia 7, Australia 2). It's **generated from the globe model's manifest**
+(one gameplay territory per mesh, with the manifest's symmetric adjacency) by
+`scripts/build-classic.mjs`, which validates it (42 territories, connected) before
+writing. Regenerate with:
 
 ```bash
-pnpm --filter @risk3d/engine build:board
+pnpm --filter @risk3d/engine build:classic
 ```
 
 The generated board JSON is validated at build time and should not be hand-edited —
-edit the source data and rerun. Two board modes ship:
-
-- **World** — all 177 countries, 6 continents, land adjacency from geometry + curated
-  sea routes. Build: `build:board`.
-- **Classic** — a classic-*style* board of ~39 **regions** that group **all 177
-  countries** (North Africa, Scandinavia, the Middle East, Central America, …), so
-  the whole globe is in play with no inert areas. Regions carry a `members` list of
-  the country meshes they cover; the client renders each region as one territory
-  (single colour + one army label). Continents/bonuses and hand-curated adjacency
-  (`classic.regions.json` + `classic.adjacency.json`) follow classic choke points.
-  Single-country classic splits (Russia, USA) stay whole since a mesh can't be cut.
-  Build: `build:classic`.
-
-Rebuild both with `pnpm --filter @risk3d/engine build:boards`. Load either via
-`getBoard("world" | "classic")` from `@risk3d/engine`. Both boards ship in the
-engine and scenarios may use either, but the New Game menu currently starts on
-Classic only — the World map isn't offered there yet.
+edit the manifest and rerun. Load it via `getBoard("classic")` from `@risk3d/engine`.
 3. **AI** — heuristic → MCTS in a Web Worker; single-player vs CPU. _(done: easy/medium/hard
    deterministic policies + exact combat odds, run in a Web Worker; MCTS + adaptive
    opponent-modelling still to come)_

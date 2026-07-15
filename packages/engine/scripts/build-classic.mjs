@@ -1,7 +1,7 @@
 // Builds the Classic 42-territory BoardDefinition from the globe model's manifest.
 //
 // The board is the authentic classic-Risk layout: one gameplay territory per mesh
-// in risk_42_territory_globe.glb. The manifest ships the full topology (continent
+// in risk_42_territory_globe_smoothed.glb. The manifest ships the full topology (continent
 // per territory + symmetric adjacency), so this script just maps it into our
 // BoardDefinition schema — attaching continent ids and the authentic continent
 // bonuses — and validates (42 territories, symmetric adjacency, fully connected)
@@ -18,7 +18,7 @@ import { fileURLToPath } from "node:url";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(HERE, "../../..");
 const DATA_DIR = resolve(HERE, "../src/data");
-const MANIFEST = resolve(REPO_ROOT, "apps/client/public/assets/models/risk_42_territory_globe_manifest.json");
+const MANIFEST = resolve(REPO_ROOT, "apps/client/public/assets/models/risk_42_territory_globe_smoothed_manifest.json");
 
 // Continent display name (as in the manifest) -> our id + authentic Risk bonus.
 const CONTINENTS = {
