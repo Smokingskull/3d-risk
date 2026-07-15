@@ -48,69 +48,49 @@
       "owner": "p3",
       "armies": 2
     },
-    "Arabia": {
-      "owner": "p3",
+    "Alaska": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Alberta": {
+      "owner": "p2",
       "armies": 2
     },
     "Argentina": {
       "owner": "p1",
       "armies": 3
     },
-    "Australia": {
-      "owner": "p3",
-      "armies": 2
-    },
     "Brazil": {
       "owner": "p1",
-      "armies": 4
-    },
-    "Canada": {
-      "owner": "p2",
-      "armies": 2
-    },
-    "Caribbean": {
-      "owner": "p2",
-      "armies": 1
-    },
-    "Central Africa": {
-      "owner": "p1",
-      "armies": 3
+      "armies": 5
     },
     "Central America": {
-      "owner": "p2",
-      "armies": 1
-    },
-    "Central Asia": {
-      "owner": "p3",
-      "armies": 2
-    },
-    "Central Europe": {
       "owner": "p2",
       "armies": 2
     },
     "China": {
-      "owner": "p3",
+      "owner": "p2",
       "armies": 2
+    },
+    "Congo": {
+      "owner": "p1",
+      "armies": 3
     },
     "East Africa": {
       "owner": "p1",
       "armies": 3
     },
-    "East Indies": {
+    "Eastern Australia": {
       "owner": "p3",
       "armies": 2
     },
-    "Eastern Europe": {
+    "Eastern United States": {
       "owner": "p2",
       "armies": 2
     },
     "Egypt": {
       "owner": "p1",
-      "armies": 4
-    },
-    "Far East": {
-      "owner": "p3",
-      "armies": 2
+      "armies": 3
     },
     "Great Britain": {
       "owner": "p2",
@@ -125,34 +105,38 @@
       "armies": 2
     },
     "India": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Indonesia": {
       "owner": "p3",
       "armies": 2
     },
-    "Iran": {
+    "Irkutsk": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Japan": {
       "owner": "p3",
+      "armies": 2
+    },
+    "Kamchatka": {
+      "owner": "p2",
       "armies": 2
     },
     "Madagascar": {
       "owner": "p1",
       "armies": 3
     },
-    "Mexico": {
-      "owner": "p2",
-      "armies": 2
-    },
     "Middle East": {
       "owner": "p3",
       "armies": 2
     },
     "Mongolia": {
-      "owner": "p3",
+      "owner": "p2",
       "armies": 2
     },
     "New Guinea": {
-      "owner": "p3",
-      "armies": 2
-    },
-    "New Zealand": {
       "owner": "p3",
       "armies": 2
     },
@@ -160,12 +144,24 @@
       "owner": "p1",
       "armies": 4
     },
+    "Northern Europe": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Northwest Territory": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Ontario": {
+      "owner": "p2",
+      "armies": 2
+    },
     "Peru": {
       "owner": "p1",
       "armies": 3
     },
-    "Russia": {
-      "owner": "p3",
+    "Quebec": {
+      "owner": "p2",
       "armies": 2
     },
     "Scandinavia": {
@@ -173,10 +169,14 @@
       "armies": 2
     },
     "Siam": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Siberia": {
       "owner": "p3",
       "armies": 2
     },
-    "Southern Africa": {
+    "South Africa": {
       "owner": "p1",
       "armies": 3
     },
@@ -184,19 +184,31 @@
       "owner": "p2",
       "armies": 2
     },
-    "United States": {
+    "Ukraine": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Ural": {
       "owner": "p2",
       "armies": 2
     },
     "Venezuela": {
       "owner": "p1",
-      "armies": 6
+      "armies": 4
     },
-    "West Africa": {
-      "owner": "p1",
-      "armies": 3
+    "Western Australia": {
+      "owner": "p3",
+      "armies": 2
     },
     "Western Europe": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Western United States": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Yakutsk": {
       "owner": "p2",
       "armies": 2
     }
