@@ -895,6 +895,51 @@ button.quiet:hover:not(:disabled) {
   width: 100%;
   margin-top: 10px;
 }
+/* Unit-cards + action-cards buttons side by side when both modes are on. */
+.players-card-buttons {
+  display: flex;
+  gap: 8px;
+}
+.players-card-buttons .players-cards {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Action-cards view popup (read-only hand of held cards). */
+.action-cards-card {
+  width: 460px;
+}
+.action-hand {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.action-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(101, 80, 54, 0.4);
+}
+.action-card-img {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  border-radius: 8px;
+  flex: none;
+}
+.action-card-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.action-card-text strong {
+  font-size: 15px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
 
 /* ---- continents panel (top-right, below the roster) ---- */
 .continents {

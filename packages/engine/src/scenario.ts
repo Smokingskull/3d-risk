@@ -130,6 +130,7 @@ export function deserializeGame(input: ScenarioStateInput): GameState {
     fortifyRule: input.options.fortifyRule ?? "connected",
     cardsEnabled: input.options.cardsEnabled ?? true,
     campaign: input.options.campaign ?? false,
+    actionCardsEnabled: input.options.actionCardsEnabled ?? false,
   };
 
   // --- players -------------------------------------------------------------
@@ -150,6 +151,7 @@ export function deserializeGame(input: ScenarioStateInput): GameState {
       difficulty: p.difficulty,
       eliminated: p.eliminated ?? false,
       cards: p.cards ? clone(p.cards) : [],
+      actionCards: p.actionCards ? clone(p.actionCards) : [],
       campaign: p.campaign ? clone(p.campaign) : undefined,
     };
   });

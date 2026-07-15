@@ -8,7 +8,7 @@ import { ScenariosDialog } from "./ScenariosDialog.js";
 type Dialog = { kind: "new"; campaign: boolean } | { kind: "help" } | { kind: "scenarios" } | null;
 
 interface Props {
-  onStart: (mode: BoardMode, seats: SeatSpec[], tutorial: boolean, names: string[], campaign: boolean) => void;
+  onStart: (mode: BoardMode, seats: SeatSpec[], tutorial: boolean, names: string[], campaign: boolean, actionCards: boolean) => void;
   onLoadScenario: (state: GameState) => void;
 }
 

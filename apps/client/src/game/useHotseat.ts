@@ -78,7 +78,7 @@ export interface Hotseat {
   attackTarget: (to: TerritoryId) => void;
   fortifyMove: (to: TerritoryId, count: number) => void;
   // Lifecycle / other controls.
-  start: (mode: BoardMode, seats: SeatSpec[], tutorial: boolean, names: string[], campaign: boolean) => void;
+  start: (mode: BoardMode, seats: SeatSpec[], tutorial: boolean, names: string[], campaign: boolean, actionCards: boolean) => void;
   /** Load a pre-built game state (e.g. a deserialized save) instead of starting fresh. */
   loadState: (state: GameState) => void;
   reset: () => void;
@@ -176,11 +176,11 @@ export function useHotseat(): Hotseat {
     return events;
   }, []);
 
-  const start = useCallback((mode: BoardMode, seats: SeatSpec[], useTutorial: boolean, names: string[], campaign: boolean) => {
+  const start = useCallback((mode: BoardMode, seats: SeatSpec[], useTutorial: boolean, names: string[], campaign: boolean, actionCards: boolean) => {
     const seed = Math.floor(Math.random() * 0x7fffffff);
     runningTurn.current = -1;
     autoRef.current = false;
-    setGame(createGame({ players: buildPlayers(seats, names), boardMode: mode, seed, campaign }));
+    setGame(createGame({ players: buildPlayers(seats, names), boardMode: mode, seed, campaign, actionCardsEnabled: actionCards }));
     setSelectedFrom(null);
     setSelection(null);
     setEngagement(null);

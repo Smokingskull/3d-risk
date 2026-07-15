@@ -12,7 +12,7 @@ const defaultName = (i: number) => `Player ${i + 1}`;
 
 interface Props {
   campaign: boolean;
-  onStart: (mode: BoardMode, seats: SeatSpec[], tutorial: boolean, names: string[], campaign: boolean) => void;
+  onStart: (mode: BoardMode, seats: SeatSpec[], tutorial: boolean, names: string[], campaign: boolean, actionCards: boolean) => void;
   onClose: () => void;
 }
 
@@ -21,6 +21,7 @@ export function NewGameDialog({ campaign, onStart, onClose }: Props) {
   const [seats, setSeats] = useState<SeatChoice[]>(["human", "medium", "medium"]);
   const [names, setNames] = useState<string[]>([0, 1, 2].map(defaultName));
   const [tutorial, setTutorial] = useState(true);
+  const [actionCards, setActionCards] = useState(false);
 
   const setCount = (n: number) => {
     setSeats((prev) => {
@@ -97,7 +98,12 @@ export function NewGameDialog({ campaign, onStart, onClose }: Props) {
           <span>Tutorial tips — on-screen prompts for each phase (recommended for new players)</span>
         </label>
 
-        <button className="start" onClick={() => onStart(mode, seats.map(toSpec), tutorial, names, campaign)}>
+        <label className="toggle">
+          <input type="checkbox" checked={actionCards} onChange={(e) => setActionCards(e.target.checked)} />
+          <span>Action cards — deal each player 2 secret one-shot special cards to manage</span>
+        </label>
+
+        <button className="start" onClick={() => onStart(mode, seats.map(toSpec), tutorial, names, campaign, actionCards)}>
           {campaign ? "Start campaign" : "Start game"}
         </button>
       </div>

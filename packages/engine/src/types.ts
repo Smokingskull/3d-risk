@@ -54,6 +54,18 @@ export interface Card {
   symbol: CardSymbol;
 }
 
+/**
+ * The six special one-shot Action cards (an optional game mode). Two of each exist
+ * across a game; each player is dealt 2 at the start and they are not replenished.
+ */
+export type ActionCardType =
+  | "troopTransport"
+  | "airStrike"
+  | "misinformation"
+  | "antiAircraft"
+  | "minefield"
+  | "tacticalRetreat";
+
 /** A player's secret objective in a Campaign game. */
 export type CampaignKind = "country" | "continent" | "assassination";
 export type CampaignTarget =
@@ -72,6 +84,8 @@ export interface Player {
   eliminated: boolean;
   /** Cards held in hand. */
   cards: Card[];
+  /** Action cards held (only used when actionCardsEnabled). Hidden from opponents. */
+  actionCards: ActionCardType[];
   /** Secret campaign objective (only set in Campaign games). */
   campaign?: CampaignTarget;
 }
@@ -90,6 +104,8 @@ export interface GameOptions {
   cardsEnabled: boolean;
   /** Campaign mode: each player has a secret objective; first to meet theirs wins. */
   campaign: boolean;
+  /** Action cards mode: deal 2 special one-shot cards per player at the start. */
+  actionCardsEnabled: boolean;
 }
 
 /**

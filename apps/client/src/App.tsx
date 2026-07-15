@@ -14,6 +14,7 @@ import { VictoryOverlay } from "./VictoryOverlay.js";
 import { ContinentsPanel } from "./ContinentsPanel.js";
 import { PlayersPanel } from "./PlayersPanel.js";
 import { CardPanel } from "./CardPanel.js";
+import { ActionCardPanel } from "./ActionCardPanel.js";
 import { useHotseat } from "./game/useHotseat.js";
 import { scenarioById } from "./scenarios/index.js";
 
@@ -99,6 +100,8 @@ export function App() {
   // Card view/trade dialog, lifted here so both the roster and the GAME box's
   // mandatory-trade banner can open it.
   const [cardsOpen, setCardsOpen] = useState(false);
+  // Action-card view dialog (only when the mode is enabled), opened from the roster.
+  const [actionCardsOpen, setActionCardsOpen] = useState(false);
 
   // Dev-only test hook so headless checks can drive the game deterministically.
   if (import.meta.env.DEV) (window as unknown as { __risk: typeof hs }).__risk = hs;
@@ -112,7 +115,7 @@ export function App() {
     if (mode !== "classic" && mode !== "world") return;
     autostarted.current = true;
     const sp = new URLSearchParams(window.location.search);
-    hs.start(mode, [{ kind: "human" }, { kind: "cpu", difficulty: "easy" }, { kind: "cpu", difficulty: "easy" }], sp.get("tutorial") === "1", ["Red", "Blue", "Green"], sp.get("campaign") === "1");
+    hs.start(mode, [{ kind: "human" }, { kind: "cpu", difficulty: "easy" }, { kind: "cpu", difficulty: "easy" }], sp.get("tutorial") === "1", ["Red", "Blue", "Green"], sp.get("campaign") === "1", sp.get("actioncards") === "1");
   }, [hs]);
 
   // Dev-only: ?scenario=<id> boots straight into a bundled scenario, so headless
@@ -181,8 +184,9 @@ export function App() {
       <CountryPopup hs={hs} />
       <VictoryOverlay hs={hs} />
       {cardsOpen && <CardPanel hs={hs} onClose={() => setCardsOpen(false)} />}
+      {actionCardsOpen && <ActionCardPanel hs={hs} onClose={() => setActionCardsOpen(false)} />}
       <div className="right-stack">
-        <PlayersPanel hs={hs} onOpenCards={() => setCardsOpen(true)} />
+        <PlayersPanel hs={hs} onOpenCards={() => setCardsOpen(true)} onOpenActionCards={() => setActionCardsOpen(true)} />
         <ContinentsPanel
           game={hs.game}
           highlight={highlightContinent}

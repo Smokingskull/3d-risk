@@ -277,3 +277,31 @@ describe("turn flow", () => {
     for (const a of listLegalActions(s)) expect(isLegal(s, a as Action)).toBe(true);
   });
 });
+
+describe("action cards", () => {
+  it("are off by default: no cards dealt, option disabled", () => {
+    const s = baseGame(ringBoard());
+    expect(s.options.actionCardsEnabled).toBe(false);
+    expect(s.players.every((p) => p.actionCards.length === 0)).toBe(true);
+  });
+
+  it("deals exactly 2 to each player when enabled", () => {
+    const s = baseGame(ringBoard(), { actionCardsEnabled: true });
+    expect(s.options.actionCardsEnabled).toBe(true);
+    expect(s.players.every((p) => p.actionCards.length === 2)).toBe(true);
+  });
+
+  it("deals from a pool of two-of-each (no type appears more than twice overall)", () => {
+    const s = createGame({
+      players: [P1, P2, { id: "p3", name: "Three", color: "#0f0", kind: "human" as const }],
+      board: ringBoard(),
+      seed: 7,
+      cardsEnabled: false,
+      actionCardsEnabled: true,
+    });
+    const counts = new Map<string, number>();
+    for (const p of s.players) for (const c of p.actionCards) counts.set(c, (counts.get(c) ?? 0) + 1);
+    expect([...counts.values()].every((n) => n <= 2)).toBe(true);
+    expect([...counts.values()].reduce((a, b) => a + b, 0)).toBe(6);
+  });
+});

@@ -12,6 +12,7 @@ import type { GameEvent } from "./events.js";
 import { getBoard } from "./board.js";
 import { mulberry32, rollDieAt, shuffle } from "./rng.js";
 import type {
+  ActionCardType,
   BoardDefinition,
   BoardMode,
   CampaignKind,
@@ -22,6 +23,16 @@ import type {
   PlayerId,
   TerritoryId,
 } from "./types.js";
+
+/** The action-card deck: two of each of the six types (dealt 2 per player). */
+export const ACTION_CARD_TYPES: ActionCardType[] = [
+  "troopTransport",
+  "airStrike",
+  "misinformation",
+  "antiAircraft",
+  "minefield",
+  "tacticalRetreat",
+];
 
 export class IllegalActionError extends Error {
   constructor(reason: string) {
@@ -44,6 +55,8 @@ export interface GameConfig {
   cardsEnabled?: boolean;
   /** Campaign mode: assign each player a secret objective; first to meet it wins. */
   campaign?: boolean;
+  /** Action cards mode: deal 2 special one-shot cards per player. Default false. */
+  actionCardsEnabled?: boolean;
 }
 
 /** Number of consecutive owned turn-ends needed to win a "country" campaign. */
@@ -157,7 +170,7 @@ export function createGame(config: GameConfig): GameState {
   const cardsEnabled = config.cardsEnabled ?? true;
   const rng = mulberry32(config.seed);
 
-  const players: Player[] = config.players.map((p) => ({ ...p, eliminated: false, cards: [] }));
+  const players: Player[] = config.players.map((p) => ({ ...p, eliminated: false, cards: [], actionCards: [] }));
 
   // Deal every territory round-robin in random order, one army each.
   const ids = shuffle(Object.keys(board.territories), rng);
@@ -181,9 +194,16 @@ export function createGame(config: GameConfig): GameState {
 
   const deck = cardsEnabled ? shuffle(buildDeck(board, WILDS_BY_MODE[boardMode]), rng) : [];
 
+  // Action cards: shuffle a pool of two-of-each and deal 2 to each player.
+  const actionCardsEnabled = config.actionCardsEnabled ?? false;
+  if (actionCardsEnabled) {
+    const pool = shuffle(ACTION_CARD_TYPES.flatMap((t) => [t, t]), rng);
+    for (const player of players) player.actionCards = pool.splice(0, 2);
+  }
+
   const state: GameState = {
     board,
-    options: { boardMode, fortifyRule: config.fortifyRule ?? "connected", cardsEnabled, campaign },
+    options: { boardMode, fortifyRule: config.fortifyRule ?? "connected", cardsEnabled, campaign, actionCardsEnabled },
     players,
     territories,
     turn: 1,
@@ -211,7 +231,7 @@ function cloneState(s: GameState): GameState {
   for (const k in s.territories) territories[k] = { ...s.territories[k] };
   return {
     ...s,
-    players: s.players.map((p) => ({ ...p, cards: [...p.cards], campaign: p.campaign ? { ...p.campaign } : undefined })),
+    players: s.players.map((p) => ({ ...p, cards: [...p.cards], actionCards: [...p.actionCards], campaign: p.campaign ? { ...p.campaign } : undefined })),
     territories,
     deck: [...s.deck],
     discard: [...s.discard],
