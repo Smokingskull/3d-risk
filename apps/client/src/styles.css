@@ -277,15 +277,17 @@ button.warn {
   font-variant-numeric: tabular-nums;
 }
 /* Rotate-lock toggle: square icon button in the footer, right of Options.
-   align-self: stretch + aspect-ratio makes it a square matching the row height. */
+   Same 7px block padding + 1.3em icon as Options → identical height; content-based
+   height is definite, so aspect-ratio:1 resolves the width into a true square.
+   (align-self: stretch is avoided — aspect-ratio doesn't reliably drive the width
+   of a stretched flex item.) */
 .mode-btn {
   flex: 0 0 auto;
-  align-self: stretch;
   aspect-ratio: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
+  padding: 7px;
   line-height: 0;
   color: var(--text-dim);
 }
