@@ -46,7 +46,10 @@ const TOPICS: Topic[] = [
         <h3>Standard Game</h3>
         <p>Classic conquest — the winner is the last general left standing once every rival is eliminated.</p>
         <h3>Campaign</h3>
-        <p>Every player (you and the CPUs) is dealt a secret objective, and the first to complete theirs wins:</p>
+        <p>
+          Turn on <strong>Campaign cards</strong> when starting a New Game. Every player (you and the CPUs) is
+          then dealt a secret objective, and the first to complete theirs wins:
+        </p>
         <ul>
           <li><strong>Country</strong> — capture an assigned territory and hold it for three consecutive turns.</li>
           <li><strong>Continent</strong> — control every territory of an assigned continent at the end of a turn.</li>

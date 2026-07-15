@@ -14,14 +14,14 @@ const defaultName = (i: number) => `Player ${i + 1}`;
 const MODE: BoardMode = "classic";
 
 interface Props {
-  campaign: boolean;
   onStart: (mode: BoardMode, seats: SeatSpec[], names: string[], campaign: boolean, actionCards: boolean) => void;
   onClose: () => void;
 }
 
-export function NewGameDialog({ campaign, onStart, onClose }: Props) {
+export function NewGameDialog({ onStart, onClose }: Props) {
   const [seats, setSeats] = useState<SeatChoice[]>(["human", "medium", "medium"]);
   const [names, setNames] = useState<string[]>([0, 1, 2].map(defaultName));
+  const [campaign, setCampaign] = useState(false);
   const [actionCards, setActionCards] = useState(false);
 
   const setCount = (n: number) => {
@@ -43,9 +43,22 @@ export function NewGameDialog({ campaign, onStart, onClose }: Props) {
     <div className="overlay" onClick={onClose}>
       <div className="overlay-card new-game" onClick={(e) => e.stopPropagation()}>
         <div className="overlay-head">
-          <h2>New {campaign ? "Campaign" : "Game"}</h2>
+          <h2>New Game</h2>
           <button className="tut-x" aria-label="Close" onClick={onClose}><Icon name="close" size={18} /></button>
         </div>
+
+        <label className="field">
+          <span>Campaign cards</span>
+          <div className="segmented">
+            <button className={campaign ? "sel" : ""} onClick={() => setCampaign(true)}>
+              Yes
+            </button>
+            <button className={!campaign ? "sel" : ""} onClick={() => setCampaign(false)}>
+              No
+            </button>
+          </div>
+          <span className="field-hint">Deal every player a secret objective — hold a country, seize a continent or assassinate a rival. First to complete theirs wins. No plays a standard last-general-standing game.</span>
+        </label>
 
         <label className="field">
           <span>Action cards</span>
@@ -62,7 +75,7 @@ export function NewGameDialog({ campaign, onStart, onClose }: Props) {
 
         <label className="field">
           <span>Players</span>
-          <div className="choices">
+          <div className="segmented">
             {[2, 3, 4, 5, 6].map((n) => (
               <button key={n} className={seats.length === n ? "sel" : ""} onClick={() => setCount(n)}>
                 {n}

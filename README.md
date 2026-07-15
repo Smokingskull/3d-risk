@@ -161,8 +161,8 @@ edit the source data and rerun. Two board modes ship:
 
 Rebuild both with `pnpm --filter @risk3d/engine build:boards`. Load either via
 `getBoard("world" | "classic")` from `@risk3d/engine`. Both boards ship in the
-engine and scenarios may use either, but the New Game / New Campaign menu
-currently starts on Classic only — the World map isn't offered there yet.
+engine and scenarios may use either, but the New Game menu currently starts on
+Classic only — the World map isn't offered there yet.
 3. **AI** — heuristic → MCTS in a Web Worker; single-player vs CPU. _(done: easy/medium/hard
    deterministic policies + exact combat odds, run in a Web Worker; MCTS + adaptive
    opponent-modelling still to come)_

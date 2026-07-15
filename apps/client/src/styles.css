@@ -1786,27 +1786,6 @@ button.quiet:hover:not(:disabled) {
   letter-spacing: normal;
   line-height: 1.4;
 }
-.choices {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.choices button {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-.choices button em {
-  font-style: normal;
-  font-size: 11px;
-  color: var(--text-dim);
-}
-.choices button.sel {
-  border-color: var(--accent);
-  background: linear-gradient(180deg, rgba(213, 174, 105, 0.3), rgba(182, 138, 72, 0.16));
-  color: var(--text);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 10px rgba(182, 138, 72, 0.25);
-}
 button.start {
   padding: 12px;
   font-size: 16px;

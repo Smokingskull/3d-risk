@@ -8,7 +8,7 @@ import { Icon } from "./Icon.js";
 import { getTutorialEnabled, setTutorialEnabled } from "./settings.js";
 
 type Dialog =
-  | { kind: "new"; campaign: boolean }
+  | { kind: "new" }
   | { kind: "help" }
   | { kind: "scenarios" }
   | { kind: "options" }
@@ -27,13 +27,9 @@ export function Home({ onStart, onLoadScenario }: Props) {
       <div className="home-inner">
         <img className="home-banner" src="/assets/images/banner.png" alt="3D Risk — Dominate. Conquer. Control." />
         <div className="home-actions">
-          <button className="home-btn primary" onClick={() => setDialog({ kind: "new", campaign: false })}>
+          <button className="home-btn primary" onClick={() => setDialog({ kind: "new" })}>
             New Game
-            <span className="home-desc">Standard RISK — set up your players and conquer the world.</span>
-          </button>
-          <button className="home-btn primary" onClick={() => setDialog({ kind: "new", campaign: true })}>
-            New Campaign
-            <span className="home-desc">Every player gets a secret objective — hold a country, seize a continent, or assassinate a rival. First to complete theirs wins.</span>
+            <span className="home-desc">Set up your players and conquer the world. Turn on Campaign cards to play for secret objectives instead.</span>
           </button>
           <button className="home-btn primary" onClick={() => setDialog({ kind: "scenarios" })}>
             Scenarios
@@ -47,7 +43,7 @@ export function Home({ onStart, onLoadScenario }: Props) {
       </div>
 
       {dialog?.kind === "new" && (
-        <NewGameDialog campaign={dialog.campaign} onStart={onStart} onClose={() => setDialog(null)} />
+        <NewGameDialog onStart={onStart} onClose={() => setDialog(null)} />
       )}
       {dialog?.kind === "scenarios" && (
         <ScenariosDialog onPlay={onLoadScenario} onClose={() => setDialog(null)} />
