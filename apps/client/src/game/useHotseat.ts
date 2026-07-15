@@ -198,16 +198,24 @@ export function useHotseat(): Hotseat {
     setLog((prev) => prev.concat(events));
     const won = events.find((e) => e.type === "gameWon");
     if (won && won.type === "gameWon") setWinReason(won.reason ?? null);
-    // Surface a reactive card's outcome (Minefield here; Tactical Retreat later).
+    // Surface a reactive card's outcome popup.
+    const nameOf = (id: string) => state.players.find((p) => p.id === id)?.name ?? id;
     const mined = events.find((e) => e.type === "occupied" && e.mineLoss !== undefined);
     if (mined && mined.type === "occupied") {
-      const attacker = state.players.find((p) => p.id === state.territories[mined.to].owner)?.name ?? "The attacker";
+      const attacker = nameOf(state.territories[mined.to].owner ?? "");
       const n = mined.mineLoss ?? 0;
       setActionOutcome({
         card: "minefield",
         text: n
           ? `${attacker} took ${mined.to}, but a minefield destroyed ${n} of the ${n === 1 ? "incoming army" : "incoming armies"}.`
           : `${attacker} took ${mined.to} — the minefield caught nothing (only 1 army moved in).`,
+      });
+    }
+    const retreat = events.find((e) => e.type === "tacticalRetreat");
+    if (retreat && retreat.type === "tacticalRetreat") {
+      setActionOutcome({
+        card: "tacticalRetreat",
+        text: `${nameOf(retreat.player)} pulled ${retreat.count} ${retreat.count === 1 ? "army" : "armies"} back to ${retreat.to}, ceding ${retreat.from} to ${nameOf(retreat.capturedBy)}.`,
       });
     }
     return events;
@@ -396,7 +404,7 @@ export function useHotseat(): Hotseat {
   const rollOnce = useCallback(() => {
     const g = gameRef.current;
     const eng = engagementRef.current;
-    if (!g || !eng || g.pendingOccupation || g.winner) return;
+    if (!g || !eng || g.pendingOccupation || g.pendingDecision || g.winner) return;
     const from = g.territories[eng.from];
     if (!from || from.armies < 2 || from.owner !== g.activePlayer) return;
     const events = applyAndStore({ type: "attack", from: eng.from, to: eng.to, dice: Math.min(3, from.armies - 1) });
@@ -405,6 +413,11 @@ export function useHotseat(): Hotseat {
       if (atk) setLastCombat(atk);
       setCombatSeq((s) => s + 1);
       setCombatNote(null); // the air-strike note only applies before the first roll
+      // A CPU defender's reaction (Minefield / Tactical Retreat) resolves immediately so
+      // it doesn't interrupt the attacker; a human defender is prompted instead.
+      const pd = gameRef.current?.pendingDecision;
+      if (pd && gameRef.current!.players.find((p) => p.id === pd.player)?.kind === "cpu")
+        applyAndStore(decideReaction(gameRef.current!));
     }
   }, [applyAndStore]);
 
@@ -447,7 +460,10 @@ export function useHotseat(): Hotseat {
   const canContinue = () => {
     const g = gameRef.current;
     const eng = engagementRef.current;
-    return !!g && !!eng && !g.winner && !g.pendingOccupation && g.territories[eng.from]?.armies >= 2;
+    return (
+      !!g && !!eng && !g.winner && !g.pendingOccupation && !g.pendingDecision &&
+      g.territories[eng.from]?.armies >= 2
+    );
   };
 
   const startAuto = useCallback(() => {

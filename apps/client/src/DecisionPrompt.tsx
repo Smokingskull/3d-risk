@@ -37,5 +37,34 @@ export function DecisionPrompt({ hs }: { hs: Hotseat }) {
     );
   }
 
+  if (pd.kind === "tacticalRetreat") {
+    const info = actionCardInfo("tacticalRetreat");
+    const targets = game.board.territories[pd.territory].neighbours.filter(
+      (n) => game.territories[n]?.owner === pd.player,
+    );
+    return (
+      <div className="combat-backdrop">
+        <div className="combat decision-prompt">
+          <h2 className="combat-title">Tactical Retreat?</h2>
+          <img className="decision-img" src={info.image} alt={info.name} draggable={false} />
+          <p className="combat-result">
+            {attacker?.name ?? "The enemy"} is attacking <strong>{pd.territory}</strong>. Pull all your
+            armies out to an adjacent territory — you keep them, but forfeit {pd.territory}.
+          </p>
+          <div className="combat-actions">
+            {targets.map((to) => (
+              <button key={to} className="start" onClick={() => hs.resolveDecision(true, to)}>
+                Retreat to {to}
+              </button>
+            ))}
+            <button className="quiet" onClick={() => hs.resolveDecision(false)}>
+              Stay and fight
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return null;
 }

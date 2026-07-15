@@ -35,6 +35,8 @@ export function describe(e: GameEvent, nameOf: (id: string) => string): string {
       return e.nullifiedBy
         ? `${nameOf(e.player)}'s Air Strike on ${e.target} was nullified by ${nameOf(e.nullifiedBy)}'s Anti-Aircraft`
         : `${nameOf(e.player)} air-struck ${e.target} — ${e.removed} ${e.removed === 1 ? "army" : "armies"} destroyed`;
+    case "tacticalRetreat":
+      return `${nameOf(e.player)} retreated ${e.count} from ${e.from} to ${e.to} — ${nameOf(e.capturedBy)} takes ${e.from}`;
     default:
       return "";
   }

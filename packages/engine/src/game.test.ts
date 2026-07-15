@@ -444,6 +444,41 @@ describe("action cards", () => {
     expect(occ.territories.B.armies).toBe(5);
   });
 
+  it("Tactical Retreat: window opens between rolls when the defender takes losses", () => {
+    const s = cardGame();
+    s.players.find((p) => p.id === "p2")!.actionCards = ["tacticalRetreat"];
+    // p2 holds B (attacked from A) and owns C to retreat into. B has plenty so it won't fall.
+    setBoard(s, { A: ["p1", 20], B: ["p2", 8], C: ["p2", 1], D: ["p1", 1] });
+    s.phase = "attack";
+    let st = s;
+    for (let i = 0; i < 15 && !st.pendingDecision && !st.pendingOccupation; i++)
+      st = applyAction(st, { type: "attack", from: "A", to: "B", dice: 3 }).state;
+    expect(st.pendingDecision).toMatchObject({ kind: "tacticalRetreat", player: "p2", territory: "B" });
+    // Legal moves are the retreat (to an owned neighbour) or declining.
+    expect(isLegal(st, { type: "resolveDecision", play: true, to: "C" })).toBe(true);
+    expect(isLegal(st, { type: "resolveDecision", play: false })).toBe(true);
+    expect(isLegal(st, { type: "resolveDecision", play: true, to: "D" })).toBe(false); // not owned
+  });
+
+  it("Tactical Retreat moves all armies out and hands the empty territory to the attacker", () => {
+    const s = cardGame();
+    s.players.find((p) => p.id === "p2")!.actionCards = ["tacticalRetreat"];
+    setBoard(s, { A: ["p1", 6], B: ["p2", 4], C: ["p2", 2], D: ["p1", 1] });
+    s.phase = "attack";
+    s.pendingDecision = { kind: "tacticalRetreat", player: "p2", territory: "B", from: "A" };
+    const { state, events } = applyAction(s, { type: "resolveDecision", play: true, to: "C" });
+    expect(state.territories.C.armies).toBe(6); // 2 + all 4 from B
+    expect(state.territories.B.owner).toBe("p1"); // attacker captured the empty land
+    expect(state.territories.B.armies).toBe(0);
+    expect(state.pendingOccupation).toMatchObject({ from: "A", to: "B" });
+    expect(state.players.find((p) => p.id === "p2")!.actionCards).not.toContain("tacticalRetreat");
+    expect(events.find((e) => e.type === "tacticalRetreat")).toMatchObject({ from: "B", to: "C", count: 4, capturedBy: "p1" });
+    // The attacker then moves in as a normal occupation.
+    const occ = applyAction(state, { type: "occupy", count: 5 }).state;
+    expect(occ.territories.B.armies).toBe(5);
+    expect(occ.territories.A.armies).toBe(1);
+  });
+
   it("attacking a bluffed territory reveals it to that attacker only; combat uses the real count", () => {
     const s = threeCardGame();
     // A is bluffed (real 10, shown as 8). B (p2) borders A and attacks it.

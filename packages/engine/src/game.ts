@@ -606,6 +606,15 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
           // Defender may lay a Minefield before the attacker moves in.
           s.pendingDecision = { kind: "minefield", player: defender, territory: action.to, from: action.from };
         }
+      } else if (
+        // Not conquered: if this roll cost the defender armies and they hold Tactical
+        // Retreat (with somewhere to go and an attacker still able to move in), offer it.
+        defenderLosses > 0 &&
+        from.armies >= 2 &&
+        holdsActionCard(s, defender, "tacticalRetreat") &&
+        s.board.territories[action.to].neighbours.some((n) => s.territories[n].owner === defender)
+      ) {
+        s.pendingDecision = { kind: "tacticalRetreat", player: defender, territory: action.to, from: action.from };
       }
       break;
     }
@@ -669,6 +678,23 @@ function applyDecision(
     consumeActionCard(s, pd.player, "minefield");
     if (s.pendingOccupation) s.pendingOccupation.mined = true;
     events.push({ type: "actionCardPlayed", player: pd.player, card: "minefield", target: pd.territory });
+    return;
+  }
+  if (pd.kind === "tacticalRetreat") {
+    consumeActionCard(s, pd.player, "tacticalRetreat");
+    const contested = s.territories[pd.territory];
+    const dest = s.territories[action.to!];
+    const attacker = s.territories[pd.from].owner!;
+    const moved = contested.armies;
+    // Pull every army back to the chosen neighbour; the attacker takes the empty land.
+    dest.armies += moved;
+    contested.armies = 0;
+    contested.owner = attacker;
+    s.conqueredThisTurn = true;
+    delete s.misinformation[pd.territory];
+    s.pendingOccupation = { from: pd.from, to: pd.territory, min: 1, max: s.territories[pd.from].armies - 1 };
+    events.push({ type: "actionCardPlayed", player: pd.player, card: "tacticalRetreat", target: pd.territory });
+    events.push({ type: "tacticalRetreat", player: pd.player, from: pd.territory, to: action.to!, count: moved, capturedBy: attacker });
   }
 }
 

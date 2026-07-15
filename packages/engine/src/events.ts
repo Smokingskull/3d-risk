@@ -50,4 +50,17 @@ export type GameEvent =
       removed: number;
       /** The defender who auto-played Anti-Aircraft, or null if the strike landed. */
       nullifiedBy: PlayerId | null;
+    }
+  | {
+      type: "tacticalRetreat";
+      /** The retreating defender. */
+      player: PlayerId;
+      /** The abandoned (contested) territory. */
+      from: TerritoryId;
+      /** Where the armies retreated to. */
+      to: TerritoryId;
+      /** Armies pulled out. */
+      count: number;
+      /** The attacker who then captures the abandoned territory. */
+      capturedBy: PlayerId;
     };
