@@ -2,15 +2,20 @@ import type { ReactNode } from "react";
 
 /**
  * Modal backdrop + centered card. Clicking the backdrop calls `onClose` (unless
- * `closeOnBackdrop` is false); clicks inside the card never bubble to it. This is
- * the single backdrop implementation behind {@link Dialog} and other overlays.
+ * `closeOnBackdrop` is false); clicks inside the card never bubble to it. The
+ * single backdrop implementation behind {@link Dialog} (default `.overlay` /
+ * `.overlay-card`) and the combat modals (`.combat-backdrop` / `.combat`).
  */
 export function Overlay({
+  backdropClassName = "overlay",
+  cardBaseClassName = "overlay-card",
   cardClassName,
   onClose,
   closeOnBackdrop = true,
   children,
 }: {
+  backdropClassName?: string;
+  cardBaseClassName?: string;
   cardClassName?: string;
   onClose?: () => void;
   closeOnBackdrop?: boolean;
@@ -18,7 +23,7 @@ export function Overlay({
 }) {
   return (
     <div
-      className="overlay"
+      className={backdropClassName}
       onClick={
         closeOnBackdrop
           ? (e) => {
@@ -31,7 +36,7 @@ export function Overlay({
       }
     >
       <div
-        className={cardClassName ? `overlay-card ${cardClassName}` : "overlay-card"}
+        className={cardClassName ? `${cardBaseClassName} ${cardClassName}` : cardBaseClassName}
         onClick={(e) => e.stopPropagation()}
       >
         {children}

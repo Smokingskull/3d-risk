@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { BoardMode } from "@risk3d/engine";
 import type { SeatSpec } from "./game/useHotseat.js";
 import { PLAYER_COLORS } from "./players.js";
-import { Button, Dialog, Segmented } from "./ui/index.js";
+import { Button, Dialog, Dot, Field, Segmented } from "./ui/index.js";
 
 type SeatChoice = "human" | "easy" | "medium" | "hard";
 const CHOICES: { value: SeatChoice; label: string }[] = [
@@ -50,33 +50,30 @@ export function NewGameDialog({ onStart, onClose }: Props) {
 
   return (
     <Dialog title="New Game" cardClassName="new-game" onClose={onClose}>
-      <div className="field">
-        <span>Campaign cards</span>
+      <Field
+        label="Campaign cards"
+        hint="Deal every player a secret objective — hold a country, seize a continent or assassinate a rival. First to complete theirs wins. No plays a standard last-general-standing game."
+      >
         <Segmented options={YES_NO} value={campaign} onChange={setCampaign} ariaLabel="Campaign cards" />
-        <span className="field-hint">Deal every player a secret objective — hold a country, seize a continent or assassinate a rival. First to complete theirs wins. No plays a standard last-general-standing game.</span>
-      </div>
+      </Field>
 
-      <div className="field">
-        <span>Action cards</span>
+      <Field label="Action cards" hint="Deal each player 2 secret one-shot special cards to manage.">
         <Segmented options={YES_NO} value={actionCards} onChange={setActionCards} ariaLabel="Action cards" />
-        <span className="field-hint">Deal each player 2 secret one-shot special cards to manage.</span>
-      </div>
+      </Field>
 
-      <div className="field">
-        <span>Players</span>
+      <Field label="Players">
         <Segmented
           options={[2, 3, 4, 5, 6].map((n) => ({ value: n, label: n }))}
           value={seats.length}
           onChange={setCount}
           ariaLabel="Number of players"
         />
-      </div>
+      </Field>
 
-      <div className="field">
-        <span>Seats</span>
+      <Field label="Seats">
         {seats.map((choice, i) => (
           <div className="seat" key={i}>
-            <span className="dot" style={{ background: PLAYER_COLORS[i % PLAYER_COLORS.length] }} />
+            <Dot color={PLAYER_COLORS[i % PLAYER_COLORS.length]} />
             <input
               className="seat-name"
               value={names[i] ?? ""}
@@ -88,7 +85,7 @@ export function NewGameDialog({ onStart, onClose }: Props) {
             <Segmented options={CHOICES} value={choice} onChange={(c) => setSeat(i, c)} ariaLabel={`Player ${i + 1} type`} />
           </div>
         ))}
-      </div>
+      </Field>
 
       <Button onClick={() => onStart(MODE, seats.map(toSpec), names, campaign, actionCards)}>
         {campaign ? "Start campaign" : "Start game"}

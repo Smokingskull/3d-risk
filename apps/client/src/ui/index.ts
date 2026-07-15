@@ -4,3 +4,5 @@ export { Overlay } from "./Overlay.js";
 export { Dialog } from "./Dialog.js";
 export { Segmented } from "./Segmented.js";
 export { Toggle } from "./Toggle.js";
+export { Field } from "./Field.js";
+export { Dot } from "./Dot.js";

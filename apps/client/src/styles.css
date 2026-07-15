@@ -1235,11 +1235,6 @@ button.quiet:hover:not(:disabled) {
   gap: 8px;
   font-size: 16px;
 }
-.pop-dot {
-  width: 13px;
-  height: 13px;
-  border-radius: 50%;
-}
 .pop-head .tut-x {
   margin-left: auto;
 }

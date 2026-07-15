@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { conquestProbability } from "@risk3d/engine";
 import type { Hotseat } from "./game/useHotseat.js";
 import { Icon } from "./Icon.js";
-import { Button } from "./ui/index.js";
+import { Button, Dot, Overlay } from "./ui/index.js";
 
 // Pip positions on a 3×3 grid (cells 0..8) for each die face.
 const PIPS: Record<number, number[]> = {
@@ -93,13 +93,12 @@ export function CombatModal({ hs }: { hs: Hotseat }) {
   })();
 
   return (
-    <div className="combat-backdrop">
-      <div className="combat">
+    <Overlay backdropClassName="combat-backdrop" cardBaseClassName="combat" closeOnBackdrop={false}>
         <h2 className="combat-title">Battle for {eng.to}</h2>
 
         <div className="combat-arena">
           <div className="combat-side">
-            <span className="combat-dot" style={{ background: color(from.owner) }} />
+            <Dot className="combat-dot" color={color(from.owner)} />
             <div className="combat-name">{eng.from}</div>
             <div className="combat-armies">{from.armies}</div>
             <div className="dice-row">
@@ -113,7 +112,7 @@ export function CombatModal({ hs }: { hs: Hotseat }) {
           </div>
 
           <div className="combat-side">
-            <span className="combat-dot" style={{ background: color(to.owner) }} />
+            <Dot className="combat-dot" color={color(to.owner)} />
             <div className="combat-name">{eng.to}</div>
             <div className="combat-armies">{to.armies}</div>
             <div className="dice-row">
@@ -170,8 +169,7 @@ export function CombatModal({ hs }: { hs: Hotseat }) {
             </>
           )}
         </div>
-      </div>
-    </div>
+    </Overlay>
   );
 }
 

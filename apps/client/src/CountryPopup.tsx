@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { perceivedArmies, reinforcementsFor } from "@risk3d/engine";
 import type { Hotseat } from "./game/useHotseat.js";
-import { Button, CloseButton } from "./ui/index.js";
+import { Button, CloseButton, Dot } from "./ui/index.js";
 
 function Stepper({ min, max, value, onChange }: { min: number; max: number; value: number; onChange: (n: number) => void }) {
   const clamp = (n: number) => Math.min(max, Math.max(min, n));
@@ -121,7 +121,7 @@ export function CountryPopup({ hs }: { hs: Hotseat }) {
   return (
     <div className="country-pop">
       <div className="pop-head">
-        <span className="pop-dot" style={{ background: ownerColor }} />
+        <Dot color={ownerColor} />
         <strong>{id}</strong>
         <CloseButton onClick={hs.closeDialog} />
       </div>

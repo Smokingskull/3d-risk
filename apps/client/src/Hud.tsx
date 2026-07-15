@@ -2,7 +2,7 @@ import { useState } from "react";
 import { perceivedArmies } from "@risk3d/engine";
 import type { Hotseat } from "./game/useHotseat.js";
 import { Icon } from "./Icon.js";
-import { Button } from "./ui/index.js";
+import { Button, Dot } from "./ui/index.js";
 import { OptionsDialog } from "./OptionsDialog.js";
 import { CampaignDialog } from "./CampaignDialog.js";
 import { PhaseRail } from "./PhaseRail.js";
@@ -33,7 +33,7 @@ export function Hud({ hs, hovered, onOpenHelp, onOpenCards }: { hs: Hotseat; hov
       {open && (
         <>
           <div className="turn">
-            <span className="dot" style={{ background: active.color }} />
+            <Dot color={active.color} />
             <strong data-tut="player">{active.name}</strong>
           </div>
 

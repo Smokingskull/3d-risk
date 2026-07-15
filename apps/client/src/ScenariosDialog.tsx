@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { GameState } from "@risk3d/engine";
 import { SCENARIOS, scenarioById, DIFFICULTY } from "./scenarios/index.js";
-import { Button, Dialog } from "./ui/index.js";
+import { Button, Dialog, Dot } from "./ui/index.js";
 
 /** Human-readable label for a CPU seat's AI level (falls back to the raw value). */
 const AI_LABEL: Record<string, string> = {
@@ -98,7 +98,7 @@ export function ScenariosDialog({
                       const you = seat.id === scenario.defaultHuman;
                       return (
                         <div className="scenario-seat" key={seat.id}>
-                          <span className="dot" style={{ background: seat.color }} />
+                          <Dot color={seat.color} />
                           <span className="seat-label">{seat.name}</span>
                           {you ? (
                             <span className="seat-you">You · Human</span>

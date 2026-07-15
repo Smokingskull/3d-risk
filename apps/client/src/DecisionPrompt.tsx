@@ -1,5 +1,5 @@
 import type { Hotseat } from "./game/useHotseat.js";
-import { Button } from "./ui/index.js";
+import { Button, Overlay } from "./ui/index.js";
 import { actionCardInfo } from "./actionCards.js";
 
 /**
@@ -17,22 +17,20 @@ export function DecisionPrompt({ hs }: { hs: Hotseat }) {
   if (pd.kind === "minefield") {
     const info = actionCardInfo("minefield");
     return (
-      <div className="combat-backdrop">
-        <div className="combat decision-prompt">
-          <h2 className="combat-title">Minefield?</h2>
-          <img className="decision-img" src={info.image} alt={info.name} draggable={false} />
-          <p className="combat-result">
-            {attacker?.name ?? "The enemy"} took <strong>{pd.territory}</strong>. Lay a minefield to
-            destroy some of the armies they move in?
-          </p>
-          <div className="combat-actions">
-            <Button onClick={() => hs.resolveDecision(true)}>Lay Minefield</Button>
-            <Button variant="quiet" onClick={() => hs.resolveDecision(false)}>
-              No, let them pass
-            </Button>
-          </div>
+      <Overlay backdropClassName="combat-backdrop" cardBaseClassName="combat" cardClassName="decision-prompt" closeOnBackdrop={false}>
+        <h2 className="combat-title">Minefield?</h2>
+        <img className="decision-img" src={info.image} alt={info.name} draggable={false} />
+        <p className="combat-result">
+          {attacker?.name ?? "The enemy"} took <strong>{pd.territory}</strong>. Lay a minefield to
+          destroy some of the armies they move in?
+        </p>
+        <div className="combat-actions">
+          <Button onClick={() => hs.resolveDecision(true)}>Lay Minefield</Button>
+          <Button variant="quiet" onClick={() => hs.resolveDecision(false)}>
+            No, let them pass
+          </Button>
         </div>
-      </div>
+      </Overlay>
     );
   }
 
@@ -42,26 +40,24 @@ export function DecisionPrompt({ hs }: { hs: Hotseat }) {
       (n) => game.territories[n]?.owner === pd.player,
     );
     return (
-      <div className="combat-backdrop">
-        <div className="combat decision-prompt">
-          <h2 className="combat-title">Tactical Retreat?</h2>
-          <img className="decision-img" src={info.image} alt={info.name} draggable={false} />
-          <p className="combat-result">
-            {attacker?.name ?? "The enemy"} is attacking <strong>{pd.territory}</strong>. Pull all your
-            armies out to an adjacent territory — you keep them, but forfeit {pd.territory}.
-          </p>
-          <div className="combat-actions">
-            {targets.map((to) => (
-              <Button key={to} onClick={() => hs.resolveDecision(true, to)}>
-                Retreat to {to}
-              </Button>
-            ))}
-            <Button variant="quiet" onClick={() => hs.resolveDecision(false)}>
-              Stay and fight
+      <Overlay backdropClassName="combat-backdrop" cardBaseClassName="combat" cardClassName="decision-prompt" closeOnBackdrop={false}>
+        <h2 className="combat-title">Tactical Retreat?</h2>
+        <img className="decision-img" src={info.image} alt={info.name} draggable={false} />
+        <p className="combat-result">
+          {attacker?.name ?? "The enemy"} is attacking <strong>{pd.territory}</strong>. Pull all your
+          armies out to an adjacent territory — you keep them, but forfeit {pd.territory}.
+        </p>
+        <div className="combat-actions">
+          {targets.map((to) => (
+            <Button key={to} onClick={() => hs.resolveDecision(true, to)}>
+              Retreat to {to}
             </Button>
-          </div>
+          ))}
+          <Button variant="quiet" onClick={() => hs.resolveDecision(false)}>
+            Stay and fight
+          </Button>
         </div>
-      </div>
+      </Overlay>
     );
   }
 
