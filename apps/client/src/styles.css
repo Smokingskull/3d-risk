@@ -58,10 +58,7 @@ body {
 .hovered,
 .pop-info,
 .tutorial p,
-.combat-result,
-.rules-card p,
-.rules-card li,
-.rules-card .lede {
+.combat-result {
   font-family: var(--font-body);
 }
 
@@ -202,12 +199,10 @@ button.warn {
   background: linear-gradient(180deg, rgba(245, 167, 66, 0.32), rgba(245, 167, 66, 0.18));
 }
 /* Text/icon buttons opt out of the gunmetal chrome (no bevel, no fill on hover). */
-.collapse,
-.tut-x {
+.collapse {
   box-shadow: none;
 }
-.collapse:hover:not(:disabled),
-.tut-x:hover:not(:disabled) {
+.collapse:hover:not(:disabled) {
   background: none;
   box-shadow: none;
 }
@@ -1471,22 +1466,6 @@ button.quiet:hover:not(:disabled) {
   font-size: 15px;
   color: var(--text);
 }
-.tut-head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
-}
-.tut-badge {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--bg);
-  background: var(--accent);
-  border-radius: 4px;
-  padding: 2px 6px;
-  font-weight: 700;
-}
 .tut-x {
   display: inline-flex;
   align-items: center;
@@ -1494,58 +1473,21 @@ button.quiet:hover:not(:disabled) {
   margin-left: auto;
   background: transparent;
   border: none;
+  box-shadow: none;
   color: var(--text-dim);
   line-height: 1;
   padding: 2px 4px;
   cursor: pointer;
 }
-.tut-x:hover {
+.tut-x:hover:not(:disabled) {
+  background: none;
+  box-shadow: none;
   color: var(--accent-bright);
 }
 .tutorial p {
   font-size: 13px;
   line-height: 1.5;
   color: var(--text-dim);
-}
-.tut-off {
-  margin-top: 10px;
-  font-size: 12px;
-  padding: 4px 10px;
-}
-
-/* ---- rules page ---- */
-.rules-card {
-  color: #dbe3f2;
-}
-.rules-card h1 {
-  font-size: 30px;
-}
-.rules-card h2 {
-  font-size: 18px;
-  margin-top: 26px;
-  color: #8fb4ff;
-}
-.rules-card p,
-.rules-card li {
-  font-size: 15px;
-  line-height: 1.6;
-  margin-top: 8px;
-}
-.rules-card .lede {
-  font-size: 17px;
-  color: var(--text-dim);
-  margin-top: 12px;
-}
-.rules-card ol,
-.rules-card ul {
-  margin-top: 8px;
-  padding-left: 22px;
-}
-.rules-card .phases li {
-  margin-top: 12px;
-}
-.rules-card .start {
-  margin-top: 32px;
 }
 
 /* ---- toggle + menu actions ---- */
@@ -1748,9 +1690,6 @@ button.quiet:hover:not(:disabled) {
   flex-direction: column;
   gap: 18px;
 }
-.overlay-card.rules-card {
-  width: 720px;
-}
 .overlay-head {
   display: flex;
   align-items: center;
@@ -1832,8 +1771,7 @@ button.start:hover:not(:disabled) {
   font: inherit;
   color: inherit;
 }
-.card-face img,
-.card-wild {
+.card-face img {
   width: 100%;
   aspect-ratio: 2 / 3;
   border-radius: 8px;
@@ -1851,18 +1789,6 @@ button.start:hover:not(:disabled) {
 .card-face.sel img {
   outline: 2px solid var(--accent-bright);
   box-shadow: 0 0 18px rgba(213, 174, 105, 0.5);
-}
-.card-wild {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  background: linear-gradient(180deg, rgba(45, 55, 62, 0.9), rgba(20, 25, 29, 0.92));
-  border: 1px solid rgba(182, 138, 72, 0.5);
-  color: var(--accent-bright);
-  font-family: var(--font-display);
-  letter-spacing: 0.06em;
 }
 .card-terr {
   display: inline-flex;

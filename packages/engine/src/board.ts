@@ -22,5 +22,4 @@ export function getBoard(mode: BoardMode): BoardDefinition {
   return boards[mode];
 }
 
-export const WORLD_BOARD = boards.world;
 export const CLASSIC_BOARD = boards.classic;

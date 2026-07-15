@@ -2,7 +2,7 @@
  * RISK card deck and set-trading rules.
  *
  * The deck has one card per territory (symbols cycling infantry/cavalry/artillery)
- * plus a board-dependent number of wilds (classic 2, modern/world 4). A set is
+ * plus a board-dependent number of wilds (classic 2, world 4). A set is
  * three cards that are all the same symbol, all three different troop symbols, or
  * any combination including a wild. Trading a set yields an escalating army bonus.
  */

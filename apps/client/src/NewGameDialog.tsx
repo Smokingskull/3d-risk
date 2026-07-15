@@ -10,7 +10,7 @@ const LABEL: Record<SeatChoice, string> = { human: "Human", easy: "Easy", medium
 const toSpec = (c: SeatChoice): SeatSpec => (c === "human" ? { kind: "human" } : { kind: "cpu", difficulty: c });
 const defaultName = (i: number) => `Player ${i + 1}`;
 
-// The board is fixed to the Classic map for now — the Modern map isn't offered yet.
+// Games are played on the Classic board.
 const MODE: BoardMode = "classic";
 
 interface Props {

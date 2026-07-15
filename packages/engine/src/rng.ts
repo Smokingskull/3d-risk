@@ -31,11 +31,6 @@ export function randAt(seed: number, cursor: number): number {
   return z / 4294967296;
 }
 
-/** Roll a single d6 (1..6) from a stateful generator. */
-export function rollDie(next: () => number): number {
-  return 1 + Math.floor(next() * 6);
-}
-
 /** Roll a single d6 (1..6) deterministically from (seed, cursor). */
 export function rollDieAt(seed: number, cursor: number): number {
   return 1 + Math.floor(randAt(seed, cursor) * 6);
