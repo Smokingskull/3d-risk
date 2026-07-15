@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { perceivedArmies } from "@risk3d/engine";
 import type { Hotseat } from "./game/useHotseat.js";
 import { Icon } from "./Icon.js";
 import { OptionsDialog } from "./OptionsDialog.js";
@@ -90,7 +91,7 @@ export function Hud({ hs, hovered, onOpenHelp, onOpenCards }: { hs: Hotseat; hov
 
       <TurnStats game={game} playerId={active.id} />
 
-      <div className="hovered">{hovered ? `${hovered}${game.territories[hovered] ? ` — ${game.territories[hovered].armies} armies` : " (not in play)"}` : " "}</div>
+      <div className="hovered">{hovered ? `${hovered}${game.territories[hovered] ? ` — ${hs.viewerId ? perceivedArmies(game, hs.viewerId, hovered) : game.territories[hovered].armies} armies` : " (not in play)"}` : " "}</div>
 
       <div className="footer-row">
         {winner ? (

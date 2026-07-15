@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { perceivedArmies } from "@risk3d/engine";
 import type { Hotseat } from "./game/useHotseat.js";
 import { Icon } from "./Icon.js";
 
@@ -21,7 +22,9 @@ export function PlayersPanel({ hs, onOpenCards, onOpenActionCards }: { hs: Hotse
       const t = game.territories[id];
       if (t.owner === p.id) {
         territories++;
-        armies += t.armies;
+        // Perceived from the viewer's side, so an enemy's Misinformation bluff
+        // shifts their visible total too (until revealed).
+        armies += hs.viewerId ? perceivedArmies(game, hs.viewerId, id) : t.armies;
       }
     }
     return { p, territories, armies, cards: p.cards.length };

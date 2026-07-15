@@ -504,6 +504,16 @@ button.warn {
 .combat-note {
   color: #8fd6cf;
 }
+/* Misinformation: the owner's "shown to enemies as N" note + the bluff stepper. */
+.misinfo-note {
+  color: #c9a0e0;
+  font-style: italic;
+}
+.misinfo-action {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
 
 .row.cpu {
   color: #f5c842;

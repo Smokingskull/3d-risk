@@ -220,6 +220,7 @@ export function App() {
             highlightContinent={highlightContinent}
             focus={focus}
             selectable={hs.mode === "select"}
+            viewerId={hs.viewerId}
             onHover={setHovered}
             onPick={pickCountry}
           />

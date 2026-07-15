@@ -33,6 +33,12 @@ export type Action =
    *  - minefield / tacticalRetreat: played in a defender decision window (tacticalRetreat
    *    takes `to`, the adjacent territory to retreat into)
    */
-  | { type: "playActionCard"; card: ActionCardType; from?: TerritoryId; to?: TerritoryId; territory?: TerritoryId; fake?: number };
+  | { type: "playActionCard"; card: ActionCardType; from?: TerritoryId; to?: TerritoryId; territory?: TerritoryId; fake?: number }
+  /**
+   * The active player learns the true army count of a Misinformation'd enemy
+   * territory (issued when they commit to attacking it — opening combat or rolling).
+   * Idempotent; adds the active player to that territory's `revealedTo`.
+   */
+  | { type: "revealMisinformation"; territory: TerritoryId };
 
 export type ActionType = Action["type"];

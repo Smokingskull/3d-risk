@@ -4,7 +4,7 @@
  */
 import type { Action } from "../actions.js";
 import { validSetsInHand } from "../cards.js";
-import { applyAction, territoriesOf } from "../game.js";
+import { applyAction, perceivedArmies, territoriesOf } from "../game.js";
 import type { GameState, PlayerId, TerritoryId } from "../types.js";
 import { conquestProbability } from "./battleOdds.js";
 
@@ -82,7 +82,7 @@ function chooseReinforceTarget(s: GameState, me: PlayerId, k: Knobs): TerritoryI
     for (const t of borders) {
       const en = enemyNeighbours(s, me, t);
       const campScore = Math.max(0, ...en.map((n) => campaignAttackBonus(s, me, n)));
-      const weakest = Math.min(...en.map((n) => s.territories[n].armies));
+      const weakest = Math.min(...en.map((n) => perceivedArmies(s, me, n)));
       const score = 10 * campScore - weakest;
       if (score > bestScore) {
         bestScore = score;
@@ -99,7 +99,7 @@ function chooseReinforceTarget(s: GameState, me: PlayerId, k: Knobs): TerritoryI
   let best = borders[0];
   let bestScore = -Infinity;
   for (const t of borders) {
-    const weakestEnemy = Math.min(...enemyNeighbours(s, me, t).map((n) => s.territories[n].armies));
+    const weakestEnemy = Math.min(...enemyNeighbours(s, me, t).map((n) => perceivedArmies(s, me, n)));
     let score = -weakestEnemy;
     if (k.continentAware)
       score += Math.max(...enemyNeighbours(s, me, t).map((n) => continentValue(s, me, n)));
@@ -124,7 +124,7 @@ function chooseAttack(s: GameState, me: PlayerId, k: Knobs): AttackChoice | null
     const armies = s.territories[from].armies;
     if (armies < 2) continue;
     for (const to of enemyNeighbours(s, me, from)) {
-      const odds = conquestProbability(armies, s.territories[to].armies);
+      const odds = conquestProbability(armies, perceivedArmies(s, me, to));
       const camp = campaignAttackBonus(s, me, to);
       // Pursue campaign targets even at moderate odds (but not hopeless ones).
       const threshold = camp > 0 ? Math.min(k.attackThreshold, 0.45) : k.attackThreshold;

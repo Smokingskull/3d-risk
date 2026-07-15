@@ -127,7 +127,7 @@ function makeCrackTexture(size = 512, cells = 14, seed = 20260714): THREE.DataTe
   tex.needsUpdate = true;
   return tex;
 }
-import { getBoard, type GameState, type TerritoryId } from "@risk3d/engine";
+import { getBoard, perceivedArmies, type GameState, type PlayerId, type TerritoryId } from "@risk3d/engine";
 import { NEUTRAL_COLOR } from "./players.js";
 
 const MODEL_URL = "/assets/models/transparent_country_globe_gameboard.glb";
@@ -177,6 +177,8 @@ interface GlobeProps {
   focus: FocusRequest | null;
   /** Selection mode: picking/hover enabled. In rotate mode the globe only spins. */
   selectable: boolean;
+  /** Whose perspective army labels are shown from (Misinformation fog). */
+  viewerId: PlayerId | null;
   onHover: (territory: TerritoryId | null) => void;
   onPick: (territory: TerritoryId) => void;
 }
@@ -209,7 +211,7 @@ function Labels({ entries }: { entries: LabelEntry[] }) {
   );
 }
 
-export function Globe({ game, selectedFrom, validTargets, selection, highlightContinent, focus, selectable, onHover, onPick }: GlobeProps) {
+export function Globe({ game, selectedFrom, validTargets, selection, highlightContinent, focus, selectable, viewerId, onHover, onPick }: GlobeProps) {
   const { scene } = useGLTF(MODEL_URL);
   const crackTex = useMemo(() => makeCrackTexture(), []);
   const camera = useThree((s) => s.camera);
@@ -535,10 +537,11 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
     for (const id of Object.keys(game.territories)) {
       const pos = centroids.get(id);
       if (!pos) continue;
-      out.push({ id, position: [pos.x, pos.y, pos.z], text: String(game.territories[id].armies) });
+      const shown = viewerId ? perceivedArmies(game, viewerId, id) : game.territories[id].armies;
+      out.push({ id, position: [pos.x, pos.y, pos.z], text: String(shown) });
     }
     return out;
-  }, [game.territories, centroids]);
+  }, [game, viewerId, centroids]);
 
   return (
     <group>

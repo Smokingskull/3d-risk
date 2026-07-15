@@ -54,6 +54,7 @@ export interface ScenarioState {
   phase: Phase;
   reinforcementsRemaining: number;
   pendingOccupation: PendingOccupation | null;
+  misinformation: Record<TerritoryId, { fake: number; revealedTo: PlayerId[] }>;
   conqueredThisTurn: boolean;
   fortifyAnywhere: boolean;
   deck: Card[];
@@ -77,6 +78,7 @@ export interface ScenarioStateInput {
   phase?: Phase;
   reinforcementsRemaining?: number;
   pendingOccupation?: PendingOccupation | null;
+  misinformation?: Record<TerritoryId, { fake: number; revealedTo: PlayerId[] }>;
   conqueredThisTurn?: boolean;
   fortifyAnywhere?: boolean;
   deck?: Card[];
@@ -253,6 +255,7 @@ export function deserializeGame(input: ScenarioStateInput): GameState {
     phase,
     reinforcementsRemaining: 0, // set below once state is assembled
     pendingOccupation: pendingOccupation ? clone(pendingOccupation) : null,
+    misinformation: input.misinformation ? clone(input.misinformation) : {},
     conqueredThisTurn: input.conqueredThisTurn ?? false,
     fortifyAnywhere: input.fortifyAnywhere ?? false,
     deck,

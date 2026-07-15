@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { perceivedArmies, reinforcementsFor } from "@risk3d/engine";
 import type { Hotseat } from "./game/useHotseat.js";
 import { Icon } from "./Icon.js";
 
@@ -40,18 +41,38 @@ export function CountryPopup({ hs }: { hs: Hotseat }) {
   const isTarget = hs.validTargets.has(id);
   const fromArmies = hs.selectedFrom ? (game.territories[hs.selectedFrom]?.armies ?? 0) : 0;
 
+  // Misinformation: enemies see the perceived (possibly fake) count; the owner sees
+  // the real count plus their own bluff.
+  const perceived = hs.viewerId ? perceivedArmies(game, hs.viewerId, id) : t.armies;
+  const mis = game.misinformation[id];
+  const canMisinform =
+    game.options.actionCardsEnabled &&
+    game.phase === "reinforce" &&
+    mine &&
+    !!game.players.find((p) => p.id === me)?.actionCards.includes("misinformation");
+  const playMisinfo = (fake: number) => {
+    hs.playActionCard({ type: "playActionCard", card: "misinformation", territory: id, fake });
+    hs.closeDialog();
+  };
+
   let body: React.ReactNode = null;
 
   if (game.phase === "reinforce") {
-    if (mine && hs.mustTrade) body = <p className="hint">You hold 5+ cards — trade a set (top-left) before deploying.</p>;
-    else if (mine)
+    if (mine)
       body = (
-        <div className="pop-action">
-          <Stepper min={1} max={Math.max(1, game.reinforcementsRemaining)} value={Math.min(amount, game.reinforcementsRemaining || 1)} onChange={setAmount} />
-          <button className="start" onClick={() => hs.deploy(id, Math.min(amount, game.reinforcementsRemaining))}>
-            Deploy
-          </button>
-        </div>
+        <>
+          {hs.mustTrade ? (
+            <p className="hint">You hold 5+ cards — trade a set (top-left) before deploying.</p>
+          ) : (
+            <div className="pop-action">
+              <Stepper min={1} max={Math.max(1, game.reinforcementsRemaining)} value={Math.min(amount, game.reinforcementsRemaining || 1)} onChange={setAmount} />
+              <button className="start" onClick={() => hs.deploy(id, Math.min(amount, game.reinforcementsRemaining))}>
+                Deploy
+              </button>
+            </div>
+          )}
+          {canMisinform && <MisinfoControl real={t.armies} swing={reinforcementsFor(game, me)} onSet={playMisinfo} />}
+        </>
       );
     else body = <p className="hint">Enemy territory — you can't reinforce here.</p>;
   } else if (game.phase === "attack") {
@@ -104,8 +125,33 @@ export function CountryPopup({ hs }: { hs: Hotseat }) {
         <strong>{id}</strong>
         <button className="tut-x" aria-label="Close" onClick={hs.closeDialog}><Icon name="close" size={18} /></button>
       </div>
-      <div className="pop-info">{mine ? `Your territory · ${t.armies} armies` : `Held by ${ownerName} · ${t.armies} armies`}</div>
+      <div className="pop-info">
+        {mine ? `Your territory · ${t.armies} armies` : `Held by ${ownerName} · ${perceived} armies`}
+        {mine && mis ? <span className="misinfo-note"> (shown to enemies as {mis.fake})</span> : null}
+      </div>
       <div className="pop-body">{body}</div>
+    </div>
+  );
+}
+
+/** Set a fake displayed army count on an owned territory (Misinformation). */
+function MisinfoControl({ real, swing, onSet }: { real: number; swing: number; onSet: (fake: number) => void }) {
+  const [open, setOpen] = useState(false);
+  const [fake, setFake] = useState(real);
+  const min = Math.max(1, real - swing);
+  const max = real + swing;
+  const value = Math.min(max, Math.max(min, fake));
+  if (!open)
+    return (
+      <button className="card-btn" onClick={() => { setFake(real); setOpen(true); }}>
+        🎭 Misinformation
+      </button>
+    );
+  return (
+    <div className="pop-action misinfo-action">
+      <span className="hint">Show enemies a fake count (real {real}):</span>
+      <Stepper min={min} max={max} value={value} onChange={setFake} />
+      <button className="start" onClick={() => onSet(value)}>Bluff</button>
     </div>
   );
 }

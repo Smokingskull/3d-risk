@@ -10,6 +10,7 @@ import {
   type Difficulty,
   type GameEvent,
   type GameState,
+  type PlayerId,
   type TerritoryId,
 } from "@risk3d/engine";
 import { PLAYER_COLORS } from "../players.js";
@@ -44,6 +45,8 @@ const AUTO_ATTACK_DELAY = 600;
 
 export interface Hotseat {
   game: GameState | null;
+  /** Whose perspective the board is shown from (Misinformation fog); null pre-game. */
+  viewerId: PlayerId | null;
   selectedFrom: TerritoryId | null;
   validTargets: Set<TerritoryId>;
   /** Full chronological event history for the current game (end-of-game transcript). */
@@ -165,6 +168,16 @@ export function useHotseat(): Hotseat {
   const activePlayer = game?.players.find((p) => p.id === game.activePlayer) ?? null;
   const isHumanTurn = !!game && !game.winner && activePlayer?.kind === "human";
 
+  // Whose perspective the board is rendered from (for Misinformation fog): the
+  // active player while it's a human's turn, otherwise the last human to act (so a
+  // human watching a CPU turn keeps their own view). Falls back to the first human.
+  const lastHumanRef = useRef<PlayerId | null>(null);
+  if (activePlayer?.kind === "human") lastHumanRef.current = activePlayer.id;
+  const viewerId: PlayerId | null =
+    (activePlayer?.kind === "human" ? activePlayer.id : lastHumanRef.current) ??
+    game?.players.find((p) => p.kind === "human")?.id ??
+    null;
+
   // Single apply path: validates, applies, syncs the ref immediately (so rapid
   // synchronous callers — the auto-attack loop, CPU replay — never read stale
   // state), and records events. Returns the events, or null if illegal.
@@ -186,6 +199,7 @@ export function useHotseat(): Hotseat {
     const seed = Math.floor(Math.random() * 0x7fffffff);
     runningTurn.current = -1;
     autoRef.current = false;
+    lastHumanRef.current = null;
     setGame(createGame({ players: buildPlayers(seats, names), boardMode: mode, seed, campaign, actionCardsEnabled: actionCards }));
     setSelectedFrom(null);
     setSelection(null);
@@ -200,6 +214,7 @@ export function useHotseat(): Hotseat {
   const loadState = useCallback((state: GameState) => {
     runningTurn.current = -1;
     autoRef.current = false;
+    lastHumanRef.current = null;
     gameRef.current = state;
     setGame(state);
     setSelectedFrom(null);
@@ -220,6 +235,7 @@ export function useHotseat(): Hotseat {
   const reset = useCallback(() => {
     runningTurn.current = -1;
     autoRef.current = false;
+    lastHumanRef.current = null;
     setGame(null);
     setSelectedFrom(null);
     setSelection(null);
@@ -331,12 +347,15 @@ export function useHotseat(): Hotseat {
   const attackTarget = useCallback(
     (to: TerritoryId) => {
       if (!selectedFrom) return;
+      // Committing to the attack lifts any Misinformation on the target for us
+      // (persists even if we retreat before rolling).
+      if (gameRef.current?.misinformation[to]) applyAndStore({ type: "revealMisinformation", territory: to });
       setEngagement({ from: selectedFrom, to });
       setLastCombat(null);
       setCombatNote(null);
       setSelection(null);
     },
-    [selectedFrom],
+    [selectedFrom, applyAndStore],
   );
   const fortifyMove = useCallback(
     (to: TerritoryId, count: number) => {
@@ -460,6 +479,7 @@ export function useHotseat(): Hotseat {
 
   return {
     game,
+    viewerId,
     selectedFrom,
     validTargets,
     log,

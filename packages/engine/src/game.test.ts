@@ -6,6 +6,7 @@ import {
   IllegalActionError,
   isLegal,
   listLegalActions,
+  perceivedArmies,
   reinforcementsFor,
   type GameConfig,
 } from "./game.js";
@@ -358,5 +359,55 @@ describe("action cards", () => {
     // …and it resets after the turn ends.
     const { state: next } = applyAction(state, { type: "fortify", from: "A", to: "C", count: 2 });
     expect(next.fortifyAnywhere).toBe(false);
+  });
+
+  function threeCardGame(): GameState {
+    const s = createGame({
+      players: [P1, P2, { id: "p3", name: "Three", color: "#0f0", kind: "human" as const }],
+      board: ringBoard(),
+      seed: 5,
+      cardsEnabled: false,
+      actionCardsEnabled: true,
+    });
+    for (const p of s.players) p.actionCards = [];
+    return s;
+  }
+
+  it("Misinformation: owner sees the real count, opponents see the fake", () => {
+    const s = threeCardGame();
+    s.players.find((p) => p.id === "p1")!.actionCards = ["misinformation"];
+    setBoard(s, { A: ["p1", 5], B: ["p2", 1], C: ["p2", 1], D: ["p3", 1] });
+    // reinforcementsFor(p1) is 3 here, so a swing of +3 (5→8) is allowed.
+    const { state } = applyAction(s, { type: "playActionCard", card: "misinformation", territory: "A", fake: 8 });
+    expect(perceivedArmies(state, "p1", "A")).toBe(5); // owner: real
+    expect(perceivedArmies(state, "p2", "A")).toBe(8); // opponent: fake
+    expect(perceivedArmies(state, "p3", "A")).toBe(8);
+    expect(state.players.find((p) => p.id === "p1")!.actionCards).not.toContain("misinformation");
+  });
+
+  it("Misinformation swing is bounded by this turn's reinforcements (≥1)", () => {
+    const s = threeCardGame();
+    s.players.find((p) => p.id === "p1")!.actionCards = ["misinformation"];
+    setBoard(s, { A: ["p1", 5], B: ["p2", 1], C: ["p2", 1], D: ["p3", 1] });
+    expect(reinforcementsFor(s, "p1")).toBe(3);
+    expect(isLegal(s, { type: "playActionCard", card: "misinformation", territory: "A", fake: 8 })).toBe(true); // +3
+    expect(isLegal(s, { type: "playActionCard", card: "misinformation", territory: "A", fake: 2 })).toBe(true); // −3
+    expect(isLegal(s, { type: "playActionCard", card: "misinformation", territory: "A", fake: 9 })).toBe(false); // +4
+    expect(isLegal(s, { type: "playActionCard", card: "misinformation", territory: "A", fake: 0 })).toBe(false); // <1
+  });
+
+  it("attacking a bluffed territory reveals it to that attacker only; combat uses the real count", () => {
+    const s = threeCardGame();
+    // A is bluffed (real 10, shown as 8). B (p2) borders A and attacks it.
+    setBoard(s, { A: ["p1", 10], B: ["p2", 2], C: ["p2", 1], D: ["p3", 1] });
+    s.misinformation.A = { fake: 8, revealedTo: [] };
+    s.activePlayer = "p2";
+    s.phase = "attack";
+    expect(perceivedArmies(s, "p2", "A")).toBe(8);
+    const { state } = applyAction(s, { type: "attack", from: "B", to: "A", dice: 1 });
+    expect(state.misinformation.A.revealedTo).toContain("p2");
+    expect(state.misinformation.A.revealedTo).not.toContain("p3");
+    expect(perceivedArmies(state, "p2", "A")).toBe(state.territories.A.armies); // p2 now sees real
+    expect(perceivedArmies(state, "p3", "A")).toBe(8); // p3 still fooled
   });
 });

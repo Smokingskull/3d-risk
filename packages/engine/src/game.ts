@@ -211,6 +211,7 @@ export function createGame(config: GameConfig): GameState {
     phase: "reinforce",
     reinforcementsRemaining: 0,
     pendingOccupation: null,
+    misinformation: {},
     conqueredThisTurn: false,
     fortifyAnywhere: false,
     deck,
@@ -237,7 +238,22 @@ function cloneState(s: GameState): GameState {
     deck: [...s.deck],
     discard: [...s.discard],
     pendingOccupation: s.pendingOccupation ? { ...s.pendingOccupation } : null,
+    misinformation: Object.fromEntries(
+      Object.entries(s.misinformation).map(([k, v]) => [k, { fake: v.fake, revealedTo: [...v.revealedTo] }]),
+    ),
   };
+}
+
+/**
+ * Army count a `viewer` perceives for a territory. The owner (and anyone the bluff
+ * has been revealed to) sees the real count; other players see the Misinformation
+ * `fake`. Combat and all rules use the real count — this is display/AI-perception only.
+ */
+export function perceivedArmies(state: GameState, viewer: PlayerId, id: TerritoryId): number {
+  const t = state.territories[id];
+  const mis = state.misinformation[id];
+  if (!mis || viewer === t.owner || mis.revealedTo.includes(viewer)) return t.armies;
+  return mis.fake;
 }
 
 // --- validation -------------------------------------------------------------
@@ -324,6 +340,12 @@ export function validateAction(state: GameState, action: Action): string | null 
       return null;
     case "playActionCard":
       return validateActionCard(state, action);
+    case "revealMisinformation": {
+      const t = state.territories[action.territory];
+      if (!t) return "unknown territory";
+      if (t.owner === me) return "you own that territory";
+      return null; // idempotent / no-op if there's no bluff to reveal
+    }
   }
 }
 
@@ -351,6 +373,17 @@ function validateActionCard(
       if (to.owner === me) return "cannot air-strike your own territory";
       if (!areAdjacent(state, action.from, action.to)) return "territories are not adjacent";
       if (from.armies < 2) return "need at least 2 armies to attack";
+      return null;
+    }
+    case "misinformation": {
+      if (state.phase !== "reinforce") return "misinformation is a reinforce-phase card";
+      if (!action.territory) return "misinformation needs a territory";
+      const t = state.territories[action.territory];
+      if (!t) return "unknown territory";
+      if (t.owner !== me) return "must be one of your territories";
+      if (action.fake === undefined || action.fake < 1) return "fake count must be at least 1";
+      const swing = reinforcementsFor(state, me); // this turn's base income bounds the bluff
+      if (Math.abs(action.fake - t.armies) > swing) return `fake count can differ by at most ${swing}`;
       return null;
     }
     default:
@@ -489,6 +522,8 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       const from = s.territories[action.from];
       const to = s.territories[action.to];
       const defender = to.owner!;
+      // Committing to an attack reveals any Misinformation on the target to the attacker.
+      revealMisinformationTo(s, action.to, me);
       const attackerDiceCount = action.dice;
       const defenderDiceCount = Math.min(2, to.armies);
 
@@ -525,6 +560,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       if (conquered) {
         to.owner = me;
         s.conqueredThisTurn = true;
+        delete s.misinformation[action.to]; // bluff is moot once the territory changes hands
         const min = Math.max(1, Math.min(attackerDiceCount, from.armies - 1));
         s.pendingOccupation = { from: action.from, to: action.to, min, max: from.armies - 1 };
         events.push({
@@ -581,9 +617,19 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
     case "playActionCard":
       applyActionCard(s, action, events);
       break;
+
+    case "revealMisinformation":
+      revealMisinformationTo(s, action.territory, me);
+      break;
   }
 
   return { state: s, events };
+}
+
+/** Add `viewer` to a territory's Misinformation revealedTo set (no-op if none). */
+function revealMisinformationTo(s: GameState, id: TerritoryId, viewer: PlayerId): void {
+  const mis = s.misinformation[id];
+  if (mis && !mis.revealedTo.includes(viewer)) mis.revealedTo.push(viewer);
 }
 
 /** Remove one copy of `card` from a player's hand (mutates `s`). */
@@ -627,6 +673,12 @@ function applyActionCard(
     const removed = airStrikeRemoval(to.armies);
     to.armies -= removed;
     events.push({ type: "airStrikeResolved", player: me, target: action.to!, removed, nullifiedBy: null });
+    return;
+  }
+  if (action.card === "misinformation") {
+    consumeActionCard(s, me, "misinformation");
+    s.misinformation[action.territory!] = { fake: action.fake!, revealedTo: [] };
+    events.push({ type: "actionCardPlayed", player: me, card: "misinformation", target: action.territory });
   }
 }
 

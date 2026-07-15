@@ -97,6 +97,17 @@ export interface TerritoryState {
 
 export type Phase = "reinforce" | "attack" | "fortify";
 
+/**
+ * A Misinformation bluff on a territory: opponents see `fake` instead of the real
+ * army count, until they attempt an attack on it (added to `revealedTo`, after
+ * which that opponent — and only that opponent — sees the truth). The owner always
+ * sees the real count.
+ */
+export interface Misinformation {
+  fake: number;
+  revealedTo: PlayerId[];
+}
+
 export interface GameOptions {
   boardMode: BoardMode;
   /** "connected": fortify between any two owned territories linked by owned land. */
@@ -135,6 +146,8 @@ export interface GameState {
   /** Armies the active player still has to place this reinforce phase. */
   reinforcementsRemaining: number;
   pendingOccupation: PendingOccupation | null;
+  /** Active Misinformation bluffs, keyed by territory (empty unless a card set one). */
+  misinformation: Record<TerritoryId, Misinformation>;
   /** Whether the active player has captured a territory this turn (earns a card). */
   conqueredThisTurn: boolean;
   /** Troop Transport played this turn: the fortify move ignores connectivity. */
