@@ -1,6 +1,8 @@
 /**
  * Static evaluation of a position from one player's perspective. Higher is better.
- * Used by the medium/hard policies to compare candidate moves.
+ * The leaf heuristic for the Joshua search AI (ai/search.ts): territory count +
+ * army mass + owned-continent bonuses + fractional continent progress, minus the
+ * strongest opponent's reach.
  */
 import { territoriesOf } from "../game.js";
 import type { GameState, PlayerId } from "../types.js";

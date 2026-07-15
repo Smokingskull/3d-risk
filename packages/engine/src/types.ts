@@ -80,7 +80,7 @@ export interface Player {
   color: string;
   kind: "human" | "cpu";
   /** Difficulty is only meaningful for cpu players. */
-  difficulty?: "easy" | "medium" | "hard" | "adaptive";
+  difficulty?: "easy" | "medium" | "hard" | "joshua";
   eliminated: boolean;
   /** Cards held in hand. */
   cards: Card[];

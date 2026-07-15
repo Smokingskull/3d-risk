@@ -7,8 +7,9 @@ import { validSetsInHand } from "../cards.js";
 import { applyAction, perceivedArmies, reinforcementsFor, territoriesOf } from "../game.js";
 import type { ActionCardType, GameState, PlayerId, TerritoryId } from "../types.js";
 import { conquestProbability } from "./battleOdds.js";
+import { createSearchAI } from "./search.js";
 
-export type Difficulty = "easy" | "medium" | "hard";
+export type Difficulty = "easy" | "medium" | "hard" | "joshua";
 
 interface Knobs {
   /** Minimum conquest probability worth attacking. */
@@ -28,6 +29,9 @@ const KNOBS: Record<Difficulty, Knobs> = {
   easy: { attackThreshold: 0.7, fortify: false, eagerTrade: false, continentAware: false, useCards: "none" },
   medium: { attackThreshold: 0.6, fortify: true, eagerTrade: true, continentAware: false, useCards: "some" },
   hard: { attackThreshold: 0.5, fortify: true, eagerTrade: true, continentAware: true, useCards: "all" },
+  // Joshua's turn logic lives in search.ts; these knobs only drive its (hard-grade)
+  // defensive reactions in decideReaction.
+  joshua: { attackThreshold: 0.5, fortify: true, eagerTrade: true, continentAware: true, useCards: "all" },
 };
 
 /** Defender armies at which an Air Strike is worth spending before attacking. */
@@ -206,6 +210,7 @@ export interface AIController {
 }
 
 export function createAI(difficulty: Difficulty): AIController {
+  if (difficulty === "joshua") return createSearchAI();
   const k = KNOBS[difficulty];
   return {
     decide(s: GameState): Action {

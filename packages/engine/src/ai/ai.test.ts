@@ -56,6 +56,17 @@ describe("policy legality", () => {
       cur = applyAction(cur, a).state;
     }
   });
+
+  it("joshua (search AI) only proposes legal actions across a full turn", () => {
+    const s = createGame({ players: cpuPlayers(["joshua", "hard"]), boardMode: "classic", seed: 11, actionCardsEnabled: true });
+    const ai = createAI("joshua");
+    let cur = s;
+    for (let i = 0; i < 200 && cur.activePlayer === s.activePlayer && !cur.winner; i++) {
+      const a = ai.decide(cur);
+      expect(isLegal(cur, a)).toBe(true);
+      cur = applyAction(cur, a).state;
+    }
+  });
 });
 
 describe("full CPU games terminate with a winner", () => {
@@ -81,6 +92,47 @@ describe("full CPU games terminate with a winner", () => {
     const s = play("classic", ["easy", "medium", "hard"], 3);
     expect(s.winner).not.toBeNull();
   });
+
+  it("classic, joshua vs hard terminates", () => {
+    const s = play("classic", ["joshua", "hard"], 7);
+    expect(s.winner).not.toBeNull();
+  });
+});
+
+describe("Joshua is stronger than the heuristic tiers", () => {
+  // Play a full CPU-vs-CPU game to its winner.
+  const winnerOf = (specs: Difficulty[], seed: number): string | null => {
+    let s = createGame({ players: cpuPlayers(specs), boardMode: "classic", seed });
+    let guard = 0;
+    while (!s.winner && guard++ < 6000) {
+      for (const a of planTurn(s)) {
+        s = applyAction(s, a).state;
+        if (s.winner) break;
+      }
+    }
+    return s.winner;
+  };
+
+  // Count Joshua's wins vs `opp` across seeds, alternating who moves first (p1/p2)
+  // to cancel the first-move advantage.
+  const joshuaWins = (opp: Difficulty, seeds: number[]) => {
+    let wins = 0;
+    for (const seed of seeds) {
+      if (winnerOf(["joshua", opp], seed) === "p1") wins++;
+      if (winnerOf([opp, "joshua"], seed) === "p2") wins++;
+    }
+    return { wins, games: seeds.length * 2 };
+  };
+
+  it("beats hard in a clear majority of games", () => {
+    const { wins, games } = joshuaWins("hard", [1, 2, 3]);
+    expect(wins).toBeGreaterThan(games / 2);
+  }, 120_000);
+
+  it("dominates easy", () => {
+    const { wins, games } = joshuaWins("easy", [4, 5]);
+    expect(wins).toBeGreaterThanOrEqual(games - 1);
+  }, 120_000);
 });
 
 describe("AI action-card strategy", () => {
