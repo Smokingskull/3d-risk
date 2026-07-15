@@ -19,9 +19,34 @@ pnpm install
 pnpm dev          # starts the client on http://localhost:5173
 ```
 
-Rotate the globe by dragging. Hover a country to see its name; click to cycle it
-through player-ownership colours (a placeholder to prove per-country selection and
-recolouring works).
+Set up players and board mode from the start menu. Rotate the globe by dragging,
+hover a country to see its name and army count, and click a country to act on it —
+deploy, attack, or fortify, depending on the current phase.
+
+## The GAME box (in-game HUD)
+
+The top-left **GAME** box drives the turn and makes RISK's turn structure explicit:
+
+- **Title** shows the turn number — *Game — Turn N*.
+- **Phase rail** — a Reinforce → Attack → Fortify tracker: completed phases dim,
+  the current one is highlighted, upcoming ones stay faint, so where you are in the
+  turn is always visible.
+- **Reinforce meter** — during Reinforce, a progress bar with an *X/Y placed*
+  count. All reinforcements must be placed before you can attack, and the total
+  grows if you trade a card set mid-phase.
+- **Trade banner** — holding 5+ cards shows a prominent banner with a **Trade
+  cards** button (trading is mandatory before deploying) that opens the card dialog
+  straight from the box.
+- **End turn** — available throughout Attack and Fortify, so you can end your turn
+  at any point after reinforcing (attacking and the single fortify move are both
+  optional).
+- **At-a-glance stats** — territories, total armies, continents held, and next-turn
+  army income for the active player.
+- **Rotate-lock** — the square toggle in the footer (beside Options) locks the
+  globe to rotate-only, so dragging never selects a country.
+
+The full move history is recorded as you play and is available from the win/loss
+screen via **View game log**, grouped into per-turn sections with player names.
 
 ## The game board asset
 
