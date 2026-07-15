@@ -130,14 +130,14 @@ function makeCrackTexture(size = 512, cells = 14, seed = 20260714): THREE.DataTe
 import { getBoard, perceivedArmies, type GameState, type PlayerId, type TerritoryId } from "@risk3d/engine";
 import { NEUTRAL_COLOR } from "./players.js";
 
-const MODEL_URL = "/assets/models/transparent_country_globe_gameboard.glb";
+const MODEL_URL = "/assets/models/risk_42_territory_globe.glb";
 const TARGET_RADIUS = 1.2;
 const INERT_COLOR = "#646d7c"; // neutral inactive land (only if a mesh fails to resolve)
 
-// GLTFLoader sanitises node names (spaces -> underscores); map them back to
-// canonical country ids using the full world list (covers both board modes).
+// GLTFLoader sanitises node names (spaces -> underscores); map them back to the
+// board's territory ids. The model has one mesh per territory named after it.
 const CANONICAL_BY_SANITIZED = new Map(
-  Object.keys(getBoard("world").territories).map((id) => [THREE.PropertyBinding.sanitizeNodeName(id), id]),
+  Object.keys(getBoard("classic").territories).map((id) => [THREE.PropertyBinding.sanitizeNodeName(id), id]),
 );
 
 // Scratch vectors reused each frame (single globe instance, single render thread).
