@@ -1,7 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import type { GameEvent } from "@risk3d/engine";
 import type { Hotseat } from "./game/useHotseat.js";
 import { Icon } from "./Icon.js";
 import { describe } from "./gameLog.js";
+
+interface TurnGroup {
+  turn: number;
+  player: string;
+  events: GameEvent[];
+}
 
 const NORMAL_VICTORY = "/assets/cards/normal-game-victory.png";
 const LOSS = "/assets/cards/game-loss.png";
@@ -29,6 +36,33 @@ export function VictoryOverlay({ hs }: { hs: Hotseat }) {
     setDismissed(false);
     setLogOpen(false);
   }, [winnerId]);
+
+  const nameOf = useMemo(() => {
+    const names = new Map((game?.players ?? []).map((p) => [p.id, p.name]));
+    return (id: string) => names.get(id) ?? id;
+  }, [game]);
+
+  // Split the flat chronological log into per-turn groups. A turnEnded event
+  // closes the current turn (its `player`/`turn` label it — turn is the *next*
+  // turn's number, so the one that just ended is turn-1) and opens the next.
+  const groups = useMemo<TurnGroup[]>(() => {
+    const out: TurnGroup[] = [];
+    let turn = 1;
+    let player = game?.players[0]?.id ?? "";
+    let events: GameEvent[] = [];
+    for (const e of hs.log) {
+      if (e.type === "turnEnded") {
+        out.push({ turn: e.turn - 1, player, events });
+        turn = e.turn;
+        player = e.nextPlayer;
+        events = [];
+      } else {
+        events.push(e);
+      }
+    }
+    if (events.length) out.push({ turn, player, events });
+    return out;
+  }, [hs.log, game]);
 
   if (!game || !winnerId || dismissed) return null;
   const winner = game.players.find((p) => p.id === winnerId);
@@ -69,16 +103,27 @@ export function VictoryOverlay({ hs }: { hs: Hotseat }) {
                 <Icon name="close" size={18} />
               </button>
             </div>
-            {hs.log.length === 0 ? (
+            {groups.length === 0 ? (
               <p className="hint">No moves were recorded.</p>
             ) : (
-              <ol className="game-log">
-                {hs.log.map((e, i) => (
-                  <li key={i} className={e.type === "turnEnded" ? "log-turn" : undefined}>
-                    {describe(e)}
-                  </li>
+              <div className="game-log">
+                {groups.map((g, gi) => (
+                  <section key={gi} className="game-log-turn">
+                    <h3 className="game-log-turn-head">
+                      Turn {g.turn} · {nameOf(g.player)}
+                    </h3>
+                    {g.events.length === 0 ? (
+                      <p className="game-log-empty">(no moves)</p>
+                    ) : (
+                      <ol className="game-log-events">
+                        {g.events.map((e, i) => (
+                          <li key={i}>{describe(e, nameOf)}</li>
+                        ))}
+                      </ol>
+                    )}
+                  </section>
                 ))}
-              </ol>
+              </div>
             )}
           </div>
         </div>
