@@ -56,22 +56,10 @@ const TOPICS: Topic[] = [
         <h3>Scenarios</h3>
         <p>
           Refight history instead of setting up a fresh game. Open <strong>Scenarios</strong> from the main
-          menu, pick a campaign (Alexander, Rome, the Mongols, Napoleon, the World Wars…), choose which side
-          you command, and press <strong>Play</strong>. Each has its own victory objective, described before
-          you start.
+          menu, pick a campaign (Alexander, Rome, the Mongols, Napoleon, the World Wars…), and press{" "}
+          <strong>Play</strong>. Each scenario plays as designed — the factions are listed with your side
+          marked, and each has its own victory objective, described before you start.
         </p>
-      </>
-    ),
-  },
-  {
-    id: "maps",
-    label: "Maps",
-    body: (
-      <>
-        <h3>Classic</h3>
-        <p>Major regions grouped into the six traditional continents — a faster, familiar game.</p>
-        <h3>Modern</h3>
-        <p>All 177 real countries as individual territories — a longer, more sprawling campaign with tighter choke points.</p>
       </>
     ),
   },
@@ -121,8 +109,9 @@ const TOPICS: Topic[] = [
     body: (
       <>
         <p>
-          An optional mode (toggle it on when starting a game). Each player is dealt <strong>2 secret
-          one-shot cards</strong> at the start — a finite resource, hidden from everyone else. Open the
+          An optional mode — set <strong>Action cards</strong> to <strong>Yes</strong> when starting a game.
+          Each player is dealt <strong>2 secret one-shot cards</strong> at the start — a finite resource,
+          hidden from everyone else. Open the
           <strong> Action cards</strong> button in the Players panel to see your hand; you play them through
           the game itself, not from that screen.
         </p>
