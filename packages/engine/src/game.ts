@@ -628,7 +628,7 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
       s.territories[to].armies += action.count - mineLoss;
       s.pendingOccupation = null;
       // Report mineLoss on any mined occupation (even 0) so the UI can show the outcome.
-      events.push({ type: "occupied", from, to, count: action.count, mineLoss: po.mined ? mineLoss : undefined });
+      events.push({ type: "occupied", from, to, count: action.count, mineLoss: po.mined ? mineLoss : undefined, minedBy: po.minedBy });
       break;
     }
 
@@ -676,7 +676,10 @@ function applyDecision(
   if (!action.play) return;
   if (pd.kind === "minefield") {
     consumeActionCard(s, pd.player, "minefield");
-    if (s.pendingOccupation) s.pendingOccupation.mined = true;
+    if (s.pendingOccupation) {
+      s.pendingOccupation.mined = true;
+      s.pendingOccupation.minedBy = pd.player;
+    }
     events.push({ type: "actionCardPlayed", player: pd.player, card: "minefield", target: pd.territory });
     return;
   }

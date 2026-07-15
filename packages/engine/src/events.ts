@@ -34,7 +34,7 @@ export type GameEvent =
       newOwner: PlayerId;
       previousOwner: PlayerId;
     }
-  | { type: "occupied"; from: TerritoryId; to: TerritoryId; count: number; mineLoss?: number }
+  | { type: "occupied"; from: TerritoryId; to: TerritoryId; count: number; mineLoss?: number; minedBy?: PlayerId }
   | { type: "cardAwarded"; player: PlayerId }
   | { type: "fortified"; from: TerritoryId; to: TerritoryId; count: number }
   | { type: "playerEliminated"; player: PlayerId; by: PlayerId; cardsTaken: number }

@@ -132,6 +132,8 @@ export interface PendingOccupation {
   max: number;
   /** A Minefield was laid: the occupation loses armies on arrival (see occupy). */
   mined?: boolean;
+  /** Who laid the Minefield (the defender), for attributing the outcome. */
+  minedBy?: PlayerId;
 }
 
 /**

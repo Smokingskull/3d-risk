@@ -183,6 +183,9 @@ export function useHotseat(): Hotseat {
     (activePlayer?.kind === "human" ? activePlayer.id : lastHumanRef.current) ??
     game?.players.find((p) => p.kind === "human")?.id ??
     null;
+  // Ref so applyAndStore (stable callback) can read the current viewer.
+  const viewerIdRef = useRef<PlayerId | null>(null);
+  viewerIdRef.current = viewerId;
 
   // Single apply path: validates, applies, syncs the ref immediately (so rapid
   // synchronous callers — the auto-attack loop, CPU replay — never read stale
@@ -198,25 +201,46 @@ export function useHotseat(): Hotseat {
     setLog((prev) => prev.concat(events));
     const won = events.find((e) => e.type === "gameWon");
     if (won && won.type === "gameWon") setWinReason(won.reason ?? null);
-    // Surface a reactive card's outcome popup.
+    // Surface a reactive card's outcome popup — but ONLY to a human who was
+    // actually involved (they played the card, or it was used against them).
+    // CPU-vs-CPU card play produces no popup for the watching human.
+    const viewer = viewerIdRef.current;
     const nameOf = (id: string) => state.players.find((p) => p.id === id)?.name ?? id;
     const mined = events.find((e) => e.type === "occupied" && e.mineLoss !== undefined);
     if (mined && mined.type === "occupied") {
-      const attacker = nameOf(state.territories[mined.to].owner ?? "");
+      const attacker = state.territories[mined.to].owner ?? "";
+      const layer = mined.minedBy;
       const n = mined.mineLoss ?? 0;
-      setActionOutcome({
-        card: "minefield",
-        text: n
-          ? `${attacker} took ${mined.to}, but a minefield destroyed ${n} of the ${n === 1 ? "incoming army" : "incoming armies"}.`
-          : `${attacker} took ${mined.to} — the minefield caught nothing (only 1 army moved in).`,
-      });
+      if (viewer === layer) {
+        setActionOutcome({
+          card: "minefield",
+          text: n
+            ? `Your minefield destroyed ${n} of ${nameOf(attacker)}'s ${n === 1 ? "army" : "armies"} as they took ${mined.to}.`
+            : `${nameOf(attacker)} took ${mined.to} — your minefield caught nothing (only 1 army moved in).`,
+        });
+      } else if (viewer === attacker) {
+        setActionOutcome({
+          card: "minefield",
+          text: n
+            ? `You took ${mined.to}, but a minefield destroyed ${n} of your ${n === 1 ? "army" : "armies"} moving in.`
+            : `You took ${mined.to} — the minefield caught nothing (you moved in just 1 army).`,
+        });
+      }
     }
     const retreat = events.find((e) => e.type === "tacticalRetreat");
     if (retreat && retreat.type === "tacticalRetreat") {
-      setActionOutcome({
-        card: "tacticalRetreat",
-        text: `${nameOf(retreat.player)} pulled ${retreat.count} ${retreat.count === 1 ? "army" : "armies"} back to ${retreat.to}, ceding ${retreat.from} to ${nameOf(retreat.capturedBy)}.`,
-      });
+      const n = retreat.count;
+      if (viewer === retreat.player) {
+        setActionOutcome({
+          card: "tacticalRetreat",
+          text: `You pulled ${n} ${n === 1 ? "army" : "armies"} back to ${retreat.to}, ceding ${retreat.from} to ${nameOf(retreat.capturedBy)}.`,
+        });
+      } else if (viewer === retreat.capturedBy) {
+        setActionOutcome({
+          card: "tacticalRetreat",
+          text: `${nameOf(retreat.player)} retreated ${n} ${n === 1 ? "army" : "armies"} to ${retreat.to} — you take ${retreat.from}.`,
+        });
+      }
     }
     return events;
   }, []);
