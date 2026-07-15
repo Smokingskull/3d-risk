@@ -11,6 +11,7 @@ import {
   type GameConfig,
 } from "./game.js";
 import { buildDeck } from "./cards.js";
+import { createAI, decideReaction } from "./ai/index.js";
 import type { Action } from "./actions.js";
 import type { BoardDefinition, GameState } from "./types.js";
 
@@ -477,6 +478,50 @@ describe("action cards", () => {
     const occ = applyAction(state, { type: "occupy", count: 5 }).state;
     expect(occ.territories.B.armies).toBe(5);
     expect(occ.territories.A.armies).toBe(1);
+  });
+
+  it("a CPU attacking a human's 3-army territory pauses for the human's Tactical Retreat", () => {
+    // Replicates the client's CPU step-loop: drive CPU actions until a human must act.
+    const s = createGame({
+      players: [P1, { id: "p2", name: "CPU", color: "#0f0", kind: "cpu" as const, difficulty: "hard" }],
+      board: ringBoard(),
+      seed: 4,
+      cardsEnabled: false,
+      actionCardsEnabled: true,
+    });
+    for (const p of s.players) p.actionCards = [];
+    s.players.find((p) => p.id === "p1")!.actionCards = ["tacticalRetreat"];
+    // Ring A-B-C-D-A. p1 (human) holds B (3, the "Iran") and C (7, the "Middle East",
+    // adjacent to B). p2 (CPU) attacks B from A (20).
+    setBoard(s, { A: ["p2", 20], B: ["p1", 3], C: ["p1", 7], D: ["p2", 1] });
+    s.activePlayer = "p2";
+    s.phase = "attack";
+
+    const clientNext = (st: GameState): Action | null => {
+      if (st.winner) return null;
+      if (st.pendingDecision) {
+        const d = st.players.find((p) => p.id === st.pendingDecision!.player)!;
+        return d.kind === "cpu" ? decideReaction(st) : null;
+      }
+      const a = st.players.find((p) => p.id === st.activePlayer)!;
+      if (a.kind !== "cpu") return null;
+      return createAI((a.difficulty as "easy" | "medium" | "hard") ?? "medium").decide(st);
+    };
+
+    let st = s;
+    let paused: GameState | null = null;
+    for (let i = 0; i < 60; i++) {
+      if (st.pendingDecision && st.players.find((p) => p.id === st.pendingDecision!.player)!.kind === "human") {
+        paused = st;
+        break;
+      }
+      const act = clientNext(st);
+      if (!act) break;
+      st = applyAction(st, act).state;
+    }
+    expect(paused).not.toBeNull();
+    expect(paused!.pendingDecision).toMatchObject({ kind: "tacticalRetreat", player: "p1", territory: "B" });
+    expect(paused!.territories.B.owner).toBe("p1"); // still theirs — chance to retreat came first
   });
 
   it("attacking a bluffed territory reveals it to that attacker only; combat uses the real count", () => {
