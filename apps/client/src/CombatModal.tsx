@@ -67,6 +67,16 @@ export function CombatModal({ hs }: { hs: Hotseat }) {
   const captured = !!pending && pending.to === eng.to;
   const winPct = Math.round(conquestProbability(from.armies, to.armies) * 100);
 
+  // Air Strike: playable once at engagement start (before any roll) if the attacker
+  // holds the card and this is a valid attack.
+  const attacker = game.players.find((p) => p.id === game.activePlayer);
+  const canAirStrike =
+    game.options.actionCardsEnabled &&
+    !!attacker?.actionCards.includes("airStrike") &&
+    !hs.lastCombat &&
+    !captured &&
+    from.armies >= 2;
+
   // Which shown dice "won" their comparison (for dimming losers), from real values.
   const loserFlags = (() => {
     if (rolling || !shown) return { atk: [], def: [] as boolean[] };
@@ -112,7 +122,9 @@ export function CombatModal({ hs }: { hs: Hotseat }) {
         </div>
 
         <div className="combat-result">
-          {captured ? (
+          {hs.combatNote && !captured ? (
+            <strong className="combat-note">{hs.combatNote}</strong>
+          ) : captured ? (
             <strong>Territory captured!</strong>
           ) : hs.lastCombat && !rolling ? (
             <span>
@@ -137,6 +149,14 @@ export function CombatModal({ hs }: { hs: Hotseat }) {
             </button>
           ) : (
             <>
+              {canAirStrike && (
+                <button
+                  className="airstrike-btn"
+                  onClick={() => hs.playActionCard({ type: "playActionCard", card: "airStrike", from: eng.from, to: eng.to })}
+                >
+                  ✈ Air Strike
+                </button>
+              )}
               <button className="start" onClick={hs.rollOnce}>
                 🎲 Roll once
               </button>

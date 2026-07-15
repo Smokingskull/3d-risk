@@ -212,6 +212,7 @@ export function createGame(config: GameConfig): GameState {
     reinforcementsRemaining: 0,
     pendingOccupation: null,
     conqueredThisTurn: false,
+    fortifyAnywhere: false,
     deck,
     discard: [],
     setsTradedIn: 0,
@@ -309,16 +310,51 @@ export function validateAction(state: GameState, action: Action): string | null 
       if (from.owner !== me || to.owner !== me) return "both territories must be yours";
       if (action.count < 1) return "count must be ≥1";
       if (action.count > from.armies - 1) return "must leave at least 1 army behind";
+      // Troop Transport (fortifyAnywhere) lets the move ignore connectivity.
       const reachable =
-        state.options.fortifyRule === "adjacent"
+        state.fortifyAnywhere ||
+        (state.options.fortifyRule === "adjacent"
           ? areAdjacent(state, action.from, action.to)
-          : pathExists(state, me, action.from, action.to);
+          : pathExists(state, me, action.from, action.to));
       if (!reachable) return "no owned path between territories";
       return null;
     }
     case "endTurn":
       if (state.phase !== "fortify") return "can only end turn from the fortify phase";
       return null;
+    case "playActionCard":
+      return validateActionCard(state, action);
+  }
+}
+
+/** Validate a playActionCard action (Phase 2 supports troopTransport + airStrike). */
+function validateActionCard(
+  state: GameState,
+  action: Extract<Action, { type: "playActionCard" }>,
+): string | null {
+  if (!state.options.actionCardsEnabled) return "action cards are not enabled";
+  const me = state.activePlayer;
+  if (!playerById(state, me).actionCards.includes(action.card)) return "you do not hold that card";
+  switch (action.card) {
+    case "troopTransport":
+      if (state.phase !== "fortify") return "troop transport is a fortify-phase card";
+      if (state.fortifyAnywhere) return "troop transport is already active";
+      return null;
+    case "airStrike": {
+      if (state.phase !== "attack") return "air strike can only be played while attacking";
+      if (state.pendingOccupation) return "resolve the conquered territory first";
+      if (!action.from || !action.to) return "air strike needs a from and to";
+      const from = state.territories[action.from];
+      const to = state.territories[action.to];
+      if (!from || !to) return "unknown territory";
+      if (from.owner !== me) return "attacking territory is not yours";
+      if (to.owner === me) return "cannot air-strike your own territory";
+      if (!areAdjacent(state, action.from, action.to)) return "territories are not adjacent";
+      if (from.armies < 2) return "need at least 2 armies to attack";
+      return null;
+    }
+    default:
+      return "that card cannot be played right now";
   }
 }
 
@@ -364,6 +400,7 @@ function endTurn(s: GameState, events: GameEvent[]): void {
   s.phase = "reinforce";
   s.pendingOccupation = null;
   s.conqueredThisTurn = false;
+  s.fortifyAnywhere = false;
   s.reinforcementsRemaining = reinforcementsFor(s, s.activePlayer);
   events.push({ type: "turnEnded", player: prev, nextPlayer: s.activePlayer, turn: s.turn });
   events.push({ type: "phaseChanged", phase: "reinforce", player: s.activePlayer });
@@ -540,9 +577,57 @@ export function applyAction(state: GameState, action: Action): ApplyResult {
     case "endTurn":
       endTurn(s, events);
       break;
+
+    case "playActionCard":
+      applyActionCard(s, action, events);
+      break;
   }
 
   return { state: s, events };
+}
+
+/** Remove one copy of `card` from a player's hand (mutates `s`). */
+function consumeActionCard(s: GameState, playerId: PlayerId, card: ActionCardType): void {
+  const hand = playerById(s, playerId).actionCards;
+  const i = hand.indexOf(card);
+  if (i >= 0) hand.splice(i, 1);
+}
+
+/** Armies removed by an Air Strike: round(20%), ≥1 when armies≥2, never below 1 left. */
+export function airStrikeRemoval(armies: number): number {
+  const raw = Math.round(0.2 * armies);
+  const removed = armies >= 2 ? Math.max(1, raw) : raw;
+  return Math.max(0, Math.min(removed, armies - 1));
+}
+
+/** Apply a played action card (Phase 2: troopTransport, airStrike + Anti-Aircraft). */
+function applyActionCard(
+  s: GameState,
+  action: Extract<Action, { type: "playActionCard" }>,
+  events: GameEvent[],
+): void {
+  const me = s.activePlayer;
+  if (action.card === "troopTransport") {
+    consumeActionCard(s, me, "troopTransport");
+    s.fortifyAnywhere = true;
+    events.push({ type: "actionCardPlayed", player: me, card: "troopTransport" });
+    return;
+  }
+  if (action.card === "airStrike") {
+    consumeActionCard(s, me, "airStrike");
+    const to = s.territories[action.to!];
+    const defender = to.owner!;
+    events.push({ type: "actionCardPlayed", player: me, card: "airStrike", target: action.to });
+    if (playerById(s, defender).actionCards.includes("antiAircraft")) {
+      consumeActionCard(s, defender, "antiAircraft");
+      events.push({ type: "actionCardPlayed", player: defender, card: "antiAircraft", target: action.to });
+      events.push({ type: "airStrikeResolved", player: me, target: action.to!, removed: 0, nullifiedBy: defender });
+      return;
+    }
+    const removed = airStrikeRemoval(to.armies);
+    to.armies -= removed;
+    events.push({ type: "airStrikeResolved", player: me, target: action.to!, removed, nullifiedBy: null });
+  }
 }
 
 // --- legal-move generation (for AI / UI) ------------------------------------
@@ -572,26 +657,33 @@ export function listLegalActions(state: GameState): Action[] {
         out.push({ type: "occupy", count: max });
         if (min !== max) out.push({ type: "occupy", count: min });
       } else {
+        const hasAirStrike = holdsActionCard(state, me, "airStrike");
         for (const from of territoriesOf(state, me)) {
           if (state.territories[from].armies < 2) continue;
           const dice = maxAttackDice(state.territories[from].armies);
           for (const to of state.board.territories[from].neighbours)
-            if (state.territories[to].owner !== me) out.push({ type: "attack", from, to, dice });
+            if (state.territories[to].owner !== me) {
+              out.push({ type: "attack", from, to, dice });
+              if (hasAirStrike) out.push({ type: "playActionCard", card: "airStrike", from, to });
+            }
         }
         out.push({ type: "endAttack" });
       }
       break;
     }
     case "fortify": {
+      if (holdsActionCard(state, me, "troopTransport") && !state.fortifyAnywhere)
+        out.push({ type: "playActionCard", card: "troopTransport" });
       for (const from of territoriesOf(state, me)) {
         const movable = state.territories[from].armies - 1;
         if (movable < 1) continue;
         for (const to of territoriesOf(state, me)) {
           if (to === from) continue;
           const reachable =
-            state.options.fortifyRule === "adjacent"
+            state.fortifyAnywhere ||
+            (state.options.fortifyRule === "adjacent"
               ? areAdjacent(state, from, to)
-              : pathExists(state, me, from, to);
+              : pathExists(state, me, from, to));
           if (reachable) out.push({ type: "fortify", from, to, count: movable });
         }
       }
@@ -600,4 +692,9 @@ export function listLegalActions(state: GameState): Action[] {
     }
   }
   return out;
+}
+
+/** Whether a player holds a given action card (and the mode is on). */
+function holdsActionCard(state: GameState, playerId: PlayerId, card: ActionCardType): boolean {
+  return state.options.actionCardsEnabled && playerById(state, playerId).actionCards.includes(card);
 }

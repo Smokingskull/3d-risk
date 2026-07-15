@@ -2,7 +2,7 @@
  * The command set. Every mutation to a game goes through one of these, applied by
  * applyAction. Clients/AI/server all speak this vocabulary.
  */
-import type { TerritoryId } from "./types.js";
+import type { ActionCardType, TerritoryId } from "./types.js";
 
 export type Action =
   /**
@@ -23,6 +23,16 @@ export type Action =
   /** Make the single end-of-turn fortify move between two owned territories. */
   | { type: "fortify"; from: TerritoryId; to: TerritoryId; count: number }
   /** End the turn without fortifying. */
-  | { type: "endTurn" };
+  | { type: "endTurn" }
+  /**
+   * Play one of the active player's action cards. Params depend on the card:
+   *  - troopTransport: none (fortify phase; the fortify move then ignores connectivity)
+   *  - airStrike: `from`/`to` (the attack target; removes ~20% of the defender, unless
+   *    the defender auto-plays Anti-Aircraft)
+   *  - misinformation: `territory` + `fake` (reinforce phase — a bluffed display count)
+   *  - minefield / tacticalRetreat: played in a defender decision window (tacticalRetreat
+   *    takes `to`, the adjacent territory to retreat into)
+   */
+  | { type: "playActionCard"; card: ActionCardType; from?: TerritoryId; to?: TerritoryId; territory?: TerritoryId; fake?: number };
 
 export type ActionType = Action["type"];

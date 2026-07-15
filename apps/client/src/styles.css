@@ -488,6 +488,22 @@ button.warn {
   border-color: var(--accent);
   color: var(--accent-bright);
 }
+/* Action-card play buttons (Troop Transport, Air Strike) — teal accent to set
+   them apart from the normal phase controls. */
+.card-btn,
+.airstrike-btn {
+  border-color: #3f7d78;
+  color: #8fd6cf;
+}
+.card-btn:hover:not(:disabled),
+.airstrike-btn:hover:not(:disabled) {
+  border-color: #5aa39c;
+  background: rgba(63, 125, 120, 0.22);
+}
+/* Air Strike / action-card outcome line in the combat modal. */
+.combat-note {
+  color: #8fd6cf;
+}
 
 .row.cpu {
   color: #f5c842;

@@ -1,4 +1,5 @@
 import type { GameEvent } from "@risk3d/engine";
+import { ACTION_CARD_INFO } from "./actionCards.js";
 
 /**
  * Render a single game event as a one-line human-readable log entry. `nameOf`
@@ -26,6 +27,14 @@ export function describe(e: GameEvent, nameOf: (id: string) => string): string {
       return `— ${nameOf(e.nextPlayer)}'s turn (turn ${e.turn}) —`;
     case "gameWon":
       return `🏆 ${nameOf(e.winner)} wins!`;
+    case "actionCardPlayed":
+      // Air Strike / Anti-Aircraft narrate via airStrikeResolved instead.
+      if (e.card === "airStrike" || e.card === "antiAircraft") return "";
+      return `${nameOf(e.player)} played ${ACTION_CARD_INFO[e.card].name}${e.target ? ` on ${e.target}` : ""}`;
+    case "airStrikeResolved":
+      return e.nullifiedBy
+        ? `${nameOf(e.player)}'s Air Strike on ${e.target} was nullified by ${nameOf(e.nullifiedBy)}'s Anti-Aircraft`
+        : `${nameOf(e.player)} air-struck ${e.target} — ${e.removed} ${e.removed === 1 ? "army" : "armies"} destroyed`;
     default:
       return "";
   }

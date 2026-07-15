@@ -2,7 +2,7 @@
  * Events emitted by applyAction. The UI animates from these; the server can log
  * them; the move-log archive built from them is training data for the learning AI.
  */
-import type { Phase, PlayerId, TerritoryId } from "./types.js";
+import type { ActionCardType, Phase, PlayerId, TerritoryId } from "./types.js";
 
 export type GameEvent =
   | { type: "armiesPlaced"; player: PlayerId; territory: TerritoryId; count: number }
@@ -40,4 +40,14 @@ export type GameEvent =
   | { type: "playerEliminated"; player: PlayerId; by: PlayerId; cardsTaken: number }
   | { type: "phaseChanged"; phase: Phase; player: PlayerId }
   | { type: "turnEnded"; player: PlayerId; nextPlayer: PlayerId; turn: number }
-  | { type: "gameWon"; winner: PlayerId; reason?: "elimination" | "campaign" };
+  | { type: "gameWon"; winner: PlayerId; reason?: "elimination" | "campaign" }
+  | { type: "actionCardPlayed"; player: PlayerId; card: ActionCardType; target?: TerritoryId }
+  | {
+      type: "airStrikeResolved";
+      player: PlayerId;
+      target: TerritoryId;
+      /** Armies destroyed (0 if nullified). */
+      removed: number;
+      /** The defender who auto-played Anti-Aircraft, or null if the strike landed. */
+      nullifiedBy: PlayerId | null;
+    };

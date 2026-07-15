@@ -137,6 +137,8 @@ export interface GameState {
   pendingOccupation: PendingOccupation | null;
   /** Whether the active player has captured a territory this turn (earns a card). */
   conqueredThisTurn: boolean;
+  /** Troop Transport played this turn: the fortify move ignores connectivity. */
+  fortifyAnywhere: boolean;
   /** Draw pile. */
   deck: Card[];
   /** Discard pile (reshuffled into the deck when it runs out). */

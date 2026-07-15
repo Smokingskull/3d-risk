@@ -63,7 +63,11 @@ export interface Hotseat {
   engagement: Engagement | null;
   lastCombat: AttackedEvent | null;
   combatSeq: number;
+  /** Transient feedback shown in the combat modal (e.g. Air Strike outcome). */
+  combatNote: string | null;
   autoAttacking: boolean;
+  /** Play one of the active human's action cards (Air Strike, Troop Transport, …). */
+  playActionCard: (a: Extract<Action, { type: "playActionCard" }>) => void;
   rollOnce: () => void;
   startAuto: () => void;
   stopAuto: () => void;
@@ -109,6 +113,8 @@ export function useHotseat(): Hotseat {
   const [engagement, setEngagement] = useState<Engagement | null>(null);
   const [lastCombat, setLastCombat] = useState<AttackedEvent | null>(null);
   const [combatSeq, setCombatSeq] = useState(0);
+  /** Transient combat feedback for a played action card (e.g. Air Strike result). */
+  const [combatNote, setCombatNote] = useState<string | null>(null);
   const [autoAttacking, setAutoAttacking] = useState(false);
   const [selection, setSelection] = useState<TerritoryId | null>(null);
   const [winReason, setWinReason] = useState<"elimination" | "campaign" | null>(null);
@@ -288,6 +294,9 @@ export function useHotseat(): Hotseat {
       return new Set(game.board.territories[selectedFrom].neighbours.filter((n) => game.territories[n].owner !== me));
     }
     if (game.phase === "fortify") {
+      // Troop Transport (fortifyAnywhere): any owned territory is a valid target.
+      if (game.fortifyAnywhere)
+        return new Set(Object.keys(game.territories).filter((t) => t !== selectedFrom && game.territories[t].owner === me));
       return new Set(Object.keys(game.territories).filter((t) => t !== selectedFrom && pathExists(game, me, selectedFrom, t)));
     }
     return new Set();
@@ -324,6 +333,7 @@ export function useHotseat(): Hotseat {
       if (!selectedFrom) return;
       setEngagement({ from: selectedFrom, to });
       setLastCombat(null);
+      setCombatNote(null);
       setSelection(null);
     },
     [selectedFrom],
@@ -350,8 +360,27 @@ export function useHotseat(): Hotseat {
       const atk = events.find((e) => e.type === "attacked") as AttackedEvent | undefined;
       if (atk) setLastCombat(atk);
       setCombatSeq((s) => s + 1);
+      setCombatNote(null); // the air-strike note only applies before the first roll
     }
   }, [applyAndStore]);
+
+  // Play an action card as the human (Air Strike from combat, Troop Transport from
+  // the fortify row). Surfaces the Air Strike outcome as a transient combat note.
+  const playActionCard = useCallback(
+    (a: Extract<Action, { type: "playActionCard" }>) => {
+      if (!isHumanTurn) return;
+      const events = applyAndStore(a);
+      if (!events) return;
+      const res = events.find((e) => e.type === "airStrikeResolved");
+      if (res && res.type === "airStrikeResolved")
+        setCombatNote(
+          res.nullifiedBy
+            ? "Air Strike nullified by Anti-Aircraft!"
+            : `Air Strike hit — ${res.removed} ${res.removed === 1 ? "army" : "armies"} destroyed.`,
+        );
+    },
+    [isHumanTurn, applyAndStore],
+  );
 
   const stopAuto = useCallback(() => {
     autoRef.current = false;
@@ -383,6 +412,7 @@ export function useHotseat(): Hotseat {
     setAutoAttacking(false);
     setEngagement(null);
     setLastCombat(null);
+    setCombatNote(null);
   }, []);
 
   const occupy = useCallback(
@@ -445,7 +475,9 @@ export function useHotseat(): Hotseat {
     engagement,
     lastCombat,
     combatSeq,
+    combatNote,
     autoAttacking,
+    playActionCard,
     rollOnce,
     startAuto,
     stopAuto,

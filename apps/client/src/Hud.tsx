@@ -73,8 +73,17 @@ export function Hud({ hs, hovered, onOpenHelp, onOpenCards }: { hs: Hotseat; hov
       {!isCpu && game.phase === "fortify" && (
         <div className="row action-row">
           <button className="end-turn" onClick={hs.endTurnNow}>End turn <Icon name="skip-forward" size={14} /></button>
+          {game.options.actionCardsEnabled && active.actionCards.includes("troopTransport") && !game.fortifyAnywhere && (
+            <button className="card-btn" onClick={() => hs.playActionCard({ type: "playActionCard", card: "troopTransport" })}>
+              🚚 Troop Transport
+            </button>
+          )}
           <span className="hint">
-            {hs.selectedFrom ? `Move from ${hs.selectedFrom} to a highlighted territory.` : "One optional move, then your turn ends."}
+            {game.fortifyAnywhere
+              ? "Troop Transport active — move between any two of your territories."
+              : hs.selectedFrom
+                ? `Move from ${hs.selectedFrom} to a highlighted territory.`
+                : "One optional move, then your turn ends."}
           </span>
         </div>
       )}

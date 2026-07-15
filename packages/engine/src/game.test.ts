@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  airStrikeRemoval,
   applyAction,
   createGame,
   IllegalActionError,
@@ -303,5 +304,59 @@ describe("action cards", () => {
     for (const p of s.players) for (const c of p.actionCards) counts.set(c, (counts.get(c) ?? 0) + 1);
     expect([...counts.values()].every((n) => n <= 2)).toBe(true);
     expect([...counts.values()].reduce((a, b) => a + b, 0)).toBe(6);
+  });
+
+  it("airStrikeRemoval: round(20%), ≥1 when armies≥2, never below 1 left", () => {
+    expect(airStrikeRemoval(10)).toBe(2);
+    expect(airStrikeRemoval(7)).toBe(1);
+    expect(airStrikeRemoval(3)).toBe(1);
+    expect(airStrikeRemoval(2)).toBe(1);
+    expect(airStrikeRemoval(1)).toBe(0);
+  });
+
+  function cardGame(): GameState {
+    const s = baseGame(ringBoard(), { actionCardsEnabled: true });
+    for (const p of s.players) p.actionCards = [];
+    return s;
+  }
+
+  it("Air Strike removes ~20% of the target and consumes the card", () => {
+    const s = cardGame();
+    s.players.find((p) => p.id === "p1")!.actionCards = ["airStrike"];
+    setBoard(s, { A: ["p1", 3], B: ["p2", 10], C: ["p2", 1], D: ["p2", 1] });
+    s.phase = "attack";
+    const { state, events } = applyAction(s, { type: "playActionCard", card: "airStrike", from: "A", to: "B" });
+    expect(state.territories.B.armies).toBe(8);
+    expect(state.players.find((p) => p.id === "p1")!.actionCards).not.toContain("airStrike");
+    const res = events.find((e) => e.type === "airStrikeResolved");
+    expect(res).toMatchObject({ removed: 2, nullifiedBy: null });
+  });
+
+  it("Anti-Aircraft nullifies an Air Strike; both cards are consumed", () => {
+    const s = cardGame();
+    s.players.find((p) => p.id === "p1")!.actionCards = ["airStrike"];
+    s.players.find((p) => p.id === "p2")!.actionCards = ["antiAircraft"];
+    setBoard(s, { A: ["p1", 3], B: ["p2", 10], C: ["p2", 1], D: ["p2", 1] });
+    s.phase = "attack";
+    const { state, events } = applyAction(s, { type: "playActionCard", card: "airStrike", from: "A", to: "B" });
+    expect(state.territories.B.armies).toBe(10); // unchanged
+    expect(state.players.find((p) => p.id === "p1")!.actionCards).not.toContain("airStrike");
+    expect(state.players.find((p) => p.id === "p2")!.actionCards).not.toContain("antiAircraft");
+    expect(events.find((e) => e.type === "airStrikeResolved")).toMatchObject({ removed: 0, nullifiedBy: "p2" });
+  });
+
+  it("Troop Transport lets fortify ignore connectivity", () => {
+    const s = cardGame();
+    s.players.find((p) => p.id === "p1")!.actionCards = ["troopTransport"];
+    // p1 owns A and C, which are NOT connected through owned land (B, D are p2's).
+    setBoard(s, { A: ["p1", 3], B: ["p2", 1], C: ["p1", 1], D: ["p2", 1] });
+    s.phase = "fortify";
+    expect(isLegal(s, { type: "fortify", from: "A", to: "C", count: 2 })).toBe(false);
+    const { state } = applyAction(s, { type: "playActionCard", card: "troopTransport" });
+    expect(state.fortifyAnywhere).toBe(true);
+    expect(isLegal(state, { type: "fortify", from: "A", to: "C", count: 2 })).toBe(true);
+    // …and it resets after the turn ends.
+    const { state: next } = applyAction(state, { type: "fortify", from: "A", to: "C", count: 2 });
+    expect(next.fortifyAnywhere).toBe(false);
   });
 });

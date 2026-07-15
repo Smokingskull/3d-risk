@@ -55,6 +55,7 @@ export interface ScenarioState {
   reinforcementsRemaining: number;
   pendingOccupation: PendingOccupation | null;
   conqueredThisTurn: boolean;
+  fortifyAnywhere: boolean;
   deck: Card[];
   discard: Card[];
   setsTradedIn: number;
@@ -77,6 +78,7 @@ export interface ScenarioStateInput {
   reinforcementsRemaining?: number;
   pendingOccupation?: PendingOccupation | null;
   conqueredThisTurn?: boolean;
+  fortifyAnywhere?: boolean;
   deck?: Card[];
   discard?: Card[];
   setsTradedIn?: number;
@@ -252,6 +254,7 @@ export function deserializeGame(input: ScenarioStateInput): GameState {
     reinforcementsRemaining: 0, // set below once state is assembled
     pendingOccupation: pendingOccupation ? clone(pendingOccupation) : null,
     conqueredThisTurn: input.conqueredThisTurn ?? false,
+    fortifyAnywhere: input.fortifyAnywhere ?? false,
     deck,
     discard,
     setsTradedIn: input.setsTradedIn ?? 0,
