@@ -13,7 +13,7 @@ export type TerritoryId = string;
 export type ContinentId = string;
 
 /** Which prebuilt board a game uses. */
-export type BoardMode = "world" | "classic";
+export type BoardMode = "classic";
 
 export interface Continent {
   id: ContinentId;

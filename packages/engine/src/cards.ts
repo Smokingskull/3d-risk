@@ -11,7 +11,7 @@ import type { BoardDefinition, BoardMode, Card, CardSymbol } from "./types.js";
 const TROOP_SYMBOLS: CardSymbol[] = ["infantry", "cavalry", "artillery"];
 
 /** How many wild cards each board's deck carries. */
-export const WILDS_BY_MODE: Record<BoardMode, number> = { classic: 2, world: 4 };
+export const WILDS_BY_MODE: Record<BoardMode, number> = { classic: 2 };
 
 /** Builds the (unshuffled) deck for a board: one card per territory + `wilds` wilds. */
 export function buildDeck(board: BoardDefinition, wilds = 2): Card[] {

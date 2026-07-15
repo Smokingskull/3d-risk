@@ -71,10 +71,12 @@ describe("createGame", () => {
     expect(JSON.stringify(createGame(cfg))).toBe(JSON.stringify(createGame(cfg)));
   });
 
-  it("distributes armies from a scaled starting pool on the world board", () => {
-    const s = createGame({ players: [P1, P2], boardMode: "world", seed: 7, cardsEnabled: false });
+  it("distributes the classic starting-army pool across owned territories", () => {
+    const s = createGame({ players: [P1, P2], boardMode: "classic", seed: 7, cardsEnabled: false });
     const total = Object.values(s.territories).reduce((n, t) => n + t.armies, 0);
-    expect(total).toBeGreaterThan(177); // 1 per territory + a placement pool
+    // Each player commands their full starting count (40 at 2 players): 1 army per
+    // owned territory plus the remaining placement pool.
+    expect(total).toBe(80);
   });
 });
 

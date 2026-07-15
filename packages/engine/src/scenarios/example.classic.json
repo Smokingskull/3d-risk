@@ -1,6 +1,9 @@
 {
   "version": 1,
-  "options": { "boardMode": "classic", "cardsEnabled": true },
+  "options": {
+    "boardMode": "classic",
+    "cardsEnabled": true
+  },
   "players": [
     {
       "id": "p1",
@@ -8,54 +11,201 @@
       "color": "#e6194b",
       "kind": "human",
       "cards": [
-        { "id": "card:Brazil", "territory": "Brazil", "symbol": "infantry" },
-        { "id": "card:Peru", "territory": "Peru", "symbol": "infantry" },
-        { "id": "card:Argentina", "territory": "Argentina", "symbol": "infantry" }
+        {
+          "id": "card:Brazil",
+          "territory": "Brazil",
+          "symbol": "infantry"
+        },
+        {
+          "id": "card:Peru",
+          "territory": "Peru",
+          "symbol": "infantry"
+        },
+        {
+          "id": "card:Argentina",
+          "territory": "Argentina",
+          "symbol": "infantry"
+        }
       ]
     },
-    { "id": "p2", "name": "CPU", "color": "#3cb44b", "kind": "cpu", "difficulty": "hard" }
+    {
+      "id": "p2",
+      "name": "CPU",
+      "color": "#3cb44b",
+      "kind": "cpu",
+      "difficulty": "hard"
+    }
   ],
   "activePlayer": "p1",
   "phase": "reinforce",
   "territories": {
-    "Greenland": { "owner": "p1", "armies": 2 },
-    "Canada": { "owner": "p1", "armies": 3 },
-    "United States": { "owner": "p1", "armies": 4 },
-    "Mexico": { "owner": "p1", "armies": 2 },
-    "Central America": { "owner": "p1", "armies": 2 },
-    "Caribbean": { "owner": "p1", "armies": 1 },
-    "Venezuela": { "owner": "p1", "armies": 2 },
-    "Brazil": { "owner": "p1", "armies": 3 },
-    "Peru": { "owner": "p1", "armies": 2 },
-    "Argentina": { "owner": "p1", "armies": 2 },
-    "Iceland": { "owner": "p1", "armies": 1 },
-    "Great Britain": { "owner": "p1", "armies": 2 },
-    "Scandinavia": { "owner": "p1", "armies": 2 },
-    "Western Europe": { "owner": "p1", "armies": 2 },
-    "Central Europe": { "owner": "p1", "armies": 3 },
-    "Southern Europe": { "owner": "p1", "armies": 2 },
-    "Eastern Europe": { "owner": "p1", "armies": 2 },
-    "North Africa": { "owner": "p2", "armies": 2 },
-    "West Africa": { "owner": "p2", "armies": 1 },
-    "Egypt": { "owner": "p2", "armies": 2 },
-    "Central Africa": { "owner": "p2", "armies": 1 },
-    "East Africa": { "owner": "p2", "armies": 2 },
-    "Southern Africa": { "owner": "p2", "armies": 1 },
-    "Madagascar": { "owner": "p2", "armies": 1 },
-    "Russia": { "owner": "p2", "armies": 3 },
-    "Middle East": { "owner": "p2", "armies": 2 },
-    "Arabia": { "owner": "p2", "armies": 1 },
-    "Iran": { "owner": "p2", "armies": 2 },
-    "Central Asia": { "owner": "p2", "armies": 2 },
-    "Afghanistan": { "owner": "p2", "armies": 1 },
-    "India": { "owner": "p2", "armies": 2 },
-    "Siam": { "owner": "p2", "armies": 1 },
-    "China": { "owner": "p2", "armies": 3 },
-    "Mongolia": { "owner": "p2", "armies": 1 },
-    "Far East": { "owner": "p2", "armies": 2 },
-    "East Indies": { "owner": "p2", "armies": 1 },
-    "New Guinea": { "owner": "p2", "armies": 1 },
-    "Australia": { "owner": "p2", "armies": 2 },
-    "New Zealand": { "owner": "p2", "armies": 1 }
+    "Afghanistan": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Alaska": {
+      "owner": "p1",
+      "armies": 2
+    },
+    "Alberta": {
+      "owner": "p1",
+      "armies": 2
+    },
+    "Argentina": {
+      "owner": "p1",
+      "armies": 2
+    },
+    "Brazil": {
+      "owner": "p1",
+      "armies": 2
+    },
+    "Central America": {
+      "owner": "p1",
+      "armies": 2
+    },
+    "China": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Congo": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "East Africa": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Eastern Australia": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Eastern United States": {
+      "owner": "p1",
+      "armies": 2
+    },
+    "Egypt": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Great Britain": {
+      "owner": "p1",
+      "armies": 2
+    },
+    "Greenland": {
+      "owner": "p1",
+      "armies": 2
+    },
+    "Iceland": {
+      "owner": "p1",
+      "armies": 2
+    },
+    "India": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Indonesia": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Irkutsk": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Japan": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Kamchatka": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Madagascar": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Middle East": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Mongolia": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "New Guinea": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "North Africa": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Northern Europe": {
+      "owner": "p1",
+      "armies": 2
+    },
+    "Northwest Territory": {
+      "owner": "p1",
+      "armies": 2
+    },
+    "Ontario": {
+      "owner": "p1",
+      "armies": 2
+    },
+    "Peru": {
+      "owner": "p1",
+      "armies": 2
+    },
+    "Quebec": {
+      "owner": "p1",
+      "armies": 2
+    },
+    "Scandinavia": {
+      "owner": "p1",
+      "armies": 2
+    },
+    "Siam": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Siberia": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "South Africa": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Southern Europe": {
+      "owner": "p1",
+      "armies": 2
+    },
+    "Ukraine": {
+      "owner": "p1",
+      "armies": 2
+    },
+    "Ural": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Venezuela": {
+      "owner": "p1",
+      "armies": 2
+    },
+    "Western Australia": {
+      "owner": "p2",
+      "armies": 2
+    },
+    "Western Europe": {
+      "owner": "p1",
+      "armies": 2
+    },
+    "Western United States": {
+      "owner": "p1",
+      "armies": 2
+    },
+    "Yakutsk": {
+      "owner": "p2",
+      "armies": 2
+    }
   }
 }

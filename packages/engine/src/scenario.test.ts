@@ -177,20 +177,20 @@ describe("hand-authored scenarios drive the reducer", () => {
     let state: GameState = deserializeGame({
       options: { boardMode: "classic", cardsEnabled: false },
       players: [P1, P2],
-      // p1 owns everything except Greenland; Canada (adjacent to Greenland) is loaded.
+      // p1 owns everything except Greenland; Quebec (adjacent to Greenland) is loaded.
       territories: territoryMap((id) =>
         id === "Greenland"
           ? { owner: "p2", armies: 1 }
-          : { owner: "p1", armies: id === "Canada" ? 30 : 1 },
+          : { owner: "p1", armies: id === "Quebec" ? 30 : 1 },
       ),
       phase: "attack",
       activePlayer: "p1",
     });
 
     for (let i = 0; i < 200 && !state.winner; i++) {
-      const from = state.territories["Canada"];
+      const from = state.territories["Quebec"];
       const dice = Math.min(3, from.armies - 1);
-      state = applyAction(state, { type: "attack", from: "Canada", to: "Greenland", dice }).state;
+      state = applyAction(state, { type: "attack", from: "Quebec", to: "Greenland", dice }).state;
     }
 
     expect(state.winner).toBe("p1");

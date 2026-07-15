@@ -109,13 +109,13 @@ export function App() {
   // Dev-only test hook so headless checks can drive the game deterministically.
   if (import.meta.env.DEV) (window as unknown as { __risk: typeof hs }).__risk = hs;
 
-  // Dev-only: ?autostart=classic|world boots straight into a game so headless
+  // Dev-only: ?autostart=classic boots straight into a game so headless
   // screenshots can capture the live globe (which only renders in-game).
   const autostarted = useRef(false);
   useEffect(() => {
     if (!import.meta.env.DEV || autostarted.current || hs.game) return;
     const mode = new URLSearchParams(window.location.search).get("autostart");
-    if (mode !== "classic" && mode !== "world") return;
+    if (mode !== "classic") return;
     autostarted.current = true;
     const sp = new URLSearchParams(window.location.search);
     setTutorialEnabled(sp.get("tutorial") === "1");

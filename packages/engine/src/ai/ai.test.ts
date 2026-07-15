@@ -165,17 +165,3 @@ describe("full CPU games with action cards terminate with a winner", () => {
     expect(s.winner).not.toBeNull();
   });
 });
-
-describe("world board CPU play is legal", () => {
-  it("plays several legal turns on the world board", () => {
-    let s = createGame({ players: cpuPlayers(["hard", "hard", "hard"]), boardMode: "world", seed: 5 });
-    for (let turn = 0; turn < 6 && !s.winner; turn++) {
-      for (const a of planTurn(s)) {
-        expect(isLegal(s, a)).toBe(true);
-        s = applyAction(s, a).state;
-        if (s.winner) break;
-      }
-    }
-    expect(s.turn).toBeGreaterThan(1);
-  });
-});

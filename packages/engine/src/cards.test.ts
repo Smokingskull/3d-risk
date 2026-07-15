@@ -28,7 +28,7 @@ describe("buildDeck", () => {
       "wild:2",
       "wild:3",
     ]);
-    expect(WILDS_BY_MODE).toEqual({ classic: 2, world: 4 });
+    expect(WILDS_BY_MODE).toEqual({ classic: 2 });
   });
 });
 

@@ -46,7 +46,7 @@ const FORCED_TRADE_AT = 5;
 
 export interface GameConfig {
   players: Array<Pick<Player, "id" | "name" | "color" | "kind" | "difficulty">>;
-  /** Which prebuilt board to use (ignored if `board` is supplied). Default "world". */
+  /** Which prebuilt board to use (ignored if `board` is supplied). Default "classic". */
   boardMode?: BoardMode;
   /** Provide a board directly (for tests / custom maps). Overrides boardMode. */
   board?: BoardDefinition;
@@ -153,19 +153,15 @@ function maxAttackDice(armies: number): number {
 
 // --- setup ------------------------------------------------------------------
 
-function startingArmyPool(mode: BoardMode, players: number, owned: number): number {
-  if (mode === "classic") {
-    const table: Record<number, number> = { 2: 40, 3: 35, 4: 30, 5: 25, 6: 20 };
-    return Math.max(0, (table[players] ?? 25) - owned);
-  }
-  // World board has far more territories than the classic table assumes; give a
-  // placement pool proportional to holdings instead.
-  return Math.round(owned * 0.8);
+function startingArmyPool(players: number, owned: number): number {
+  // Authentic classic-Risk starting armies by player count, minus territories owned.
+  const table: Record<number, number> = { 2: 40, 3: 35, 4: 30, 5: 25, 6: 20 };
+  return Math.max(0, (table[players] ?? 25) - owned);
 }
 
 export function createGame(config: GameConfig): GameState {
   if (config.players.length < 2) throw new Error("Need at least 2 players");
-  const boardMode = config.boardMode ?? "world";
+  const boardMode = config.boardMode ?? "classic";
   const board = config.board ?? getBoard(boardMode);
   const cardsEnabled = config.cardsEnabled ?? true;
   const rng = mulberry32(config.seed);
@@ -182,7 +178,7 @@ export function createGame(config: GameConfig): GameState {
   // Auto-scatter each player's remaining starting armies over their territories.
   for (const player of players) {
     const owned = ids.filter((id) => territories[id].owner === player.id);
-    const pool = startingArmyPool(boardMode, players.length, owned.length);
+    const pool = startingArmyPool(players.length, owned.length);
     for (let k = 0; k < pool; k++) {
       const t = owned[Math.floor(rng() * owned.length)];
       territories[t].armies++;

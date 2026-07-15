@@ -12,9 +12,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "build:board": "node scripts/build-board.mjs",
-    "build:classic": "node scripts/build-classic.mjs",
-    "build:boards": "node scripts/build-board.mjs && node scripts/build-classic.mjs"
+    "build:classic": "node scripts/build-classic.mjs"
   },
   "devDependencies": {
     "vitest": "^3.0.5"

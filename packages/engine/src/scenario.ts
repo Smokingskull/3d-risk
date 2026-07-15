@@ -70,7 +70,7 @@ export interface ScenarioState {
 /** Hand-authoring shape accepted by `deserializeGame` — most fields optional. */
 export interface ScenarioStateInput {
   version?: number;
-  /** `boardMode` may be omitted (defaults to "world"); other options default too. */
+  /** `boardMode` may be omitted (defaults to "classic"); other options default too. */
   options: Partial<GameOptions> & { boardMode?: BoardMode };
   /** Each player needs at least id/name/color/kind; eliminated/cards default. */
   players: Array<Pick<Player, "id" | "name" | "color" | "kind"> & Partial<Player>>;
@@ -128,7 +128,7 @@ export function deserializeGame(input: ScenarioStateInput): GameState {
   // --- board ---------------------------------------------------------------
   if (!input.options || typeof input.options !== "object")
     throw new ScenarioError("missing options");
-  const boardMode: BoardMode = input.options.boardMode ?? "world";
+  const boardMode: BoardMode = input.options.boardMode ?? "classic";
   const board = getBoard(boardMode);
   if (!board) throw new ScenarioError(`unknown boardMode "${boardMode}"`);
 

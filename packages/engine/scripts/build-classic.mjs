@@ -1,78 +1,70 @@
-// Builds the Classic (classic-style, region-based) BoardDefinition.
+// Builds the Classic 42-territory BoardDefinition from the globe model's manifest.
 //
-// Classic territories are REGIONS that group real countries (classic.regions.json),
-// so the whole globe is in play — no inert areas. Adjacency is hand-authored
-// (classic.adjacency.json) for classic choke points. This validates that the
-// regions partition ALL 177 country meshes exactly once, that adjacency is
-// symmetric and fully connected, then writes src/data/classic.board.json with a
-// `members` list per territory.
+// The board is the authentic classic-Risk layout: one gameplay territory per mesh
+// in risk_42_territory_globe.glb. The manifest ships the full topology (continent
+// per territory + symmetric adjacency), so this script just maps it into our
+// BoardDefinition schema — attaching continent ids and the authentic continent
+// bonuses — and validates (42 territories, symmetric adjacency, fully connected)
+// before writing src/data/classic.board.json.
 //
-// Run with:  pnpm --filter @risk3d/engine build:classic
+// Territory ids are the manifest display names (spaces); the globe reverse-maps
+// GLTF-sanitised mesh names (underscores) back to these. Run with:
+//   pnpm --filter @risk3d/engine build:classic
 
 import { readFileSync, writeFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(HERE, "../../..");
 const DATA_DIR = resolve(HERE, "../src/data");
-const GLB_PATH = join(REPO_ROOT, "transparent_country_globe_gameboard.glb");
+const MANIFEST = resolve(REPO_ROOT, "apps/client/public/assets/models/risk_42_territory_globe_manifest.json");
 
-function glbCountryNames() {
-  const buf = readFileSync(GLB_PATH);
-  let off = 12;
-  const jsonLen = buf.readUInt32LE(off);
-  off += 8;
-  const json = JSON.parse(buf.subarray(off, off + jsonLen).toString("utf8"));
-  return new Set(json.nodes.filter((n) => n.name && n.mesh !== undefined).map((n) => n.name));
-}
+// Continent display name (as in the manifest) -> our id + authentic Risk bonus.
+const CONTINENTS = {
+  "North America": { id: "north-america", bonus: 5 },
+  "South America": { id: "south-america", bonus: 2 },
+  Europe: { id: "europe", bonus: 5 },
+  Africa: { id: "africa", bonus: 3 },
+  Asia: { id: "asia", bonus: 7 },
+  Australia: { id: "australia", bonus: 2 },
+};
 
-const allCountries = glbCountryNames();
-const regionData = JSON.parse(readFileSync(join(DATA_DIR, "classic.regions.json"), "utf8"));
-const adjData = JSON.parse(readFileSync(join(DATA_DIR, "classic.adjacency.json"), "utf8"));
-
+const manifest = JSON.parse(readFileSync(MANIFEST, "utf8"));
 const problems = [];
 
-// --- continents + regions + membership -------------------------------------
 const continents = {};
-const territories = {};
-const regionContinent = new Map();
-const countryToRegion = new Map();
+for (const [name, { id, bonus }] of Object.entries(CONTINENTS))
+  continents[id] = { id, name, bonus, territories: [] };
 
-for (const cont of regionData.continents) {
-  continents[cont.id] = { id: cont.id, name: cont.name, bonus: cont.bonus, territories: cont.regions.map((r) => r.id) };
-  for (const region of cont.regions) {
-    if (territories[region.id]) problems.push(`duplicate region id: "${region.id}"`);
-    territories[region.id] = { id: region.id, continent: cont.id, neighbours: [], members: region.members };
-    regionContinent.set(region.id, cont.id);
-    for (const c of region.members) {
-      if (!allCountries.has(c)) problems.push(`region "${region.id}" lists non-mesh country: "${c}"`);
-      if (countryToRegion.has(c)) problems.push(`country "${c}" assigned to both "${countryToRegion.get(c)}" and "${region.id}"`);
-      countryToRegion.set(c, region.id);
+const territories = {};
+const names = new Set(manifest.territories.map((t) => t.name));
+
+for (const t of manifest.territories) {
+  const cont = CONTINENTS[t.continent];
+  if (!cont) {
+    problems.push(`territory "${t.name}" has unknown continent "${t.continent}"`);
+    continue;
+  }
+  if (territories[t.name]) problems.push(`duplicate territory: "${t.name}"`);
+  territories[t.name] = { id: t.name, continent: cont.id, neighbours: [...t.adjacent].sort() };
+  continents[cont.id].territories.push(t.name);
+}
+
+// --- validation: adjacency refs, symmetry, isolation, connectivity ----------
+for (const t of manifest.territories)
+  for (const n of t.adjacent) {
+    if (!names.has(n)) problems.push(`"${t.name}" borders unknown territory "${n}"`);
+    else {
+      const back = manifest.territories.find((x) => x.name === n);
+      if (back && !back.adjacent.includes(t.name)) problems.push(`asymmetric border: "${t.name}"->"${n}"`);
     }
   }
-}
 
-// Every country must be assigned to exactly one region (no inert areas).
-for (const c of allCountries) if (!countryToRegion.has(c)) problems.push(`country not assigned to any region: "${c}"`);
-
-// --- adjacency --------------------------------------------------------------
-const adj = new Map(Object.keys(territories).map((t) => [t, new Set()]));
-for (const [a, b] of adjData.edges) {
-  if (!adj.has(a)) problems.push(`edge references unknown region: "${a}"`);
-  if (!adj.has(b)) problems.push(`edge references unknown region: "${b}"`);
-  if (a === b) problems.push(`self-edge: "${a}"`);
-  if (adj.has(a) && adj.has(b) && a !== b) {
-    adj.get(a).add(b);
-    adj.get(b).add(a);
-  }
-}
-for (const [id, set] of adj) territories[id].neighbours = [...set].sort();
-
-// --- connectivity + isolation -----------------------------------------------
+const adj = new Map(Object.keys(territories).map((t) => [t, new Set(territories[t].neighbours)]));
 const all = Object.keys(territories).sort();
 const isolated = all.filter((t) => adj.get(t).size === 0);
-if (isolated.length) problems.push(`isolated regions: ${isolated.join(", ")}`);
+if (isolated.length) problems.push(`isolated territories: ${isolated.join(", ")}`);
 
 const seen = new Set();
 const stack = [all[0]];
@@ -82,14 +74,15 @@ while (stack.length) {
   seen.add(c);
   for (const n of adj.get(c)) stack.push(n);
 }
-if (seen.size !== all.length) problems.push(`graph not fully connected — unreachable: ${all.filter((t) => !seen.has(t)).join(", ")}`);
+if (seen.size !== all.length)
+  problems.push(`graph not fully connected — unreachable: ${all.filter((t) => !seen.has(t)).join(", ")}`);
 
 // --- report -----------------------------------------------------------------
-console.log(`Regions: ${all.length}   Countries covered: ${countryToRegion.size} / ${allCountries.size}`);
-console.log(`Edges: ${adjData.edges.length}`);
-console.log("\nPer-continent regions (bonus):");
-for (const cont of regionData.continents)
-  console.log(`  ${cont.name.padEnd(16)} ${String(cont.regions.length).padStart(2)}  (bonus ${cont.bonus})`);
+const edges = all.reduce((s, t) => s + adj.get(t).size, 0) / 2;
+console.log(`Territories: ${all.length}   Edges: ${edges}`);
+console.log("\nPer-continent territories (bonus):");
+for (const c of Object.values(continents))
+  console.log(`  ${c.name.padEnd(16)} ${String(c.territories.length).padStart(2)}  (bonus ${c.bonus})`);
 
 if (problems.length) {
   console.error(`\n❌ ${problems.length} problem(s):`);
@@ -98,5 +91,5 @@ if (problems.length) {
 }
 
 const board = { mode: "classic", continents, territories };
-writeFileSync(join(DATA_DIR, "classic.board.json"), JSON.stringify(board, null, 2) + "\n");
-console.log(`\n✅ Validated, fully connected, all 177 countries covered. Wrote src/data/classic.board.json`);
+writeFileSync(resolve(DATA_DIR, "classic.board.json"), JSON.stringify(board, null, 2) + "\n");
+console.log(`\n✅ Validated, fully connected. Wrote src/data/classic.board.json`);
