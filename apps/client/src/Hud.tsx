@@ -5,7 +5,7 @@ import { OptionsDialog } from "./OptionsDialog.js";
 import { CampaignDialog } from "./CampaignDialog.js";
 import { PhaseRail } from "./PhaseRail.js";
 
-export function Hud({ hs, hovered, onOpenHelp }: { hs: Hotseat; hovered: string | null; onOpenHelp: () => void }) {
+export function Hud({ hs, hovered, onOpenHelp, onOpenCards }: { hs: Hotseat; hovered: string | null; onOpenHelp: () => void; onOpenCards: () => void }) {
   const game = hs.game!;
   const active = game.players.find((p) => p.id === game.activePlayer)!;
   const winner = game.winner ? game.players.find((p) => p.id === game.winner) : null;
@@ -40,16 +40,22 @@ export function Hud({ hs, hovered, onOpenHelp }: { hs: Hotseat; hovered: string 
       {isCpu && <div className="row cpu">🤖 {active.name} ({active.difficulty}) is planning…</div>}
 
       {!isCpu && game.phase === "reinforce" && (
-        <p className="hint">
-          {hs.mustTrade ? "You hold 5+ cards — you must trade before placing." : "Click your territories to place armies."}
-        </p>
+        hs.mustTrade ? (
+          <div className="banner trade-banner">
+            <span>You hold 5+ cards — you must trade a set before deploying.</span>
+            <button className="start" onClick={onOpenCards}>Trade cards</button>
+          </div>
+        ) : (
+          <p className="hint">Click your territories to place armies.</p>
+        )
       )}
 
       {!isCpu && !hs.engagement && game.phase === "attack" && !pending && (
-        <div className="row">
+        <div className="row action-row">
           <button onClick={hs.endAttack}>End attack <Icon name="arrow-right" size={14} /></button>
+          <button className="end-turn" onClick={hs.endTurnNow}>End turn <Icon name="skip-forward" size={14} /></button>
           <span className="hint">
-            {hs.selectedFrom ? `Attacking from ${hs.selectedFrom} — pick a highlighted enemy.` : "Select one of your territories (2+ armies)."}
+            {hs.selectedFrom ? `Attacking from ${hs.selectedFrom} — pick a highlighted enemy.` : "Attacks are optional — attack, or end your turn."}
           </span>
         </div>
       )}
@@ -64,10 +70,10 @@ export function Hud({ hs, hovered, onOpenHelp }: { hs: Hotseat; hovered: string 
       )}
 
       {!isCpu && game.phase === "fortify" && (
-        <div className="row">
-          <button onClick={hs.endTurn}>End turn <Icon name="skip-forward" size={14} /></button>
+        <div className="row action-row">
+          <button className="end-turn" onClick={hs.endTurnNow}>End turn <Icon name="skip-forward" size={14} /></button>
           <span className="hint">
-            {hs.selectedFrom ? `Move from ${hs.selectedFrom} to a highlighted territory.` : "Optionally fortify: select a territory (2+ armies)."}
+            {hs.selectedFrom ? `Move from ${hs.selectedFrom} to a highlighted territory.` : "One optional move, then your turn ends."}
           </span>
         </div>
       )}

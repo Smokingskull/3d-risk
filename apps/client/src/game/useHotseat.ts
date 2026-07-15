@@ -85,6 +85,8 @@ export interface Hotseat {
   clickTerritory: (id: TerritoryId) => void;
   endAttack: () => void;
   endTurn: () => void;
+  /** End the turn from any phase after reinforce (attack skips through fortify). */
+  endTurnNow: () => void;
   /** Trade a player-chosen set; bonusTerritory picks which owned country gets the +2. */
   tradeSet: (cards: [string, string, string], bonusTerritory?: TerritoryId) => void;
   /** How many sets the active hand can actually cash (disjoint), for the label. */
@@ -398,6 +400,24 @@ export function useHotseat(): Hotseat {
   const guardHuman = useCallback((fn: () => void) => () => { if (isHumanTurn) fn(); }, [isHumanTurn]);
   const endAttack = useMemo(() => guardHuman(() => applyAndStore({ type: "endAttack" })), [guardHuman, applyAndStore]);
   const endTurn = useMemo(() => guardHuman(() => applyAndStore({ type: "endTurn" })), [guardHuman, applyAndStore]);
+  // End the turn from wherever the player is: attack advances through fortify
+  // (endAttack applies synchronously, so the follow-up endTurn sees the fortify
+  // state); fortify ends directly. Reinforce can't end early — all armies must be
+  // placed — so it's a no-op there.
+  const endTurnNow = useMemo(
+    () =>
+      guardHuman(() => {
+        const g = gameRef.current;
+        if (!g) return;
+        if (g.phase === "attack" && !g.pendingOccupation) {
+          applyAndStore({ type: "endAttack" });
+          applyAndStore({ type: "endTurn" });
+        } else if (g.phase === "fortify") {
+          applyAndStore({ type: "endTurn" });
+        }
+      }),
+    [guardHuman, applyAndStore],
+  );
 
   const activeHand = activePlayer?.cards ?? [];
   const tradeableSetCount = useMemo(() => maxDisjointSets(activeHand), [activeHand]);
@@ -444,6 +464,7 @@ export function useHotseat(): Hotseat {
     clickTerritory,
     endAttack,
     endTurn,
+    endTurnNow,
     tradeSet,
     tradeableSetCount,
     mustTrade: game ? mustTrade(game) : false,

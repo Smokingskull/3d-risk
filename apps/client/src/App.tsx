@@ -13,6 +13,7 @@ import { CountryPopup } from "./CountryPopup.js";
 import { VictoryOverlay } from "./VictoryOverlay.js";
 import { ContinentsPanel } from "./ContinentsPanel.js";
 import { PlayersPanel } from "./PlayersPanel.js";
+import { CardPanel } from "./CardPanel.js";
 import { useHotseat } from "./game/useHotseat.js";
 import { scenarioById } from "./scenarios/index.js";
 
@@ -95,6 +96,9 @@ export function App() {
   const [helpOpen, setHelpOpen] = useState(
     import.meta.env.DEV && new URLSearchParams(window.location.search).get("help") === "1",
   );
+  // Card view/trade dialog, lifted here so both the roster and the GAME box's
+  // mandatory-trade banner can open it.
+  const [cardsOpen, setCardsOpen] = useState(false);
 
   // Dev-only test hook so headless checks can drive the game deterministically.
   if (import.meta.env.DEV) (window as unknown as { __risk: typeof hs }).__risk = hs;
@@ -169,15 +173,16 @@ export function App() {
 
   return (
     <>
-      <Hud hs={hs} hovered={hovered} onOpenHelp={() => setHelpOpen(true)} />
+      <Hud hs={hs} hovered={hovered} onOpenHelp={() => setHelpOpen(true)} onOpenCards={() => setCardsOpen(true)} />
       <HelpBox hs={hs} onOpenHelp={() => setHelpOpen(true)} />
       <Tutorial hs={hs} />
       {helpOpen && <HelpDialog onClose={() => setHelpOpen(false)} />}
       <CombatModal hs={hs} />
       <CountryPopup hs={hs} />
       <VictoryOverlay hs={hs} />
+      {cardsOpen && <CardPanel hs={hs} onClose={() => setCardsOpen(false)} />}
       <div className="right-stack">
-        <PlayersPanel hs={hs} />
+        <PlayersPanel hs={hs} onOpenCards={() => setCardsOpen(true)} />
         <ContinentsPanel
           game={hs.game}
           highlight={highlightContinent}

@@ -1,15 +1,13 @@
 import { useState } from "react";
 import type { Hotseat } from "./game/useHotseat.js";
 import { Icon } from "./Icon.js";
-import { CardPanel } from "./CardPanel.js";
 
 /** Right-hand roster: every player with their territory count, army total, card
- *  count, the active player highlighted and eliminated players dimmed. Also owns
- *  the active human's card view/trade action. */
-export function PlayersPanel({ hs }: { hs: Hotseat }) {
+ *  count, the active player highlighted and eliminated players dimmed. Opens the
+ *  active human's card view/trade dialog (owned by App). */
+export function PlayersPanel({ hs, onOpenCards }: { hs: Hotseat; onOpenCards: () => void }) {
   const game = hs.game;
   const [open, setOpen] = useState(true);
-  const [cardsOpen, setCardsOpen] = useState(false);
   if (!game) return null;
 
   const alive = game.players.filter((p) => !p.eliminated).length;
@@ -77,13 +75,11 @@ export function PlayersPanel({ hs }: { hs: Hotseat }) {
           })}
 
         {open && activeHuman && game.options.cardsEnabled && (
-          <button className={`players-cards${hs.mustTrade ? " warn" : ""}`} data-tut="cards" onClick={() => setCardsOpen(true)}>
+          <button className={`players-cards${hs.mustTrade ? " warn" : ""}`} data-tut="cards" onClick={onOpenCards}>
             Cards ({activeHuman.cards.length}){hs.tradeableSetCount ? ` · ${hs.tradeableSetCount} set${hs.tradeableSetCount > 1 ? "s" : ""}` : ""}
           </button>
         )}
       </div>
-
-      {cardsOpen && activeHuman && <CardPanel hs={hs} onClose={() => setCardsOpen(false)} />}
     </>
   );
 }

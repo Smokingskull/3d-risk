@@ -439,6 +439,27 @@ button.warn {
   border: 1px solid rgba(245, 200, 66, 0.4);
 }
 
+/* Mandatory-trade banner (5+ cards): amber attention band with a compact
+   Trade button that opens the card dialog straight from the GAME box. */
+.trade-banner {
+  font-size: 13px;
+  font-weight: 400;
+  gap: 10px;
+}
+.trade-banner .start {
+  margin-left: auto;
+  flex: none;
+  padding: 7px 12px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+/* End turn sits beside the phase's primary action; an accent edge marks it as
+   the "advance my turn" control, always available after reinforcing. */
+.action-row .end-turn {
+  border-color: var(--accent);
+  color: var(--accent-bright);
+}
+
 .row.cpu {
   color: #f5c842;
   font-size: 14px;
