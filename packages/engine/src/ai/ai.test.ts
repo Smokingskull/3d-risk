@@ -1,8 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { conquestProbability } from "./battleOdds.js";
-import { createAI, planTurn, type Difficulty } from "./policy.js";
+import { createAI, decideReaction, planTurn, type Difficulty } from "./policy.js";
 import { applyAction, createGame, isLegal } from "../game.js";
-import type { BoardMode } from "../types.js";
+import type { BoardDefinition, BoardMode, GameState } from "../types.js";
+
+// A 2-territory board A-B for targeted card tests.
+function pairBoard(): BoardDefinition {
+  return {
+    territories: {
+      A: { id: "A", continent: "c", neighbours: ["B"] },
+      B: { id: "B", continent: "c", neighbours: ["A"] },
+    },
+    continents: { c: { id: "c", name: "c", bonus: 2, territories: ["A", "B"] } },
+  };
+}
 
 describe("conquestProbability", () => {
   it("is a probability", () => {
@@ -68,6 +79,89 @@ describe("full CPU games terminate with a winner", () => {
 
   it("classic, 3-way mixed difficulties", () => {
     const s = play("classic", ["easy", "medium", "hard"], 3);
+    expect(s.winner).not.toBeNull();
+  });
+});
+
+describe("AI action-card strategy", () => {
+  const cardGame = (difficulty: Difficulty): GameState => {
+    const s = createGame({
+      players: cpuPlayers([difficulty, difficulty]),
+      board: pairBoard(),
+      seed: 2,
+      cardsEnabled: false,
+      actionCardsEnabled: true,
+    });
+    for (const p of s.players) p.actionCards = [];
+    return s;
+  };
+
+  it("softens a well-defended target with an Air Strike before attacking (hard)", () => {
+    const s = cardGame("hard");
+    s.players.find((p) => p.id === "p1")!.actionCards = ["airStrike"];
+    s.territories.A = { owner: "p1", armies: 10 };
+    s.territories.B = { owner: "p2", armies: 5 }; // ≥4 → worth a strike
+    s.phase = "attack";
+    const a = createAI("hard").decide(s);
+    expect(a).toMatchObject({ type: "playActionCard", card: "airStrike", from: "A", to: "B" });
+  });
+
+  it("easy ignores action cards entirely", () => {
+    const s = cardGame("easy");
+    s.players.find((p) => p.id === "p1")!.actionCards = ["airStrike"];
+    s.territories.A = { owner: "p1", armies: 10 };
+    s.territories.B = { owner: "p2", armies: 5 };
+    s.phase = "attack";
+    expect(createAI("easy").decide(s)).toMatchObject({ type: "attack" });
+  });
+
+  it("lays a Minefield (medium+) but not on easy", () => {
+    const mk = (difficulty: Difficulty): GameState => {
+      const s = cardGame(difficulty);
+      s.players.find((p) => p.id === "p2")!.actionCards = ["minefield"];
+      s.pendingDecision = { kind: "minefield", player: "p2", territory: "B", from: "A" };
+      s.pendingOccupation = { from: "A", to: "B", min: 1, max: 5 };
+      return s;
+    };
+    expect(decideReaction(mk("medium"))).toMatchObject({ type: "resolveDecision", play: true });
+    expect(decideReaction(mk("hard"))).toMatchObject({ type: "resolveDecision", play: true });
+    expect(decideReaction(mk("easy"))).toMatchObject({ type: "resolveDecision", play: false });
+  });
+
+  it("hard retreats a losing battle it can preserve", () => {
+    const s = cardGame("hard");
+    s.players.find((p) => p.id === "p2")!.actionCards = ["tacticalRetreat"];
+    // B (2) is under attack from A (8); B has no owned neighbour on this board, so
+    // add one via a 3-territory setup would be needed — use a ring instead.
+    s.board = {
+      territories: {
+        A: { id: "A", continent: "c", neighbours: ["B"] },
+        B: { id: "B", continent: "c", neighbours: ["A", "C"] },
+        C: { id: "C", continent: "c", neighbours: ["B"] },
+      },
+      continents: { c: { id: "c", name: "c", bonus: 2, territories: ["A", "B", "C"] } },
+    };
+    s.territories = {
+      A: { owner: "p1", armies: 8 },
+      B: { owner: "p2", armies: 2 },
+      C: { owner: "p2", armies: 1 },
+    };
+    s.pendingDecision = { kind: "tacticalRetreat", player: "p2", territory: "B", from: "A" };
+    expect(decideReaction(s)).toMatchObject({ type: "resolveDecision", play: true, to: "C" });
+  });
+});
+
+describe("full CPU games with action cards terminate with a winner", () => {
+  it("classic, hard vs hard, cards enabled", () => {
+    let s = createGame({ players: cpuPlayers(["hard", "hard"]), boardMode: "classic", seed: 9, actionCardsEnabled: true });
+    let guard = 0;
+    while (!s.winner && guard++ < 8000) {
+      for (const a of planTurn(s)) {
+        expect(isLegal(s, a)).toBe(true);
+        s = applyAction(s, a).state;
+        if (s.winner) break;
+      }
+    }
     expect(s.winner).not.toBeNull();
   });
 });

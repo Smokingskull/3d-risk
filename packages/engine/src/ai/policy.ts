@@ -4,8 +4,8 @@
  */
 import type { Action } from "../actions.js";
 import { validSetsInHand } from "../cards.js";
-import { applyAction, perceivedArmies, territoriesOf } from "../game.js";
-import type { GameState, PlayerId, TerritoryId } from "../types.js";
+import { applyAction, perceivedArmies, reinforcementsFor, territoriesOf } from "../game.js";
+import type { ActionCardType, GameState, PlayerId, TerritoryId } from "../types.js";
 import { conquestProbability } from "./battleOdds.js";
 
 export type Difficulty = "easy" | "medium" | "hard";
@@ -19,13 +19,19 @@ interface Knobs {
   eagerTrade: boolean;
   /** Whether attack choice is biased toward completing continents. */
   continentAware: boolean;
+  /** Action-card usage: "none" ignores them, "some" uses the simple ones (Air
+   * Strike, Minefield), "all" uses every card including bluffs and retreats. */
+  useCards: "none" | "some" | "all";
 }
 
 const KNOBS: Record<Difficulty, Knobs> = {
-  easy: { attackThreshold: 0.7, fortify: false, eagerTrade: false, continentAware: false },
-  medium: { attackThreshold: 0.6, fortify: true, eagerTrade: true, continentAware: false },
-  hard: { attackThreshold: 0.5, fortify: true, eagerTrade: true, continentAware: true },
+  easy: { attackThreshold: 0.7, fortify: false, eagerTrade: false, continentAware: false, useCards: "none" },
+  medium: { attackThreshold: 0.6, fortify: true, eagerTrade: true, continentAware: false, useCards: "some" },
+  hard: { attackThreshold: 0.5, fortify: true, eagerTrade: true, continentAware: true, useCards: "all" },
 };
+
+/** Defender armies at which an Air Strike is worth spending before attacking. */
+const AIRSTRIKE_MIN_DEFENDERS = 4;
 
 // --- board helpers ----------------------------------------------------------
 
@@ -137,17 +143,19 @@ function chooseAttack(s: GameState, me: PlayerId, k: Knobs): AttackChoice | null
   return best;
 }
 
-function chooseFortify(s: GameState, me: PlayerId): Action | null {
+function chooseFortify(s: GameState, me: PlayerId, forceAnywhere = false): Action | null {
   const owned = territoriesOf(s, me);
+  const anywhere = forceAnywhere || s.fortifyAnywhere;
   // Interior territories (no enemy neighbours) with spare armies are "trapped".
   const interiors = owned
     .filter((t) => s.territories[t].armies >= 2 && !isBorder(s, me, t))
     .sort((a, b) => s.territories[b].armies - s.territories[a].armies);
 
   for (const from of interiors) {
-    // Reachable owned border, most threatened first.
+    // Reachable owned border, most threatened first. Troop Transport (anywhere)
+    // lets an interior stack reinforce a border it isn't connected to.
     const targets = owned
-      .filter((t) => t !== from && isBorder(s, me, t) && pathThroughOwned(s, me, from, t))
+      .filter((t) => t !== from && isBorder(s, me, t) && (anywhere || pathThroughOwned(s, me, from, t)))
       .sort(
         (a, b) =>
           enemyArmyPressure(s, me, b) - enemyArmyPressure(s, me, a),
@@ -156,6 +164,20 @@ function chooseFortify(s: GameState, me: PlayerId): Action | null {
       return { type: "fortify", from, to: targets[0], count: s.territories[from].armies - 1 };
   }
   return null;
+}
+
+/** Pick a weak border to bluff as strong with Misinformation (max inflation). */
+function chooseMisinformation(s: GameState, me: PlayerId): { territory: TerritoryId; fake: number } | null {
+  const borders = territoriesOf(s, me).filter((t) => isBorder(s, me, t));
+  if (borders.length === 0) return null;
+  const swing = reinforcementsFor(s, me);
+  if (swing <= 0) return null;
+  // The weakest border facing the most enemy pressure benefits most from looking strong.
+  const target = borders.sort(
+    (a, b) =>
+      s.territories[a].armies - enemyArmyPressure(s, me, a) - (s.territories[b].armies - enemyArmyPressure(s, me, b)),
+  )[0];
+  return { territory: target, fake: s.territories[target].armies + swing };
 }
 
 function enemyArmyPressure(s: GameState, me: PlayerId, t: TerritoryId): number {
@@ -188,10 +210,17 @@ export function createAI(difficulty: Difficulty): AIController {
   return {
     decide(s: GameState): Action {
       const me = s.activePlayer;
+      const holds = (c: ActionCardType) =>
+        s.options.actionCardsEnabled && s.players.find((p) => p.id === me)!.actionCards.includes(c);
 
       if (s.phase === "reinforce") {
         const sets = validSetsInHand(s.players.find((p) => p.id === me)!.cards);
         if (sets.length > 0 && (mustTrade(s) || k.eagerTrade)) return { type: "tradeCards", cards: sets[0] };
+        // Bluff a weak border as strong before deploying (hard only).
+        if (k.useCards === "all" && holds("misinformation") && !mustTrade(s)) {
+          const m = chooseMisinformation(s, me);
+          if (m) return { type: "playActionCard", card: "misinformation", territory: m.territory, fake: m.fake };
+        }
         return { type: "placeArmies", territory: chooseReinforceTarget(s, me, k), count: s.reinforcementsRemaining };
       }
 
@@ -204,10 +233,16 @@ export function createAI(difficulty: Difficulty): AIController {
           return { type: "occupy", count: Math.min(max, Math.max(min, count)) };
         }
         const attack = chooseAttack(s, me, k);
-        return attack ? { type: "attack", from: attack.from, to: attack.to, dice: attack.dice } : { type: "endAttack" };
+        if (!attack) return { type: "endAttack" };
+        // Soften a well-defended target with an Air Strike first (medium+hard).
+        if (k.useCards !== "none" && holds("airStrike") && perceivedArmies(s, me, attack.to) >= AIRSTRIKE_MIN_DEFENDERS)
+          return { type: "playActionCard", card: "airStrike", from: attack.from, to: attack.to };
+        return { type: "attack", from: attack.from, to: attack.to, dice: attack.dice };
       }
 
-      // fortify
+      // fortify — Troop Transport unlocks a redeploy that connectivity forbids (hard only).
+      if (k.useCards === "all" && holds("troopTransport") && !s.fortifyAnywhere && !chooseFortify(s, me) && chooseFortify(s, me, true))
+        return { type: "playActionCard", card: "troopTransport" };
       if (k.fortify) {
         const move = chooseFortify(s, me);
         if (move) return move;
@@ -219,13 +254,28 @@ export function createAI(difficulty: Difficulty): AIController {
 
 /**
  * Resolve an open defender decision window (Minefield / Tactical Retreat) for the
- * CPU whose reaction is pending. Deterministic; difficulty-tuned later. For now:
- * always lay a Minefield (free defensive damage); decline Tactical Retreat unless
- * that logic lands in a later phase.
+ * CPU whose reaction is pending — using that defender's difficulty. Deterministic.
+ * "some" (medium) lays Minefields; "all" (hard) also retreats a losing battle it
+ * can preserve; "none" (easy) declines both.
  */
 export function decideReaction(state: GameState): Action {
   const pd = state.pendingDecision;
-  if (pd?.kind === "minefield") return { type: "resolveDecision", play: true };
+  if (!pd) return { type: "resolveDecision", play: false };
+  const defender = state.players.find((p) => p.id === pd.player);
+  const k = KNOBS[(defender?.difficulty as Difficulty) ?? "medium"];
+
+  if (pd.kind === "minefield") return { type: "resolveDecision", play: k.useCards !== "none" };
+
+  if (pd.kind === "tacticalRetreat" && k.useCards === "all") {
+    const contested = state.territories[pd.territory];
+    const attacker = state.territories[pd.from];
+    const targets = state.board.territories[pd.territory].neighbours
+      .filter((n) => state.territories[n].owner === pd.player)
+      .sort((a, b) => state.territories[b].armies - state.territories[a].armies);
+    // Retreat a losing battle when there are armies worth saving and a haven.
+    if (contested.armies >= 2 && attacker.armies > contested.armies && targets.length > 0)
+      return { type: "resolveDecision", play: true, to: targets[0] };
+  }
   return { type: "resolveDecision", play: false };
 }
 
@@ -241,7 +291,9 @@ export function planTurn(state: GameState, maxActions = 5000): Action[] {
   let s = state;
   const me = state.activePlayer;
   for (let i = 0; i < maxActions; i++) {
-    const action = ai.decide(s);
+    // A defender reaction window (Minefield / Tactical Retreat) can open mid-turn;
+    // resolve it as that defender so the simulation can continue.
+    const action = s.pendingDecision ? decideReaction(s) : ai.decide(s);
     actions.push(action);
     s = applyAction(s, action).state;
     if (s.winner || s.activePlayer !== me) break;

@@ -48,6 +48,27 @@ The top-left **GAME** box drives the turn and makes RISK's turn structure explic
 The full move history is recorded as you play and is available from the win/loss
 screen via **View game log**, grouped into per-turn sections with player names.
 
+## Action cards
+
+An optional mode (a toggle when starting a game — never in scenarios). Each player
+is dealt **2 secret one-shot cards** at the start, hidden from opponents and never
+replenished — a resource to manage. The Players panel splits into **Unit cards** and
+**Action cards**; the action-cards popup shows your hand, but you play them through
+the game itself:
+
+- **Troop Transport** — Fortify between *any* two owned territories, ignoring connectivity.
+- **Air Strike** — before an attack, destroy `round(20%)` of the defending army (nullified by Anti-Aircraft).
+- **Anti-Aircraft** — passive; auto-cancels an Air Strike against you.
+- **Misinformation** — show enemies a fake army count on one territory; each opponent sees the bluff until *they* attack it (per-opponent fog-of-war, all rendered from the viewer's perspective; combat always uses the real count).
+- **Minefield** — when a territory of yours is conquered, destroy 2 of the armies the attacker moves in (1 if they move <4).
+- **Tactical Retreat** — while defending, between rolls, pull all armies out to an adjacent territory; the attacker takes the emptied land.
+
+Reactive cards (Minefield, Tactical Retreat) open a **decision window** on the
+defender during the attacker's turn — the engine exposes this as `pendingDecision`
+and the client resolves it (human prompt, or the CPU's `decideReaction`). The CPU
+turn runs step-by-step (not planned whole-then-replayed) so it can pause for these.
+CPU card use scales with difficulty (easy ignores them; hard uses all six).
+
 ## The game board asset
 
 `apps/client/public/assets/models/transparent_country_globe_gameboard.glb` is a glTF 2.0 binary
@@ -93,7 +114,8 @@ appended to `/etc/caddy/Caddyfile`), so no per-branch infra work is needed.
 ## Build order (roadmap)
 
 1. **Engine** — RISK rules as a pure deterministic module + tests. _(done: types, RNG,
-   board data, and the reinforce/attack/fortify state-machine with cards — 32 tests)_
+   board data, the reinforce/attack/fortify state-machine with cards, and the optional
+   action-cards layer with per-opponent fog-of-war + reactive decision windows)_
 2. **Globe client** — load GLB, colour/highlight countries by name, local hotseat. _(done:
    World/Classic modes, colour-by-owner, army labels, phase-driven clicks + HUD)_
 
@@ -105,7 +127,9 @@ and always agree. Key exports from `@risk3d/engine`: `createGame`, `applyAction`
 `validateAction` / `isLegal`, `listLegalActions`, plus selectors
 (`reinforcementsFor`, `ownsContinent`, `pathExists`, …). Turn flow is
 reinforce → attack (⇄ occupy) → fortify, with full RISK cards (escalating set
-bonuses, award-on-conquest, forced trade at 5+, steal-on-elimination). Run tests
+bonuses, award-on-conquest, forced trade at 5+, steal-on-elimination) and an
+optional action-cards layer (see above: `playActionCard` / `resolveDecision`
+actions, `pendingDecision` windows, `perceivedArmies` fog-of-war). Run tests
 with `pnpm --filter @risk3d/engine test`.
 
 ### Board data

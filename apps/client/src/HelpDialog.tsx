@@ -115,6 +115,29 @@ const TOPICS: Topic[] = [
       </>
     ),
   },
+  {
+    id: "action-cards",
+    label: "Action Cards",
+    body: (
+      <>
+        <p>
+          An optional mode (toggle it on when starting a game). Each player is dealt <strong>2 secret
+          one-shot cards</strong> at the start — a finite resource, hidden from everyone else. Open the
+          <strong> Action cards</strong> button in the Players panel to see your hand; you play them through
+          the game itself, not from that screen.
+        </p>
+        <ul>
+          <li><strong>Troop Transport</strong> — in Fortify, move armies between <em>any</em> two of your territories, connected or not.</li>
+          <li><strong>Air Strike</strong> — before an attack, destroy ~20% of the defending army. Nullified if they hold Anti-Aircraft.</li>
+          <li><strong>Anti-Aircraft</strong> — passive: automatically cancels an Air Strike played against you.</li>
+          <li><strong>Misinformation</strong> — in Reinforce, show enemies a fake army count on one territory (you see both). Each enemy learns the truth only when they attack it.</li>
+          <li><strong>Minefield</strong> — when an enemy conquers one of your territories, destroy 2 of the armies they move in (1 if they move fewer than 4).</li>
+          <li><strong>Tactical Retreat</strong> — while defending, between rolls, pull all your armies out to an adjacent territory instead of losing them (the attacker then takes the emptied land).</li>
+        </ul>
+        <p>Once played, a card is gone — spend them wisely.</p>
+      </>
+    ),
+  },
 ];
 
 export function HelpDialog({ onClose }: { onClose: () => void }) {

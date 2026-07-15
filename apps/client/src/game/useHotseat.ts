@@ -227,6 +227,19 @@ export function useHotseat(): Hotseat {
         });
       }
     }
+    // Air Strike against the human viewer (e.g. a CPU striking them). The human
+    // attacker who plays it gets the combat-modal note instead (see playActionCard).
+    const air = events.find((e) => e.type === "airStrikeResolved");
+    if (air && air.type === "airStrikeResolved") {
+      const defender = state.territories[air.target]?.owner;
+      if (viewer === defender && viewer !== air.player) {
+        setActionOutcome(
+          air.nullifiedBy
+            ? { card: "antiAircraft", text: `Your Anti-Aircraft nullified an Air Strike on ${air.target}.` }
+            : { card: "airStrike", text: `An Air Strike hit your ${air.target} — ${air.removed} ${air.removed === 1 ? "army" : "armies"} lost.` },
+        );
+      }
+    }
     const retreat = events.find((e) => e.type === "tacticalRetreat");
     if (retreat && retreat.type === "tacticalRetreat") {
       const n = retreat.count;
