@@ -2,16 +2,25 @@ import { useState } from "react";
 import type { BoardMode } from "@risk3d/engine";
 import type { SeatSpec } from "./game/useHotseat.js";
 import { PLAYER_COLORS } from "./players.js";
-import { Icon } from "./Icon.js";
+import { Button, Dialog, Segmented } from "./ui/index.js";
 
 type SeatChoice = "human" | "easy" | "medium" | "hard";
-const CHOICES: SeatChoice[] = ["human", "easy", "medium", "hard"];
-const LABEL: Record<SeatChoice, string> = { human: "Human", easy: "Easy", medium: "Medium", hard: "Hard" };
+const CHOICES: { value: SeatChoice; label: string }[] = [
+  { value: "human", label: "Human" },
+  { value: "easy", label: "Easy" },
+  { value: "medium", label: "Medium" },
+  { value: "hard", label: "Hard" },
+];
 const toSpec = (c: SeatChoice): SeatSpec => (c === "human" ? { kind: "human" } : { kind: "cpu", difficulty: c });
 const defaultName = (i: number) => `Player ${i + 1}`;
 
 // Games are played on the Classic board.
 const MODE: BoardMode = "classic";
+
+const YES_NO = [
+  { value: true, label: "Yes" },
+  { value: false, label: "No" },
+];
 
 interface Props {
   onStart: (mode: BoardMode, seats: SeatSpec[], names: string[], campaign: boolean, actionCards: boolean) => void;
@@ -40,81 +49,50 @@ export function NewGameDialog({ onStart, onClose }: Props) {
   const setName = (i: number, v: string) => setNames((prev) => prev.map((s, idx) => (idx === i ? v : s)));
 
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="overlay-card new-game" onClick={(e) => e.stopPropagation()}>
-        <div className="overlay-head">
-          <h2>New Game</h2>
-          <button className="tut-x" aria-label="Close" onClick={onClose}><Icon name="close" size={18} /></button>
-        </div>
-
-        {/* These fields wrap a *group* of buttons, so they must be <div>s, not
-            <label>s: a <label> associates with its first labelable descendant, and
-            hovering anywhere in it makes that first button match :hover. */}
-        <div className="field">
-          <span>Campaign cards</span>
-          <div className="segmented">
-            <button className={campaign ? "sel" : ""} onClick={() => setCampaign(true)}>
-              Yes
-            </button>
-            <button className={!campaign ? "sel" : ""} onClick={() => setCampaign(false)}>
-              No
-            </button>
-          </div>
-          <span className="field-hint">Deal every player a secret objective — hold a country, seize a continent or assassinate a rival. First to complete theirs wins. No plays a standard last-general-standing game.</span>
-        </div>
-
-        <div className="field">
-          <span>Action cards</span>
-          <div className="segmented">
-            <button className={actionCards ? "sel" : ""} onClick={() => setActionCards(true)}>
-              Yes
-            </button>
-            <button className={!actionCards ? "sel" : ""} onClick={() => setActionCards(false)}>
-              No
-            </button>
-          </div>
-          <span className="field-hint">Deal each player 2 secret one-shot special cards to manage.</span>
-        </div>
-
-        <div className="field">
-          <span>Players</span>
-          <div className="segmented">
-            {[2, 3, 4, 5, 6].map((n) => (
-              <button key={n} className={seats.length === n ? "sel" : ""} onClick={() => setCount(n)}>
-                {n}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="field">
-          <span>Seats</span>
-          {seats.map((choice, i) => (
-            <div className="seat" key={i}>
-              <span className="dot" style={{ background: PLAYER_COLORS[i % PLAYER_COLORS.length] }} />
-              <input
-                className="seat-name"
-                value={names[i] ?? ""}
-                maxLength={18}
-                placeholder={defaultName(i)}
-                onChange={(e) => setName(i, e.target.value)}
-                aria-label={`Name for player ${i + 1}`}
-              />
-              <div className="segmented">
-                {CHOICES.map((c) => (
-                  <button key={c} className={choice === c ? "sel" : ""} onClick={() => setSeat(i, c)}>
-                    {LABEL[c]}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <button className="start" onClick={() => onStart(MODE, seats.map(toSpec), names, campaign, actionCards)}>
-          {campaign ? "Start campaign" : "Start game"}
-        </button>
+    <Dialog title="New Game" cardClassName="new-game" onClose={onClose}>
+      <div className="field">
+        <span>Campaign cards</span>
+        <Segmented options={YES_NO} value={campaign} onChange={setCampaign} ariaLabel="Campaign cards" />
+        <span className="field-hint">Deal every player a secret objective — hold a country, seize a continent or assassinate a rival. First to complete theirs wins. No plays a standard last-general-standing game.</span>
       </div>
-    </div>
+
+      <div className="field">
+        <span>Action cards</span>
+        <Segmented options={YES_NO} value={actionCards} onChange={setActionCards} ariaLabel="Action cards" />
+        <span className="field-hint">Deal each player 2 secret one-shot special cards to manage.</span>
+      </div>
+
+      <div className="field">
+        <span>Players</span>
+        <Segmented
+          options={[2, 3, 4, 5, 6].map((n) => ({ value: n, label: n }))}
+          value={seats.length}
+          onChange={setCount}
+          ariaLabel="Number of players"
+        />
+      </div>
+
+      <div className="field">
+        <span>Seats</span>
+        {seats.map((choice, i) => (
+          <div className="seat" key={i}>
+            <span className="dot" style={{ background: PLAYER_COLORS[i % PLAYER_COLORS.length] }} />
+            <input
+              className="seat-name"
+              value={names[i] ?? ""}
+              maxLength={18}
+              placeholder={defaultName(i)}
+              onChange={(e) => setName(i, e.target.value)}
+              aria-label={`Name for player ${i + 1}`}
+            />
+            <Segmented options={CHOICES} value={choice} onChange={(c) => setSeat(i, c)} ariaLabel={`Player ${i + 1} type`} />
+          </div>
+        ))}
+      </div>
+
+      <Button onClick={() => onStart(MODE, seats.map(toSpec), names, campaign, actionCards)}>
+        {campaign ? "Start campaign" : "Start game"}
+      </Button>
+    </Dialog>
   );
 }

@@ -1,5 +1,6 @@
 import type { Hotseat } from "./game/useHotseat.js";
 import { Icon } from "./Icon.js";
+import { Button } from "./ui/index.js";
 import { actionCardInfo } from "./actionCards.js";
 
 /** Dismissible popup summarising the outcome of a reactive card (Minefield, Retreat). */
@@ -14,9 +15,9 @@ export function ActionOutcome({ hs }: { hs: Hotseat }) {
         <img className="decision-img" src={info.image} alt={info.name} draggable={false} />
         <p className="combat-result">{outcome.text}</p>
         <div className="combat-actions">
-          <button className="start" onClick={hs.dismissOutcome}>
+          <Button onClick={hs.dismissOutcome}>
             <Icon name="arrow-right" size={14} /> Continue
-          </button>
+          </Button>
         </div>
       </div>
     </div>

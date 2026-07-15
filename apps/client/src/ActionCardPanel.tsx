@@ -1,5 +1,5 @@
 import type { Hotseat } from "./game/useHotseat.js";
-import { Icon } from "./Icon.js";
+import { Dialog } from "./ui/index.js";
 import { actionCardInfo } from "./actionCards.js";
 
 /**
@@ -13,40 +13,31 @@ export function ActionCardPanel({ hs, onClose }: { hs: Hotseat; onClose: () => v
   const held = me.actionCards;
 
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="overlay-card action-cards-card" onClick={(e) => e.stopPropagation()}>
-        <div className="overlay-head">
-          <h2>{me.name} — Action cards</h2>
-          <button className="tut-x" aria-label="Close" onClick={onClose}>
-            <Icon name="close" size={18} />
-          </button>
-        </div>
-
-        {held.length === 0 ? (
-          <p className="hint">No action cards left — you've played them all.</p>
-        ) : (
-          <>
-            <p className="hint">
-              Your secret one-shot cards. Play them through the game itself (attacking,
-              reinforcing, fortifying, or when defending) — not from this screen.
-            </p>
-            <div className="action-hand">
-              {held.map((type, i) => {
-                const info = actionCardInfo(type);
-                return (
-                  <div className="action-card" key={`${type}-${i}`}>
-                    <img className="action-card-img" src={info.image} alt={info.name} draggable={false} />
-                    <div className="action-card-text">
-                      <strong>{info.name}</strong>
-                      <span className="hint">{info.blurb}</span>
-                    </div>
+    <Dialog title={`${me.name} — Action cards`} cardClassName="action-cards-card" onClose={onClose}>
+      {held.length === 0 ? (
+        <p className="hint">No action cards left — you've played them all.</p>
+      ) : (
+        <>
+          <p className="hint">
+            Your secret one-shot cards. Play them through the game itself (attacking,
+            reinforcing, fortifying, or when defending) — not from this screen.
+          </p>
+          <div className="action-hand">
+            {held.map((type, i) => {
+              const info = actionCardInfo(type);
+              return (
+                <div className="action-card" key={`${type}-${i}`}>
+                  <img className="action-card-img" src={info.image} alt={info.name} draggable={false} />
+                  <div className="action-card-text">
+                    <strong>{info.name}</strong>
+                    <span className="hint">{info.blurb}</span>
                   </div>
-                );
-              })}
-            </div>
-          </>
-        )}
-      </div>
-    </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </Dialog>
   );
 }

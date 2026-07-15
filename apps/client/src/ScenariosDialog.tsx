@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { GameState } from "@risk3d/engine";
 import { SCENARIOS, scenarioById, DIFFICULTY } from "./scenarios/index.js";
-import { Icon } from "./Icon.js";
+import { Button, Dialog } from "./ui/index.js";
 
 /** Human-readable label for a CPU seat's AI level (falls back to the raw value). */
 const AI_LABEL: Record<string, string> = {
@@ -44,20 +44,12 @@ export function ScenariosDialog({
   }
 
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="overlay-card scenarios-dialog" onClick={(e) => e.stopPropagation()}>
-        <div className="overlay-head">
-          <h2>Scenarios</h2>
-          <button className="tut-x" aria-label="Close" onClick={onClose}>
-            <Icon name="close" size={18} />
-          </button>
-        </div>
-
-        {!scenario ? (
-          <p className="hint">No scenarios available.</p>
-        ) : (
-          <>
-            <div className="scenarios-body">
+    <Dialog title="Scenarios" cardClassName="scenarios-dialog" onClose={onClose}>
+      {!scenario ? (
+        <p className="hint">No scenarios available.</p>
+      ) : (
+        <>
+          <div className="scenarios-body">
               <ul
                 className="scenario-list"
                 role="listbox"
@@ -124,16 +116,15 @@ export function ScenariosDialog({
             </div>
 
             <div className="dialog-foot">
-              <button className="quiet" onClick={onClose}>
+              <Button variant="quiet" onClick={onClose}>
                 Cancel
-              </button>
-              <button className="start" onClick={() => onPlay(scenario.build(new Set([scenario.defaultHuman])))}>
+              </Button>
+              <Button onClick={() => onPlay(scenario.build(new Set([scenario.defaultHuman])))}>
                 Play
-              </button>
+              </Button>
             </div>
           </>
         )}
-      </div>
-    </div>
+    </Dialog>
   );
 }

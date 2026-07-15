@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { Icon } from "./Icon.js";
+import { Dialog } from "./ui/index.js";
 
 interface Topic {
   id: string;
@@ -138,27 +138,19 @@ export function HelpDialog({ onClose }: { onClose: () => void }) {
   const [active, setActive] = useState(TOPICS[0].id);
   const topic = TOPICS.find((t) => t.id === active) ?? TOPICS[0];
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="overlay-card help-dialog" onClick={(e) => e.stopPropagation()}>
-        <div className="overlay-head">
-          <h2>Help</h2>
-          <button className="tut-x" aria-label="Close" onClick={onClose}>
-            <Icon name="close" size={18} />
-          </button>
-        </div>
-        <div className="help-body">
-          <nav className="help-nav">
-            {TOPICS.map((t) => (
-              <button key={t.id} className={t.id === active ? "sel" : ""} onClick={() => setActive(t.id)}>
-                {t.label}
-              </button>
-            ))}
-          </nav>
-          <div className="help-content" key={topic.id}>
-            {topic.body}
-          </div>
+    <Dialog title="Help" cardClassName="help-dialog" onClose={onClose}>
+      <div className="help-body">
+        <nav className="help-nav">
+          {TOPICS.map((t) => (
+            <button key={t.id} className={t.id === active ? "sel" : ""} onClick={() => setActive(t.id)}>
+              {t.label}
+            </button>
+          ))}
+        </nav>
+        <div className="help-content" key={topic.id}>
+          {topic.body}
         </div>
       </div>
-    </div>
+    </Dialog>
   );
 }

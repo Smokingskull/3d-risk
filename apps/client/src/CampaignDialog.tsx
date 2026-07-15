@@ -1,5 +1,5 @@
 import type { GameState } from "@risk3d/engine";
-import { Icon } from "./Icon.js";
+import { Button, Dialog } from "./ui/index.js";
 
 const ART: Record<string, string> = {
   country: "/assets/cards/country-campaign-card.png",
@@ -24,20 +24,10 @@ export function CampaignDialog({ game, onClose }: { game: GameState; onClose: ()
   }
 
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="overlay-card campaign-card" onClick={(e) => e.stopPropagation()}>
-        <div className="overlay-head">
-          <h2>Your Campaign</h2>
-          <button className="tut-x" aria-label="Close" onClick={onClose}>
-            <Icon name="close" size={18} />
-          </button>
-        </div>
-        <img className="campaign-img" src={ART[c.kind]} alt={c.kind} draggable={false} />
-        <p className="campaign-aim">{aim}</p>
-        <button className="start" onClick={onClose}>
-          Understood
-        </button>
-      </div>
-    </div>
+    <Dialog title="Your Campaign" cardClassName="campaign-card" onClose={onClose}>
+      <img className="campaign-img" src={ART[c.kind]} alt={c.kind} draggable={false} />
+      <p className="campaign-aim">{aim}</p>
+      <Button onClick={onClose}>Understood</Button>
+    </Dialog>
   );
 }

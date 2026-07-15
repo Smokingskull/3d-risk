@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { perceivedArmies, reinforcementsFor } from "@risk3d/engine";
 import type { Hotseat } from "./game/useHotseat.js";
-import { Icon } from "./Icon.js";
+import { Button, CloseButton } from "./ui/index.js";
 
 function Stepper({ min, max, value, onChange }: { min: number; max: number; value: number; onChange: (n: number) => void }) {
   const clamp = (n: number) => Math.min(max, Math.max(min, n));
@@ -66,9 +66,9 @@ export function CountryPopup({ hs }: { hs: Hotseat }) {
           ) : (
             <div className="pop-action">
               <Stepper min={1} max={Math.max(1, game.reinforcementsRemaining)} value={Math.min(amount, game.reinforcementsRemaining || 1)} onChange={setAmount} />
-              <button className="start" onClick={() => hs.deploy(id, Math.min(amount, game.reinforcementsRemaining))}>
+              <Button onClick={() => hs.deploy(id, Math.min(amount, game.reinforcementsRemaining))}>
                 Deploy
-              </button>
+              </Button>
             </div>
           )}
           {canMisinform && <MisinfoControl real={t.armies} swing={reinforcementsFor(game, me)} onSet={playMisinfo} />}
@@ -77,7 +77,7 @@ export function CountryPopup({ hs }: { hs: Hotseat }) {
     else body = <p className="hint">Enemy territory — you can't reinforce here.</p>;
   } else if (game.phase === "attack") {
     if (!mine) {
-      if (isSource === false && isTarget) body = <button className="start" onClick={() => hs.attackTarget(id)}>⚔ Attack from {hs.selectedFrom}</button>;
+      if (isSource === false && isTarget) body = <Button onClick={() => hs.attackTarget(id)}>⚔ Attack from {hs.selectedFrom}</Button>;
       else if (hs.selectedFrom) body = <p className="hint">Not adjacent to {hs.selectedFrom}. Pick a bordering target.</p>;
       else body = <p className="hint">Select one of your bordering territories (2+ armies) to attack from.</p>;
     } else if (isSource) {
@@ -88,7 +88,7 @@ export function CountryPopup({ hs }: { hs: Hotseat }) {
         </div>
       );
     } else if (t.armies >= 2) {
-      body = <button className="start" onClick={() => hs.chooseSource(id)}>Attack from here</button>;
+      body = <Button onClick={() => hs.chooseSource(id)}>Attack from here</Button>;
     } else {
       body = <p className="hint">Only 1 army — needs 2+ to attack.</p>;
     }
@@ -99,9 +99,9 @@ export function CountryPopup({ hs }: { hs: Hotseat }) {
       body = (
         <div className="pop-action">
           <Stepper min={1} max={Math.max(1, fromArmies - 1)} value={Math.min(amount, fromArmies - 1)} onChange={setAmount} />
-          <button className="start" onClick={() => hs.fortifyMove(id, Math.min(amount, fromArmies - 1))}>
+          <Button onClick={() => hs.fortifyMove(id, Math.min(amount, fromArmies - 1))}>
             Move here from {hs.selectedFrom}
-          </button>
+          </Button>
         </div>
       );
     } else if (isSource) {
@@ -112,7 +112,7 @@ export function CountryPopup({ hs }: { hs: Hotseat }) {
         </div>
       );
     } else if (t.armies >= 2) {
-      body = <button className="start" onClick={() => hs.chooseSource(id)}>Move armies from here</button>;
+      body = <Button onClick={() => hs.chooseSource(id)}>Move armies from here</Button>;
     } else {
       body = <p className="hint">{hs.selectedFrom ? "Not connected to your selected source." : "Only 1 army — can't move from here."}</p>;
     }
@@ -123,7 +123,7 @@ export function CountryPopup({ hs }: { hs: Hotseat }) {
       <div className="pop-head">
         <span className="pop-dot" style={{ background: ownerColor }} />
         <strong>{id}</strong>
-        <button className="tut-x" aria-label="Close" onClick={hs.closeDialog}><Icon name="close" size={18} /></button>
+        <CloseButton onClick={hs.closeDialog} />
       </div>
       <div className="pop-info">
         {mine ? `Your territory · ${t.armies} armies` : `Held by ${ownerName} · ${perceived} armies`}
@@ -154,7 +154,7 @@ function MisinfoControl({ real, swing, onSet }: { real: number; swing: number; o
       <span className="hint">Show enemies a fake count — real is {real}:</span>
       <div className="pop-action">
         <Stepper min={min} max={max} value={value} onChange={setFake} />
-        <button className="start" onClick={() => onSet(value)}>Show {value}</button>
+        <Button onClick={() => onSet(value)}>Show {value}</Button>
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 import type { Hotseat } from "./game/useHotseat.js";
+import { Button } from "./ui/index.js";
 import { actionCardInfo } from "./actionCards.js";
 
 /**
@@ -25,12 +26,10 @@ export function DecisionPrompt({ hs }: { hs: Hotseat }) {
             destroy some of the armies they move in?
           </p>
           <div className="combat-actions">
-            <button className="start" onClick={() => hs.resolveDecision(true)}>
-              Lay Minefield
-            </button>
-            <button className="quiet" onClick={() => hs.resolveDecision(false)}>
+            <Button onClick={() => hs.resolveDecision(true)}>Lay Minefield</Button>
+            <Button variant="quiet" onClick={() => hs.resolveDecision(false)}>
               No, let them pass
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -53,13 +52,13 @@ export function DecisionPrompt({ hs }: { hs: Hotseat }) {
           </p>
           <div className="combat-actions">
             {targets.map((to) => (
-              <button key={to} className="start" onClick={() => hs.resolveDecision(true, to)}>
+              <Button key={to} onClick={() => hs.resolveDecision(true, to)}>
                 Retreat to {to}
-              </button>
+              </Button>
             ))}
-            <button className="quiet" onClick={() => hs.resolveDecision(false)}>
+            <Button variant="quiet" onClick={() => hs.resolveDecision(false)}>
               Stay and fight
-            </button>
+            </Button>
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { GameEvent } from "@risk3d/engine";
 import type { Hotseat } from "./game/useHotseat.js";
-import { Icon } from "./Icon.js";
+import { Button, CloseButton, Dialog } from "./ui/index.js";
 import { describe } from "./gameLog.js";
 
 interface TurnGroup {
@@ -78,55 +78,43 @@ export function VictoryOverlay({ hs }: { hs: Hotseat }) {
   return (
     <div className="overlay victory-overlay" onClick={() => setDismissed(true)}>
       <div className="victory-card" onClick={(e) => e.stopPropagation()}>
-        <button className="tut-x victory-x" aria-label="Close" onClick={() => setDismissed(true)}>
-          <Icon name="close" size={18} />
-        </button>
+        <CloseButton className="victory-x" onClick={() => setDismissed(true)} />
         <img className="victory-img" src={src} alt={humanWon ? "Victory" : "Defeat"} draggable={false} />
         <div className="victory-actions">
-          <button className="quiet" onClick={() => setDismissed(true)}>
+          <Button variant="quiet" onClick={() => setDismissed(true)}>
             View board
-          </button>
-          <button className="quiet" onClick={() => setLogOpen(true)}>
+          </Button>
+          <Button variant="quiet" onClick={() => setLogOpen(true)}>
             View game log
-          </button>
-          <button className="start" onClick={hs.reset}>
-            New game
-          </button>
+          </Button>
+          <Button onClick={hs.reset}>New game</Button>
         </div>
       </div>
       {logOpen && (
-        <div className="overlay" onClick={(e) => { e.stopPropagation(); setLogOpen(false); }}>
-          <div className="overlay-card game-log-card" onClick={(e) => e.stopPropagation()}>
-            <div className="overlay-head">
-              <h2>Game log</h2>
-              <button className="tut-x" aria-label="Close" onClick={() => setLogOpen(false)}>
-                <Icon name="close" size={18} />
-              </button>
+        <Dialog title="Game log" cardClassName="game-log-card" onClose={() => setLogOpen(false)}>
+          {groups.length === 0 ? (
+            <p className="hint">No moves were recorded.</p>
+          ) : (
+            <div className="game-log">
+              {groups.map((g, gi) => (
+                <section key={gi} className="game-log-turn">
+                  <h3 className="game-log-turn-head">
+                    Turn {g.turn} · {nameOf(g.player)}
+                  </h3>
+                  {g.events.length === 0 ? (
+                    <p className="game-log-empty">(no moves)</p>
+                  ) : (
+                    <ol className="game-log-events">
+                      {g.events.map((e, i) => (
+                        <li key={i}>{describe(e, nameOf)}</li>
+                      ))}
+                    </ol>
+                  )}
+                </section>
+              ))}
             </div>
-            {groups.length === 0 ? (
-              <p className="hint">No moves were recorded.</p>
-            ) : (
-              <div className="game-log">
-                {groups.map((g, gi) => (
-                  <section key={gi} className="game-log-turn">
-                    <h3 className="game-log-turn-head">
-                      Turn {g.turn} · {nameOf(g.player)}
-                    </h3>
-                    {g.events.length === 0 ? (
-                      <p className="game-log-empty">(no moves)</p>
-                    ) : (
-                      <ol className="game-log-events">
-                        {g.events.map((e, i) => (
-                          <li key={i}>{describe(e, nameOf)}</li>
-                        ))}
-                      </ol>
-                    )}
-                  </section>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+          )}
+        </Dialog>
       )}
     </div>
   );

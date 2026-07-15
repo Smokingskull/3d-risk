@@ -2,6 +2,7 @@ import { useState } from "react";
 import { perceivedArmies } from "@risk3d/engine";
 import type { Hotseat } from "./game/useHotseat.js";
 import { Icon } from "./Icon.js";
+import { Button } from "./ui/index.js";
 import { OptionsDialog } from "./OptionsDialog.js";
 import { CampaignDialog } from "./CampaignDialog.js";
 import { PhaseRail } from "./PhaseRail.js";
@@ -45,7 +46,7 @@ export function Hud({ hs, hovered, onOpenHelp, onOpenCards }: { hs: Hotseat; hov
         hs.mustTrade ? (
           <div className="banner trade-banner">
             <span>You hold 5+ cards — you must trade a set before deploying.</span>
-            <button className="start" onClick={onOpenCards}>Trade cards</button>
+            <Button onClick={onOpenCards}>Trade cards</Button>
           </div>
         ) : (
           <p className="hint">Click your territories to place armies.</p>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Hotseat } from "./game/useHotseat.js";
 import { Icon } from "./Icon.js";
+import { Button } from "./ui/index.js";
 
 /** Contextual per-phase tip shown while the tutorial is on. */
 const TIPS: Record<string, { title: string; body: string }> = {
@@ -46,15 +47,15 @@ export function HelpBox({ hs, onOpenHelp }: { hs: Hotseat; onOpenHelp: () => voi
           <strong className="tut-title">{tip.title}</strong>
           <p>{tip.body}</p>
           <div className="help-actions">
-            <button className="quiet" onClick={hs.startTour}>
+            <Button variant="quiet" onClick={hs.startTour}>
               Interface tour
-            </button>
-            <button className="quiet" onClick={onOpenHelp}>
+            </Button>
+            <Button variant="quiet" onClick={onOpenHelp}>
               Help topics
-            </button>
-            <button className="quiet" onClick={hs.toggleTutorial}>
+            </Button>
+            <Button variant="quiet" onClick={hs.toggleTutorial}>
               Turn off
-            </button>
+            </Button>
           </div>
         </>
       )}

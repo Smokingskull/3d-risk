@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 import type { Hotseat } from "./game/useHotseat.js";
+import { Button } from "./ui/index.js";
 
 /** Ordered guided tour. Each step points a speech bubble at a [data-tut] element. */
 const STEPS: { sel: string; text: string }[] = [
@@ -75,15 +76,13 @@ export function Tutorial({ hs }: { hs: Hotseat }) {
         {rect && <span className={`tut-arrow ${below ? "up" : "down"}`} />}
         <p>{step.text}</p>
         <div className="tut-actions">
-          <button className="quiet" onClick={() => setDone(true)}>
+          <Button variant="quiet" onClick={() => setDone(true)}>
             Skip
-          </button>
+          </Button>
           <span className="tut-step">
             {i + 1} / {STEPS.length}
           </span>
-          <button className="start" onClick={next}>
-            {last ? "Done" : "Next"}
-          </button>
+          <Button onClick={next}>{last ? "Done" : "Next"}</Button>
         </div>
       </div>
     </>

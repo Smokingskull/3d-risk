@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { isValidSet, setBonus, type Card, type TerritoryId } from "@risk3d/engine";
 import type { Hotseat } from "./game/useHotseat.js";
 import { Icon } from "./Icon.js";
+import { Button, Dialog } from "./ui/index.js";
 
 const ART: Record<string, string> = {
   infantry: "/assets/cards/infantry-unit-card.png",
@@ -71,15 +72,7 @@ export function CardPanel({ hs, onClose }: { hs: Hotseat; onClose: () => void })
   };
 
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="overlay-card cards-card" onClick={(e) => e.stopPropagation()}>
-        <div className="overlay-head">
-          <h2>{me.name} — Cards</h2>
-          <button className="tut-x" aria-label="Close" onClick={onClose}>
-            <Icon name="close" size={18} />
-          </button>
-        </div>
-
+    <Dialog title={`${me.name} — Cards`} cardClassName="cards-card" onClose={onClose}>
         {hand.length === 0 ? (
           <p className="hint">No cards yet — capture at least one territory on your turn to earn a card.</p>
         ) : (
@@ -129,15 +122,14 @@ export function CardPanel({ hs, onClose }: { hs: Hotseat; onClose: () => void })
             <div className="card-bonus">
               Set bonus <strong>+{base}</strong>
             </div>
-            <button className="start" disabled={!canTrade} onClick={trade}>
+            <Button disabled={!canTrade} onClick={trade}>
               Trade set (+{base}){isSet && bonusTerritory ? ` · +2 → ${bonusTerritory}` : ""}
-            </button>
+            </Button>
           </div>
 
           {hs.mustTrade && <p className="hint warn">You hold 5+ cards — you must trade a set before placing armies.</p>}
           {game.phase !== "reinforce" && <p className="hint">You can only trade during your reinforce phase.</p>}
         </div>
-      </div>
-    </div>
+    </Dialog>
   );
 }

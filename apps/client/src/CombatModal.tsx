@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { conquestProbability } from "@risk3d/engine";
 import type { Hotseat } from "./game/useHotseat.js";
 import { Icon } from "./Icon.js";
+import { Button } from "./ui/index.js";
 
 // Pip positions on a 3×3 grid (cells 0..8) for each die face.
 const PIPS: Record<number, number[]> = {
@@ -161,13 +162,11 @@ export function CombatModal({ hs }: { hs: Hotseat }) {
                   Air Strike
                 </button>
               )}
-              <button className="start" onClick={hs.rollOnce}>
-                🎲 Roll once
-              </button>
+              <Button onClick={hs.rollOnce}>🎲 Roll once</Button>
               <button onClick={hs.startAuto}>Attack till resolved</button>
-              <button className="quiet" onClick={hs.closeEngagement}>
+              <Button variant="quiet" onClick={hs.closeEngagement}>
                 Retreat
-              </button>
+              </Button>
             </>
           )}
         </div>
@@ -185,9 +184,7 @@ function OccupyControls({ min, max, onOccupy }: { min: number; max: number; onOc
       {max > min && (
         <input type="range" min={min} max={max} value={value} onChange={(e) => setN(Number(e.target.value))} />
       )}
-      <button className="start" onClick={() => onOccupy(value)}>
-        Move {value} in
-      </button>
+      <Button onClick={() => onOccupy(value)}>Move {value} in</Button>
     </div>
   );
 }

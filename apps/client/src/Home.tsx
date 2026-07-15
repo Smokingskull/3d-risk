@@ -5,6 +5,7 @@ import { NewGameDialog } from "./NewGameDialog.js";
 import { HelpDialog } from "./HelpDialog.js";
 import { ScenariosDialog } from "./ScenariosDialog.js";
 import { Icon } from "./Icon.js";
+import { Button, Dialog, Toggle } from "./ui/index.js";
 import { getTutorialEnabled, setTutorialEnabled } from "./settings.js";
 
 type Dialog =
@@ -67,36 +68,24 @@ function HomeOptionsDialog({ onClose, onHelp }: { onClose: () => void; onHelp: (
   };
 
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="overlay-card options-card" onClick={(e) => e.stopPropagation()}>
-        <div className="overlay-head">
-          <h2>Options</h2>
-          <button className="tut-x" aria-label="Close" onClick={onClose}>
-            <Icon name="close" size={18} />
-          </button>
-        </div>
+    <Dialog title="Options" cardClassName="options-card" onClose={onClose}>
+      <Toggle checked={tutorial} onChange={toggleTutorial}>
+        Show tutorial tips — on-screen prompts for each phase (recommended for new players)
+      </Toggle>
 
-        <label className="toggle">
-          <input type="checkbox" checked={tutorial} onChange={toggleTutorial} />
-          <span>Show tutorial tips — on-screen prompts for each phase (recommended for new players)</span>
-        </label>
+      <button
+        className="options-help"
+        onClick={() => {
+          onClose();
+          onHelp();
+        }}
+      >
+        <Icon name="help" /> Help &amp; how to play
+      </button>
 
-        <button
-          className="options-help"
-          onClick={() => {
-            onClose();
-            onHelp();
-          }}
-        >
-          <Icon name="help" /> Help &amp; how to play
-        </button>
-
-        <div className="options-actions">
-          <button className="start" onClick={onClose}>
-            Done
-          </button>
-        </div>
+      <div className="options-actions">
+        <Button onClick={onClose}>Done</Button>
       </div>
-    </div>
+    </Dialog>
   );
 }
