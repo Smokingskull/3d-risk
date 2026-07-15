@@ -6,3 +6,6 @@ dist/
 .env.local
 *.log
 .vite/
+
+# Local design mockup, not part of the app
+Design.PNG
