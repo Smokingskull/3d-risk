@@ -130,7 +130,7 @@ function makeCrackTexture(size = 512, cells = 14, seed = 20260714): THREE.DataTe
 import { getBoard, perceivedArmies, type GameState, type PlayerId, type TerritoryId } from "@risk3d/engine";
 import { NEUTRAL_COLOR } from "./players.js";
 
-const MODEL_URL = "/assets/models/risk_42_territory_globe.glb";
+const MODEL_URL = "/assets/models/risk_42_territory_globe_smoothed.glb";
 const TARGET_RADIUS = 1.2;
 const INERT_COLOR = "#646d7c"; // neutral inactive land (only if a mesh fails to resolve)
 
