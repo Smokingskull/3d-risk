@@ -1667,6 +1667,13 @@ button.quiet:hover:not(:disabled) {
   letter-spacing: 0.08em;
   color: var(--text-dim);
 }
+/* A sentence-case explanatory line beneath a field's control (e.g. Action cards),
+   overriding the uppercase label styling of a plain `.field > span`. */
+.field > span.field-hint {
+  text-transform: none;
+  letter-spacing: normal;
+  line-height: 1.4;
+}
 .choices {
   display: flex;
   gap: 8px;

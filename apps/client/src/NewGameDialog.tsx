@@ -10,17 +10,18 @@ const LABEL: Record<SeatChoice, string> = { human: "Human", easy: "Easy", medium
 const toSpec = (c: SeatChoice): SeatSpec => (c === "human" ? { kind: "human" } : { kind: "cpu", difficulty: c });
 const defaultName = (i: number) => `Player ${i + 1}`;
 
+// The board is fixed to the Classic map for now — the Modern map isn't offered yet.
+const MODE: BoardMode = "classic";
+
 interface Props {
   campaign: boolean;
-  onStart: (mode: BoardMode, seats: SeatSpec[], tutorial: boolean, names: string[], campaign: boolean, actionCards: boolean) => void;
+  onStart: (mode: BoardMode, seats: SeatSpec[], names: string[], campaign: boolean, actionCards: boolean) => void;
   onClose: () => void;
 }
 
 export function NewGameDialog({ campaign, onStart, onClose }: Props) {
-  const [mode, setMode] = useState<BoardMode>("classic");
   const [seats, setSeats] = useState<SeatChoice[]>(["human", "medium", "medium"]);
   const [names, setNames] = useState<string[]>([0, 1, 2].map(defaultName));
-  const [tutorial, setTutorial] = useState(true);
   const [actionCards, setActionCards] = useState(false);
 
   const setCount = (n: number) => {
@@ -47,15 +48,16 @@ export function NewGameDialog({ campaign, onStart, onClose }: Props) {
         </div>
 
         <label className="field">
-          <span>Map</span>
+          <span>Action cards</span>
           <div className="segmented">
-            <button className={mode === "classic" ? "sel" : ""} onClick={() => setMode("classic")}>
-              Classic
+            <button className={actionCards ? "sel" : ""} onClick={() => setActionCards(true)}>
+              Yes
             </button>
-            <button className={mode === "world" ? "sel" : ""} onClick={() => setMode("world")}>
-              Modern
+            <button className={!actionCards ? "sel" : ""} onClick={() => setActionCards(false)}>
+              No
             </button>
           </div>
+          <span className="field-hint">Deal each player 2 secret one-shot special cards to manage.</span>
         </label>
 
         <label className="field">
@@ -93,17 +95,7 @@ export function NewGameDialog({ campaign, onStart, onClose }: Props) {
           ))}
         </div>
 
-        <label className="toggle">
-          <input type="checkbox" checked={tutorial} onChange={(e) => setTutorial(e.target.checked)} />
-          <span>Tutorial tips — on-screen prompts for each phase (recommended for new players)</span>
-        </label>
-
-        <label className="toggle">
-          <input type="checkbox" checked={actionCards} onChange={(e) => setActionCards(e.target.checked)} />
-          <span>Action cards — deal each player 2 secret one-shot special cards to manage</span>
-        </label>
-
-        <button className="start" onClick={() => onStart(mode, seats.map(toSpec), tutorial, names, campaign, actionCards)}>
+        <button className="start" onClick={() => onStart(MODE, seats.map(toSpec), names, campaign, actionCards)}>
           {campaign ? "Start campaign" : "Start game"}
         </button>
       </div>
