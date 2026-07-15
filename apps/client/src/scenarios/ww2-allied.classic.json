@@ -1,7 +1,9 @@
 {
   "version": 1,
   "name": "The Second World War — Allied Counterattack",
-  "description": "1942. The tide must turn. From the east, break the German war machine and end the Reich once and for all. You play the Soviet Union. Difficulty: Hard — Germany is strong and entrenched across Europe, and will not fall cheaply.",
+  "description": "1942. The tide must turn. From the east, break the German war machine and end the Reich once and for all. You play the Soviet Union.",
+  "difficulty": "hard",
+  "difficultyNote": "Germany is strong and entrenched across Europe, and will not fall cheaply.",
   "options": {
     "boardMode": "classic",
     "cardsEnabled": true,

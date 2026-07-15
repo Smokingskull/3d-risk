@@ -1,9 +1,9 @@
 {
   "version": 1,
-  "name": "Carthago Delenda Est — Rome vs Carthage",
-  "description": "The Second Punic War. Hannibal has bled Italy, but Rome endures — and now means to end the Carthaginian threat forever. Cross the sea, take North Africa (Carthage) and hold it for three turns. You play Rome.",
-  "difficulty": "medium",
-  "difficultyNote": "Carthage fights hardest on home soil, but force a landing and dig in and the war is won.",
+  "name": "Pax Britannica — The Empire at Noon",
+  "description": "1900. The sun never sets on your empire — from Canada to India to the Antipodes, you are the first power of the age, and no single rival can match you. One prize is still unfinished: the Scramble for Africa. Complete your hold on the whole continent before the other powers stir. You play the British Empire; your objective is to control all of Africa.",
+  "difficulty": "easy",
+  "difficultyNote": "You already hold Egypt and the Cape — roll down from Egypt through French North and West Africa; you outweigh every rival on the board.",
   "options": {
     "boardMode": "classic",
     "cardsEnabled": true,
@@ -12,40 +12,27 @@
   "players": [
     {
       "id": "p1",
-      "name": "Scipio (Rome)",
+      "name": "The British Empire",
       "color": "#e6194b",
-      "difficulty": "hard",
-      "campaign": {
-        "kind": "country",
-        "territory": "North Africa",
-        "heldTurns": 0
-      }
-    },
-    {
-      "id": "p2",
-      "name": "Hannibal (Carthage)",
-      "color": "#f58231",
-      "difficulty": "medium",
       "campaign": {
         "kind": "continent",
         "continent": "africa"
       }
     },
     {
-      "id": "p3",
-      "name": "The Gallic Tribes",
+      "id": "p2",
+      "name": "The French Republic",
       "color": "#4363d8",
-      "difficulty": "easy",
+      "difficulty": "medium",
       "campaign": {
-        "kind": "country",
-        "territory": "Western Europe",
-        "heldTurns": 0
+        "kind": "continent",
+        "continent": "europe"
       }
     },
     {
-      "id": "p4",
-      "name": "The Greek Cities",
-      "color": "#911eb4",
+      "id": "p3",
+      "name": "The Continental Powers",
+      "color": "#f58231",
       "difficulty": "easy",
       "campaign": {
         "kind": "continent",
@@ -53,14 +40,13 @@
       }
     },
     {
-      "id": "p5",
-      "name": "The Wider World",
-      "color": "#42d4f4",
+      "id": "p4",
+      "name": "The United States",
+      "color": "#911eb4",
       "difficulty": "easy",
       "campaign": {
-        "kind": "country",
-        "territory": "Central Europe",
-        "heldTurns": 0
+        "kind": "continent",
+        "continent": "north-america"
       }
     }
   ],
@@ -73,35 +59,35 @@
       "armies": 2
     },
     "Arabia": {
-      "owner": "p4",
+      "owner": "p3",
       "armies": 2
     },
     "Argentina": {
-      "owner": "p5",
+      "owner": "p4",
       "armies": 2
     },
     "Australia": {
-      "owner": "p3",
-      "armies": 2
+      "owner": "p1",
+      "armies": 3
     },
     "Brazil": {
       "owner": "p4",
       "armies": 2
     },
     "Canada": {
-      "owner": "p5",
-      "armies": 2
+      "owner": "p1",
+      "armies": 3
     },
     "Caribbean": {
-      "owner": "p3",
-      "armies": 2
+      "owner": "p1",
+      "armies": 3
     },
     "Central Africa": {
-      "owner": "p4",
+      "owner": "p2",
       "armies": 2
     },
     "Central America": {
-      "owner": "p5",
+      "owner": "p4",
       "armies": 2
     },
     "Central Asia": {
@@ -109,83 +95,83 @@
       "armies": 2
     },
     "Central Europe": {
-      "owner": "p1",
-      "armies": 3
+      "owner": "p3",
+      "armies": 2
     },
     "China": {
-      "owner": "p4",
+      "owner": "p3",
       "armies": 2
     },
     "East Africa": {
-      "owner": "p5",
-      "armies": 2
+      "owner": "p1",
+      "armies": 3
     },
     "East Indies": {
-      "owner": "p3",
-      "armies": 2
-    },
-    "Eastern Europe": {
       "owner": "p4",
       "armies": 2
     },
+    "Eastern Europe": {
+      "owner": "p3",
+      "armies": 2
+    },
     "Egypt": {
-      "owner": "p2",
-      "armies": 3
+      "owner": "p1",
+      "armies": 5
     },
     "Far East": {
-      "owner": "p5",
+      "owner": "p3",
       "armies": 2
     },
     "Great Britain": {
-      "owner": "p3",
-      "armies": 2
+      "owner": "p1",
+      "armies": 3
     },
     "Greenland": {
       "owner": "p4",
       "armies": 2
     },
     "Iceland": {
-      "owner": "p5",
-      "armies": 2
+      "owner": "p1",
+      "armies": 3
     },
     "India": {
-      "owner": "p3",
-      "armies": 2
+      "owner": "p1",
+      "armies": 3
     },
     "Iran": {
-      "owner": "p4",
+      "owner": "p3",
       "armies": 2
     },
     "Madagascar": {
-      "owner": "p5",
-      "armies": 2
+      "owner": "p1",
+      "armies": 3
     },
     "Mexico": {
-      "owner": "p3",
+      "owner": "p4",
       "armies": 2
     },
     "Middle East": {
-      "owner": "p4",
-      "armies": 2
-    },
-    "Mongolia": {
-      "owner": "p5",
-      "armies": 2
-    },
-    "New Guinea": {
       "owner": "p3",
       "armies": 2
     },
-    "New Zealand": {
+    "Mongolia": {
+      "owner": "p3",
+      "armies": 2
+    },
+    "New Guinea": {
       "owner": "p4",
       "armies": 2
+    },
+    "New Zealand": {
+      "owner": "p1",
+      "armies": 3
     },
     "North Africa": {
       "owner": "p2",
       "armies": 3
     },
     "Peru": {
-      "owner": "p5",
+      "owner": "p4",
       "armies": 2
     },
     "Russia": {
@@ -193,36 +179,36 @@
       "armies": 2
     },
     "Scandinavia": {
-      "owner": "p4",
-      "armies": 2
-    },
-    "Siam": {
-      "owner": "p5",
-      "armies": 2
-    },
-    "Southern Africa": {
       "owner": "p3",
       "armies": 2
     },
-    "Southern Europe": {
+    "Siam": {
       "owner": "p1",
-      "armies": 8
+      "armies": 3
+    },
+    "Southern Africa": {
+      "owner": "p1",
+      "armies": 3
+    },
+    "Southern Europe": {
+      "owner": "p3",
+      "armies": 2
     },
     "United States": {
       "owner": "p4",
       "armies": 2
     },
     "Venezuela": {
-      "owner": "p5",
+      "owner": "p4",
       "armies": 2
     },
     "West Africa": {
       "owner": "p2",
-      "armies": 3
+      "armies": 2
     },
     "Western Europe": {
-      "owner": "p1",
-      "armies": 3
+      "owner": "p2",
+      "armies": 2
     }
   }
 }

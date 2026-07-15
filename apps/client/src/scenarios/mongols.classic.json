@@ -1,7 +1,9 @@
 {
   "version": 1,
   "name": "The Great Khan — Mongol Conquest",
-  "description": "From the open steppe, forge the largest land empire in history — bring every corner of Asia under the horsetail banner. You play Genghis Khan. Difficulty: Hard — you begin small, ringed by richer settled realms you must overrun one by one.",
+  "description": "From the open steppe, forge the largest land empire in history — bring every corner of Asia under the horsetail banner. You play Genghis Khan.",
+  "difficulty": "hard",
+  "difficultyNote": "you begin small, ringed by richer settled realms you must overrun one by one.",
   "options": {
     "boardMode": "classic",
     "cardsEnabled": true,

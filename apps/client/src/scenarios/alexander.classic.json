@@ -1,7 +1,9 @@
 {
   "version": 1,
   "name": "To the Ends of the Earth — Alexander the Great",
-  "description": "334 BC. With a small but peerless army you set out to topple the greatest empire on earth. Chase Darius across Asia and destroy Persia utterly. You play Alexander. Difficulty: Hard — Persia starts far larger and stronger; you win by out-fighting a giant, not out-growing it.",
+  "description": "334 BC. With a small but peerless army you set out to topple the greatest empire on earth. Chase Darius across Asia and destroy Persia utterly. You play Alexander.",
+  "difficulty": "hard",
+  "difficultyNote": "Persia starts far larger and stronger; you win by out-fighting a giant, not out-growing it.",
   "options": {
     "boardMode": "classic",
     "cardsEnabled": true,

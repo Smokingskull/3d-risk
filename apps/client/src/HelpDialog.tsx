@@ -55,10 +55,12 @@ const TOPICS: Topic[] = [
         <p>You only ever see your own objective — open the Campaign card from the Game box. Eliminating everyone still wins too.</p>
         <h3>Scenarios</h3>
         <p>
-          Refight history instead of setting up a fresh game. Open <strong>Scenarios</strong> from the main
-          menu, pick a campaign (Alexander, Rome, the Mongols, Napoleon, the World Wars…), and press{" "}
-          <strong>Play</strong>. Each scenario plays as designed — the factions are listed with your side
-          marked, and each has its own victory objective, described before you start.
+          Drop into a pre-built situation instead of setting up a fresh game. Open{" "}
+          <strong>Scenarios</strong> from the main menu and pick from the list — ranked by difficulty, from
+          gentle learn-the-ropes setups up through historical campaigns (the Crusades, Rome, Napoleon, the
+          World Wars…) to punishing challenges. The panel shows each one's difficulty, briefing and full
+          roster — your side marked <strong>You</strong>, every rival with its CPU level — and each has its
+          own victory objective. Each scenario plays as designed; press <strong>Play</strong> to start.
         </p>
       </>
     ),

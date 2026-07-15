@@ -1,7 +1,9 @@
 {
   "version": 1,
   "name": "The Scourge of God — Attila and the Huns",
-  "description": "451 AD. Attila's horde has burst off the steppe into a crumbling Roman world. One prize matters — break the Western Empire and wipe it from the map. You play Attila. Difficulty: Hard — Rome is dug in to your west, and the other powers won't stand idle while you march.",
+  "description": "451 AD. Attila's horde has burst off the steppe into a crumbling Roman world. One prize matters — break the Western Empire and wipe it from the map. You play Attila.",
+  "difficulty": "hard",
+  "difficultyNote": "Rome is dug in to your west, and the other powers won't stand idle while you march.",
   "options": {
     "boardMode": "classic",
     "cardsEnabled": true,

@@ -1,7 +1,9 @@
 {
   "version": 1,
   "name": "The Second World War — Axis Ascendant",
-  "description": "1941. The Wehrmacht stands astride Europe and the world holds its breath. There is no half-victory here — crush every rival power and impose a new order on the entire globe. You play Germany. Difficulty: Very Hard — you are ringed by industrial giants, and the longer the war runs the more the odds turn against you.",
+  "description": "1941. The Wehrmacht stands astride Europe and the world holds its breath. There is no half-victory here — crush every rival power and impose a new order on the entire globe. You play Germany.",
+  "difficulty": "very-hard",
+  "difficultyNote": "you are ringed by industrial giants, and the longer the war runs the more the odds turn against you.",
   "options": {
     "boardMode": "classic",
     "cardsEnabled": true,

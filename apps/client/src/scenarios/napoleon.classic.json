@@ -1,7 +1,9 @@
 {
   "version": 1,
   "name": "Master of Europe — The Napoleonic Wars",
-  "description": "1805. The Grande Armée is the finest in the world and the continent is there for the taking. Seize and hold all of Europe before the coalitions grind you down. You play Napoleon. Difficulty: Hard — Britain is safe across the Channel and will bankroll enemy after enemy.",
+  "description": "1805. The Grande Armée is the finest in the world and the continent is there for the taking. Seize and hold all of Europe before the coalitions grind you down. You play Napoleon.",
+  "difficulty": "hard",
+  "difficultyNote": "Britain is safe across the Channel and will bankroll enemy after enemy.",
   "options": {
     "boardMode": "classic",
     "cardsEnabled": true,

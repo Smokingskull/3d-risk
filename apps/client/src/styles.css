@@ -701,45 +701,90 @@ button.warn {
 .scenarios-body {
   display: flex;
   gap: 18px;
-  align-items: stretch;
+  /* Columns size to their own content; the list is height-capped below so a long
+     briefing never stretches the list, and vice-versa. */
+  align-items: flex-start;
   flex: 1;
   min-height: 0;
 }
-/* True list box on the left — scrolls, and is wide enough that names wrap to at
-   most a couple of lines. Grows cleanly as more scenarios are added. */
+/* A real list box on the left: an inset panel of borderless rows that shows about
+   seven and a half rows, then scrolls — it never stretches the dialog to fit. */
 .scenario-list {
   width: 300px;
   flex: none;
   display: flex;
   flex-direction: column;
-  gap: 4px;
   margin: 0;
-  padding: 6px;
+  padding: 5px;
   list-style: none;
+  max-height: 396px;
   overflow-y: auto;
   border: 1px solid rgba(182, 138, 72, 0.35);
   border-radius: 10px;
   background: rgba(16, 20, 23, 0.5);
 }
+.scenario-list:focus-visible {
+  outline: 2px solid var(--accent-bright);
+  outline-offset: 2px;
+}
 .scenario-list li {
   margin: 0;
 }
+.scenario-list li + li {
+  border-top: 1px solid rgba(182, 138, 72, 0.12);
+}
+/* Rows read as list items, not buttons: no chrome, natural case, full-width hover
+   and a left accent bar when selected. */
 .scenario-list button {
   width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   text-align: left;
+  text-transform: none;
+  letter-spacing: normal;
   white-space: normal;
-  line-height: 1.25;
-  padding: 9px 12px;
+  font-size: 13px;
+  line-height: 1.3;
+  padding: 8px 10px;
+  color: var(--text-dim);
+  background: transparent;
+  border: none;
+  border-radius: 5px;
+  box-shadow: none;
+}
+.scenario-list button:hover:not(.sel),
+.scenario-list button:focus-visible {
+  background: rgba(213, 174, 105, 0.1);
+  color: var(--text);
+  box-shadow: none;
+  transform: none;
+}
+.scenario-list .scenario-list-name {
+  flex: 1;
+  min-width: 0;
 }
 .scenario-list button.sel {
-  border-color: var(--accent);
-  background: linear-gradient(180deg, rgba(213, 174, 105, 0.3), rgba(182, 138, 72, 0.16));
+  background: linear-gradient(180deg, rgba(213, 174, 105, 0.28), rgba(182, 138, 72, 0.14));
   color: var(--text);
+  box-shadow: inset 3px 0 0 var(--accent-bright);
+}
+/* Small difficulty tag on each list row so the list is scannable by tier. */
+.diff-chip {
+  flex: none;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid;
 }
 .scenario-detail {
   flex: 1;
   min-width: 0;
   min-height: 0;
+  max-height: 396px;
   overflow-y: auto;
   font-family: var(--font-body);
   font-size: 14px;
@@ -747,22 +792,67 @@ button.warn {
   color: var(--text-dim);
 }
 .scenario-detail h3 {
-  margin: 0 0 8px;
+  margin: 0 0 14px;
   font-family: var(--font-ui);
-  font-size: 15px;
+  font-size: 16px;
   color: var(--accent-bright);
+}
+/* Each labelled block of the briefing (Difficulty, Briefing, Factions). */
+.scenario-section {
+  margin-bottom: 18px;
+}
+.scenario-section:last-child {
+  margin-bottom: 0;
+}
+.scenario-detail .field-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-dim);
+}
+.scenario-section p {
+  margin: 0;
+}
+.difficulty-note {
+  margin-top: 6px !important;
+  font-style: italic;
+}
+/* Colour-coded difficulty rating pill (Easy green → Very Hard red). */
+.difficulty-pill {
+  display: inline-block;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 3px 12px;
+  border-radius: 999px;
+  border: 1px solid;
+}
+.diff-easy {
+  color: #8fce8f;
+  border-color: rgba(143, 206, 143, 0.5);
+  background: rgba(143, 206, 143, 0.12);
+}
+.diff-medium {
+  color: #d5ae69;
+  border-color: rgba(213, 174, 105, 0.5);
+  background: rgba(213, 174, 105, 0.12);
+}
+.diff-hard {
+  color: #e0954b;
+  border-color: rgba(224, 149, 75, 0.5);
+  background: rgba(224, 149, 75, 0.12);
+}
+.diff-very-hard {
+  color: #e06b5b;
+  border-color: rgba(224, 107, 91, 0.5);
+  background: rgba(224, 107, 91, 0.12);
 }
 .scenario-seats {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-top: 16px;
-}
-.scenario-seats .field-label {
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: var(--text-dim);
 }
 .scenario-seat {
   display: flex;
@@ -779,8 +869,17 @@ button.warn {
   flex: 1;
   min-width: 0;
 }
-.scenario-seat .segmented {
+/* CPU rival tag (with AI level). */
+.scenario-seat .seat-tag {
   flex: none;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: var(--text-dim);
+  border: 1px solid rgba(155, 163, 166, 0.35);
 }
 /* Badge marking the faction the player commands (fixed by the scenario). */
 .scenario-seat .seat-you {
@@ -788,7 +887,7 @@ button.warn {
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.05em;
   padding: 2px 8px;
   border-radius: 999px;
   color: var(--text);

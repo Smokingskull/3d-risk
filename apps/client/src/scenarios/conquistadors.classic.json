@@ -1,0 +1,226 @@
+{
+  "version": 1,
+  "name": "Conquistadors — The Spanish Main",
+  "description": "1519. From a base in Habsburg Europe, the Spanish Crown looks west across the ocean to the gold of the New World — but the native realms are strong and the Portuguese contest every sea lane. Cross the Atlantic and bring the whole of South America under your banner. You play the Spanish Crown; your objective is to conquer all of South America.",
+  "difficulty": "medium",
+  "difficultyNote": "Your armies are in the Old World and the prize is across the sea — punch through North Africa to Brazil, then take the continent; the crossing is the hard part.",
+  "options": {
+    "boardMode": "classic",
+    "cardsEnabled": true,
+    "campaign": true
+  },
+  "players": [
+    {
+      "id": "p1",
+      "name": "The Spanish Crown",
+      "color": "#e6194b",
+      "campaign": {
+        "kind": "continent",
+        "continent": "south-america"
+      }
+    },
+    {
+      "id": "p2",
+      "name": "The New World Realms",
+      "color": "#3cb44b",
+      "difficulty": "medium",
+      "campaign": {
+        "kind": "continent",
+        "continent": "north-america"
+      }
+    },
+    {
+      "id": "p3",
+      "name": "Portugal and the Coast",
+      "color": "#f58231",
+      "difficulty": "medium",
+      "campaign": {
+        "kind": "country",
+        "territory": "Brazil",
+        "heldTurns": 0
+      }
+    },
+    {
+      "id": "p4",
+      "name": "The Northern Kingdoms",
+      "color": "#4363d8",
+      "difficulty": "medium",
+      "campaign": {
+        "kind": "continent",
+        "continent": "europe"
+      }
+    },
+    {
+      "id": "p5",
+      "name": "The Wider World",
+      "color": "#42d4f4",
+      "difficulty": "easy",
+      "campaign": {
+        "kind": "country",
+        "territory": "Australia",
+        "heldTurns": 0
+      }
+    }
+  ],
+  "activePlayer": "p1",
+  "phase": "reinforce",
+  "turn": 1,
+  "territories": {
+    "Afghanistan": {
+      "owner": "p5",
+      "armies": 1
+    },
+    "Arabia": {
+      "owner": "p5",
+      "armies": 1
+    },
+    "Argentina": {
+      "owner": "p2",
+      "armies": 3
+    },
+    "Australia": {
+      "owner": "p5",
+      "armies": 1
+    },
+    "Brazil": {
+      "owner": "p2",
+      "armies": 4
+    },
+    "Canada": {
+      "owner": "p5",
+      "armies": 1
+    },
+    "Caribbean": {
+      "owner": "p2",
+      "armies": 3
+    },
+    "Central Africa": {
+      "owner": "p3",
+      "armies": 3
+    },
+    "Central America": {
+      "owner": "p2",
+      "armies": 3
+    },
+    "Central Asia": {
+      "owner": "p5",
+      "armies": 1
+    },
+    "Central Europe": {
+      "owner": "p1",
+      "armies": 3
+    },
+    "China": {
+      "owner": "p5",
+      "armies": 1
+    },
+    "East Africa": {
+      "owner": "p3",
+      "armies": 3
+    },
+    "East Indies": {
+      "owner": "p5",
+      "armies": 1
+    },
+    "Eastern Europe": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "Egypt": {
+      "owner": "p3",
+      "armies": 3
+    },
+    "Far East": {
+      "owner": "p5",
+      "armies": 1
+    },
+    "Great Britain": {
+      "owner": "p1",
+      "armies": 3
+    },
+    "Greenland": {
+      "owner": "p5",
+      "armies": 1
+    },
+    "Iceland": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "India": {
+      "owner": "p5",
+      "armies": 1
+    },
+    "Iran": {
+      "owner": "p5",
+      "armies": 1
+    },
+    "Madagascar": {
+      "owner": "p3",
+      "armies": 3
+    },
+    "Mexico": {
+      "owner": "p2",
+      "armies": 3
+    },
+    "Middle East": {
+      "owner": "p5",
+      "armies": 1
+    },
+    "Mongolia": {
+      "owner": "p5",
+      "armies": 1
+    },
+    "New Guinea": {
+      "owner": "p5",
+      "armies": 1
+    },
+    "New Zealand": {
+      "owner": "p5",
+      "armies": 1
+    },
+    "North Africa": {
+      "owner": "p3",
+      "armies": 4
+    },
+    "Peru": {
+      "owner": "p2",
+      "armies": 3
+    },
+    "Russia": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "Scandinavia": {
+      "owner": "p4",
+      "armies": 2
+    },
+    "Siam": {
+      "owner": "p5",
+      "armies": 1
+    },
+    "Southern Africa": {
+      "owner": "p3",
+      "armies": 3
+    },
+    "Southern Europe": {
+      "owner": "p1",
+      "armies": 4
+    },
+    "United States": {
+      "owner": "p5",
+      "armies": 1
+    },
+    "Venezuela": {
+      "owner": "p2",
+      "armies": 3
+    },
+    "West Africa": {
+      "owner": "p3",
+      "armies": 3
+    },
+    "Western Europe": {
+      "owner": "p1",
+      "armies": 4
+    }
+  }
+}
