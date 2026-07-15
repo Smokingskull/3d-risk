@@ -537,8 +537,15 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
     for (const id of Object.keys(game.territories)) {
       const pos = centroids.get(id);
       if (!pos) continue;
-      const shown = viewerId ? perceivedArmies(game, viewerId, id) : game.territories[id].armies;
-      out.push({ id, position: [pos.x, pos.y, pos.z], text: String(shown) });
+      const t = game.territories[id];
+      const mis = game.misinformation[id];
+      // The owner of a bluffed territory sees both counts: real (fake). Everyone
+      // else sees only what they perceive (the fake, until revealed).
+      const text =
+        viewerId && mis && t.owner === viewerId
+          ? `${t.armies} (${mis.fake})`
+          : String(viewerId ? perceivedArmies(game, viewerId, id) : t.armies);
+      out.push({ id, position: [pos.x, pos.y, pos.z], text });
     }
     return out;
   }, [game, viewerId, centroids]);

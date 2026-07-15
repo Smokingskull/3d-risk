@@ -158,7 +158,7 @@ export function CombatModal({ hs }: { hs: Hotseat }) {
                   className="airstrike-btn"
                   onClick={() => hs.playActionCard({ type: "playActionCard", card: "airStrike", from: eng.from, to: eng.to })}
                 >
-                  ✈ Air Strike
+                  Air Strike
                 </button>
               )}
               <button className="start" onClick={hs.rollOnce}>

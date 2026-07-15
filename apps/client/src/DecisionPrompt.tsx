@@ -26,7 +26,7 @@ export function DecisionPrompt({ hs }: { hs: Hotseat }) {
           </p>
           <div className="combat-actions">
             <button className="start" onClick={() => hs.resolveDecision(true)}>
-              💣 Lay Minefield
+              Lay Minefield
             </button>
             <button className="quiet" onClick={() => hs.resolveDecision(false)}>
               No, let them pass

@@ -488,21 +488,21 @@ button.warn {
   border-color: var(--accent);
   color: var(--accent-bright);
 }
-/* Action-card play buttons (Troop Transport, Air Strike) — teal accent to set
-   them apart from the normal phase controls. */
+/* Action-card play buttons (Troop Transport, Air Strike, Misinformation) — a
+   bronze accent edge, matching the End-turn control and the rest of the palette. */
 .card-btn,
 .airstrike-btn {
-  border-color: #3f7d78;
-  color: #8fd6cf;
+  border-color: var(--accent);
+  color: var(--accent-bright);
 }
 .card-btn:hover:not(:disabled),
 .airstrike-btn:hover:not(:disabled) {
-  border-color: #5aa39c;
-  background: rgba(63, 125, 120, 0.22);
+  border-color: var(--accent-bright);
+  background: linear-gradient(180deg, rgba(213, 174, 105, 0.22), rgba(182, 138, 72, 0.1));
 }
 /* Air Strike / action-card outcome line in the combat modal. */
 .combat-note {
-  color: #8fd6cf;
+  color: var(--accent-bright);
 }
 /* Defender decision prompt (Minefield / Tactical Retreat) — reuses the combat card. */
 .decision-prompt {
@@ -529,10 +529,19 @@ button.warn {
   color: #c9a0e0;
   font-style: italic;
 }
+/* Misinformation control in the country popup: its own section under the deploy row. */
+.misinfo-block {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.misinfo-open {
+  width: 100%;
+}
 .misinfo-action {
+  display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
+  gap: 8px;
 }
 
 .row.cpu {

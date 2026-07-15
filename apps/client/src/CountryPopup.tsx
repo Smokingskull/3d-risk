@@ -143,15 +143,19 @@ function MisinfoControl({ real, swing, onSet }: { real: number; swing: number; o
   const value = Math.min(max, Math.max(min, fake));
   if (!open)
     return (
-      <button className="card-btn" onClick={() => { setFake(real); setOpen(true); }}>
-        🎭 Misinformation
-      </button>
+      <div className="misinfo-block">
+        <button className="card-btn misinfo-open" onClick={() => { setFake(real); setOpen(true); }}>
+          Misinformation
+        </button>
+      </div>
     );
   return (
-    <div className="pop-action misinfo-action">
-      <span className="hint">Show enemies a fake count (real {real}):</span>
-      <Stepper min={min} max={max} value={value} onChange={setFake} />
-      <button className="start" onClick={() => onSet(value)}>Bluff</button>
+    <div className="misinfo-block misinfo-action">
+      <span className="hint">Show enemies a fake count — real is {real}:</span>
+      <div className="pop-action">
+        <Stepper min={min} max={max} value={value} onChange={setFake} />
+        <button className="start" onClick={() => onSet(value)}>Show {value}</button>
+      </div>
     </div>
   );
 }

@@ -76,7 +76,7 @@ export function Hud({ hs, hovered, onOpenHelp, onOpenCards }: { hs: Hotseat; hov
           <button className="end-turn" onClick={hs.endTurnNow}>End turn <Icon name="skip-forward" size={14} /></button>
           {game.options.actionCardsEnabled && active.actionCards.includes("troopTransport") && !game.fortifyAnywhere && (
             <button className="card-btn" onClick={() => hs.playActionCard({ type: "playActionCard", card: "troopTransport" })}>
-              🚚 Troop Transport
+              Troop Transport
             </button>
           )}
           <span className="hint">
