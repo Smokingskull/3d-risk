@@ -19,6 +19,7 @@ import { DecisionPrompt } from "./DecisionPrompt.js";
 import { ActionOutcome } from "./ActionOutcome.js";
 import { useHotseat } from "./game/useHotseat.js";
 import { scenarioById } from "./scenarios/index.js";
+import { setTutorialEnabled } from "./settings.js";
 
 const _right = new THREE.Vector3();
 const _up = new THREE.Vector3();
@@ -117,7 +118,8 @@ export function App() {
     if (mode !== "classic" && mode !== "world") return;
     autostarted.current = true;
     const sp = new URLSearchParams(window.location.search);
-    hs.start(mode, [{ kind: "human" }, { kind: "cpu", difficulty: "easy" }, { kind: "cpu", difficulty: "easy" }], sp.get("tutorial") === "1", ["Red", "Blue", "Green"], sp.get("campaign") === "1", sp.get("actioncards") === "1");
+    setTutorialEnabled(sp.get("tutorial") === "1");
+    hs.start(mode, [{ kind: "human" }, { kind: "cpu", difficulty: "easy" }, { kind: "cpu", difficulty: "easy" }], ["Red", "Blue", "Green"], sp.get("campaign") === "1", sp.get("actioncards") === "1");
   }, [hs]);
 
   // Dev-only: ?scenario=<id> boots straight into a bundled scenario, so headless

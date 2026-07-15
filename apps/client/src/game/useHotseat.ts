@@ -17,6 +17,7 @@ import {
   type TerritoryId,
 } from "@risk3d/engine";
 import { PLAYER_COLORS } from "../players.js";
+import { getTutorialEnabled, setTutorialEnabled } from "../settings.js";
 
 /**
  * The next action for whichever CPU must act — the player owing a pending
@@ -117,7 +118,7 @@ export interface Hotseat {
   attackTarget: (to: TerritoryId) => void;
   fortifyMove: (to: TerritoryId, count: number) => void;
   // Lifecycle / other controls.
-  start: (mode: BoardMode, seats: SeatSpec[], tutorial: boolean, names: string[], campaign: boolean, actionCards: boolean) => void;
+  start: (mode: BoardMode, seats: SeatSpec[], names: string[], campaign: boolean, actionCards: boolean) => void;
   /** Load a pre-built game state (e.g. a deserialized save) instead of starting fresh. */
   loadState: (state: GameState) => void;
   reset: () => void;
@@ -141,7 +142,7 @@ export function useHotseat(): Hotseat {
   const [game, setGame] = useState<GameState | null>(null);
   const [selectedFrom, setSelectedFrom] = useState<TerritoryId | null>(null);
   const [log, setLog] = useState<GameEvent[]>([]);
-  const [tutorial, setTutorial] = useState(false);
+  const [tutorial, setTutorial] = useState(getTutorialEnabled);
   const [autoRotate, setAutoRotate] = useState(true);
   const [mode, setMode] = useState<"rotate" | "select">("select");
   const [tourNonce, setTourNonce] = useState(0);
@@ -258,7 +259,7 @@ export function useHotseat(): Hotseat {
     return events;
   }, []);
 
-  const start = useCallback((mode: BoardMode, seats: SeatSpec[], useTutorial: boolean, names: string[], campaign: boolean, actionCards: boolean) => {
+  const start = useCallback((mode: BoardMode, seats: SeatSpec[], names: string[], campaign: boolean, actionCards: boolean) => {
     const seed = Math.floor(Math.random() * 0x7fffffff);
     cpuRunning.current = false;
     autoRef.current = false;
@@ -271,7 +272,8 @@ export function useHotseat(): Hotseat {
     setLastCombat(null);
     setAutoAttacking(false);
     setLog([]);
-    setTutorial(useTutorial);
+    // Tutorial tips are a persisted global preference, toggled from Options.
+    setTutorial(getTutorialEnabled());
     setWinReason(null);
   }, []);
 
@@ -292,7 +294,14 @@ export function useHotseat(): Hotseat {
     setWinReason(null);
   }, []);
 
-  const toggleTutorial = useCallback(() => setTutorial((t) => !t), []);
+  const toggleTutorial = useCallback(
+    () =>
+      setTutorial((t) => {
+        setTutorialEnabled(!t);
+        return !t;
+      }),
+    [],
+  );
   const toggleAutoRotate = useCallback(() => setAutoRotate((a) => !a), []);
   const toggleMode = useCallback(() => setMode((m) => (m === "select" ? "rotate" : "select")), []);
   const startTour = useCallback(() => setTourNonce((n) => n + 1), []);
