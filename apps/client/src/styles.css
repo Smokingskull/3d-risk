@@ -907,7 +907,7 @@ button.quiet:hover:not(:disabled) {
 
 /* Action-cards view popup (read-only hand of held cards). */
 .action-cards-card {
-  width: 460px;
+  width: 520px;
 }
 .action-hand {
   display: flex;
@@ -924,8 +924,8 @@ button.quiet:hover:not(:disabled) {
   border: 1px solid rgba(101, 80, 54, 0.4);
 }
 .action-card-img {
-  width: 72px;
-  height: 72px;
+  width: 144px;
+  height: 144px;
   object-fit: contain;
   border-radius: 8px;
   flex: none;
