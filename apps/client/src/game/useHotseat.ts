@@ -46,6 +46,7 @@ export interface Hotseat {
   game: GameState | null;
   selectedFrom: TerritoryId | null;
   validTargets: Set<TerritoryId>;
+  /** Full chronological event history for the current game (end-of-game transcript). */
   log: GameEvent[];
   isHumanTurn: boolean;
   tutorial: boolean;
@@ -157,7 +158,9 @@ export function useHotseat(): Hotseat {
     const { state, events } = applyAction(g, action);
     gameRef.current = state;
     setGame(state);
-    setLog((prev) => [...events].reverse().concat(prev).slice(0, 10));
+    // Full chronological history, kept for the end-of-game transcript (shown from
+    // the victory/defeat screen, not live in the GAME box).
+    setLog((prev) => prev.concat(events));
     const won = events.find((e) => e.type === "gameWon");
     if (won && won.type === "gameWon") setWinReason(won.reason ?? null);
     return events;

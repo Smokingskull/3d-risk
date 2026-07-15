@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Hotseat } from "./game/useHotseat.js";
 import { Icon } from "./Icon.js";
+import { describe } from "./gameLog.js";
 
 const NORMAL_VICTORY = "/assets/cards/normal-game-victory.png";
 const LOSS = "/assets/cards/game-loss.png";
@@ -21,9 +22,13 @@ export function VictoryOverlay({ hs }: { hs: Hotseat }) {
   const game = hs.game;
   const winnerId = game?.winner ?? null;
   const [dismissed, setDismissed] = useState(false);
+  const [logOpen, setLogOpen] = useState(false);
 
-  // Re-show whenever a new game reaches a winner.
-  useEffect(() => setDismissed(false), [winnerId]);
+  // Re-show (and reset the log view) whenever a new game reaches a winner.
+  useEffect(() => {
+    setDismissed(false);
+    setLogOpen(false);
+  }, [winnerId]);
 
   if (!game || !winnerId || dismissed) return null;
   const winner = game.players.find((p) => p.id === winnerId);
@@ -47,11 +52,37 @@ export function VictoryOverlay({ hs }: { hs: Hotseat }) {
           <button className="quiet" onClick={() => setDismissed(true)}>
             View board
           </button>
+          <button className="quiet" onClick={() => setLogOpen(true)}>
+            View game log
+          </button>
           <button className="start" onClick={hs.reset}>
             New game
           </button>
         </div>
       </div>
+      {logOpen && (
+        <div className="overlay" onClick={(e) => { e.stopPropagation(); setLogOpen(false); }}>
+          <div className="overlay-card game-log-card" onClick={(e) => e.stopPropagation()}>
+            <div className="overlay-head">
+              <h2>Game log</h2>
+              <button className="tut-x" aria-label="Close" onClick={() => setLogOpen(false)}>
+                <Icon name="close" size={18} />
+              </button>
+            </div>
+            {hs.log.length === 0 ? (
+              <p className="hint">No moves were recorded.</p>
+            ) : (
+              <ol className="game-log">
+                {hs.log.map((e, i) => (
+                  <li key={i} className={e.type === "turnEnded" ? "log-turn" : undefined}>
+                    {describe(e)}
+                  </li>
+                ))}
+              </ol>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

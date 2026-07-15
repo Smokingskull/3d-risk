@@ -57,7 +57,6 @@ body {
 .home-desc,
 .hovered,
 .pop-info,
-.log,
 .tutorial p,
 .combat-result,
 .rules-card p,
@@ -268,6 +267,7 @@ button.warn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  margin-left: auto; /* push the phase label to the right of the turn row */
   font-size: 14px;
   font-weight: 400;
   color: var(--text);
@@ -276,11 +276,16 @@ button.warn {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
-/* Rotate-lock toggle: icon button before the phase label. */
+/* Rotate-lock toggle: square icon button in the footer, right of Options.
+   align-self: stretch + aspect-ratio makes it a square matching the row height. */
 .mode-btn {
-  margin-left: auto;
-  font-size: 13px;
-  padding: 4px 8px;
+  flex: 0 0 auto;
+  align-self: stretch;
+  aspect-ratio: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
   line-height: 0;
   color: var(--text-dim);
 }
@@ -289,10 +294,6 @@ button.warn {
   background: linear-gradient(180deg, rgba(213, 174, 105, 0.3), rgba(182, 138, 72, 0.16));
   color: var(--accent-bright);
   box-shadow: inset 0 -2px 0 var(--accent-bright);
-}
-.turn .turnno {
-  font-size: 12px;
-  color: var(--text-dim);
 }
 
 .collapse {
@@ -366,18 +367,6 @@ button.warn {
   min-height: 18px;
   border-top: 1px solid rgba(255, 255, 255, 0.07);
   padding-top: 8px;
-}
-
-.log {
-  list-style: none;
-  font-size: 12px;
-  line-height: 1.55;
-  color: var(--text-dim);
-  max-height: 170px;
-  overflow-y: auto;
-}
-.log li:first-child {
-  color: var(--text);
 }
 
 .banner {
@@ -1384,6 +1373,31 @@ button.quiet:hover:not(:disabled) {
 .victory-actions {
   display: flex;
   gap: 12px;
+}
+/* Full-game transcript, opened from the win/loss screen. */
+.game-log-card {
+  width: 560px;
+}
+.game-log {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 60vh;
+  overflow-y: auto;
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-dim);
+}
+.game-log li {
+  padding: 2px 0;
+}
+.game-log li.log-turn {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  font-weight: 600;
 }
 .overlay-card {
   width: 460px;

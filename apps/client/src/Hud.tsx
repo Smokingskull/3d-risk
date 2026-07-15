@@ -1,36 +1,9 @@
 import { useState } from "react";
-import type { GameEvent, GameState } from "@risk3d/engine";
+import type { GameState } from "@risk3d/engine";
 import type { Hotseat } from "./game/useHotseat.js";
 import { Icon } from "./Icon.js";
 import { OptionsDialog } from "./OptionsDialog.js";
 import { CampaignDialog } from "./CampaignDialog.js";
-
-function describe(e: GameEvent): string {
-  switch (e.type) {
-    case "armiesPlaced":
-      return `${e.player} placed ${e.count} on ${e.territory}`;
-    case "cardsTraded":
-      return `${e.player} traded a set for +${e.bonus}${e.territoryBonus ? ` (+${e.territoryBonus} on ${e.bonusTerritory})` : ""}`;
-    case "attacked":
-      return `${e.from} → ${e.to}: 🎲 [${e.attackerDice.join(",")}] vs [${e.defenderDice.join(",")}] · −${e.attackerLosses}/−${e.defenderLosses}${e.conquered ? " · captured!" : ""}`;
-    case "territoryConquered":
-      return `${e.newOwner} took ${e.to} from ${e.previousOwner}`;
-    case "occupied":
-      return `moved ${e.count} into ${e.to}`;
-    case "cardAwarded":
-      return `${e.player} earned a card`;
-    case "fortified":
-      return `fortified ${e.count} from ${e.from} to ${e.to}`;
-    case "playerEliminated":
-      return `☠ ${e.player} eliminated by ${e.by}`;
-    case "turnEnded":
-      return `— ${e.nextPlayer}'s turn (turn ${e.turn}) —`;
-    case "gameWon":
-      return `🏆 ${e.winner} wins!`;
-    default:
-      return "";
-  }
-}
 
 const PHASE_LABEL: Record<GameState["phase"], string> = {
   reinforce: "Reinforce",
@@ -60,7 +33,7 @@ export function Hud({ hs, hovered, onOpenHelp }: { hs: Hotseat; hovered: string 
     <>
     <div className={open ? "panel" : "panel collapsed"}>
       <div className="panel-header">
-        <h1>{open ? "Game" : `Game (${active.name})`}</h1>
+        <h1>{open ? `Game — Turn ${game.turn}` : `Turn ${game.turn} (${active.name})`}</h1>
         <button className="collapse" aria-label={open ? "Collapse" : "Expand"} onClick={() => setOpen((o) => !o)}>
           <Icon name={open ? "chevron-down" : "chevron-right"} size={16} />
         </button>
@@ -71,15 +44,6 @@ export function Hud({ hs, hovered, onOpenHelp }: { hs: Hotseat; hovered: string 
           <div className="turn">
             <span className="dot" style={{ background: active.color }} />
             <strong data-tut="player">{active.name}</strong>
-            <button
-              className={`mode-btn${hs.mode === "rotate" ? " on" : ""}`}
-              data-tut="mode"
-              onClick={hs.toggleMode}
-              aria-pressed={hs.mode === "rotate"}
-              title={hs.mode === "rotate" ? "Rotate lock ON — selection disabled. Click to enable selecting." : "Rotate lock OFF — click to lock rotation only (no selecting)."}
-            >
-              <Icon name="rotate" />
-            </button>
             <span className="phase" data-tut="phase">
               <Icon name={PHASE_ICON[game.phase]} />
               {PHASE_LABEL[game.phase]}
@@ -89,7 +53,6 @@ export function Hud({ hs, hovered, onOpenHelp }: { hs: Hotseat; hovered: string 
                 </strong>
               )}
             </span>
-            <span className="turnno">turn {game.turn}</span>
           </div>
 
 
@@ -130,12 +93,6 @@ export function Hud({ hs, hovered, onOpenHelp }: { hs: Hotseat; hovered: string 
 
       <div className="hovered">{hovered ? `${hovered}${game.territories[hovered] ? ` — ${game.territories[hovered].armies} armies` : " (not in play)"}` : " "}</div>
 
-      <ul className="log">
-        {hs.log.map((e, i) => (
-          <li key={i}>{describe(e)}</li>
-        ))}
-      </ul>
-
       <div className="footer-row">
         {winner ? (
           <button className="options-btn" onClick={hs.reset}>
@@ -153,6 +110,15 @@ export function Hud({ hs, hovered, onOpenHelp }: { hs: Hotseat; hovered: string 
             </button>
           </>
         )}
+        <button
+          className={`mode-btn${hs.mode === "rotate" ? " on" : ""}`}
+          data-tut="mode"
+          onClick={hs.toggleMode}
+          aria-pressed={hs.mode === "rotate"}
+          title={hs.mode === "rotate" ? "Rotate lock ON — selection disabled. Click to enable selecting." : "Rotate lock OFF — click to lock rotation only (no selecting)."}
+        >
+          <Icon name="rotate" />
+        </button>
       </div>
         </>
       )}
