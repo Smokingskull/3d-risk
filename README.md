@@ -19,9 +19,11 @@ pnpm install
 pnpm dev          # starts the client on http://localhost:5173
 ```
 
-Set up players and board mode from the start menu. Rotate the globe by dragging,
-hover a country to see its name and army count, and click a country to act on it —
-deploy, attack, or fortify, depending on the current phase.
+Set up your players — and optionally enable action cards — from the start menu;
+tutorial tips are an Options toggle (off by default). New games currently play on
+the Classic board. Rotate the globe by dragging, hover a country to see its name
+and army count, and click a country to act on it — deploy, attack, or fortify,
+depending on the current phase.
 
 ## The GAME box (in-game HUD)
 
@@ -50,7 +52,7 @@ screen via **View game log**, grouped into per-turn sections with player names.
 
 ## Action cards
 
-An optional mode (a toggle when starting a game — never in scenarios). Each player
+An optional mode (a Yes/No option when starting a game — never in scenarios). Each player
 is dealt **2 secret one-shot cards** at the start, hidden from opponents and never
 replenished — a resource to manage. The Players panel splits into **Unit cards** and
 **Action cards**; the action-cards popup shows your hand, but you play them through
@@ -158,7 +160,9 @@ edit the source data and rerun. Two board modes ship:
   Build: `build:classic`.
 
 Rebuild both with `pnpm --filter @risk3d/engine build:boards`. Load either via
-`getBoard("world" | "classic")` from `@risk3d/engine`.
+`getBoard("world" | "classic")` from `@risk3d/engine`. Both boards ship in the
+engine and scenarios may use either, but the New Game / New Campaign menu
+currently starts on Classic only — the World map isn't offered there yet.
 3. **AI** — heuristic → MCTS in a Web Worker; single-player vs CPU. _(done: easy/medium/hard
    deterministic policies + exact combat odds, run in a Web Worker; MCTS + adaptive
    opponent-modelling still to come)_
