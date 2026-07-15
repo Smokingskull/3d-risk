@@ -1,14 +1,12 @@
 name: Deploy (staging)
 
-# Staging deploy. Builds the client and syncs it to /srv/3drisk-staging on the
-# VPS, served at staging.3drisk.iainwilson.uk (see deploy/3drisk-staging.Caddyfile),
-# a separate staging site alongside production (/srv/3drisk, main).
-#
-# Temporarily tracking feature/game-box-turn-clarity so that branch's work
-# deploys to staging for testing. Revert to [main] when that branch merges.
+# Staging deploy tracking main. Builds the client and syncs it to
+# /srv/3drisk-staging on the VPS, served at staging.3drisk.iainwilson.uk
+# (see deploy/3drisk-staging.Caddyfile). This deploys the same content as
+# production (/srv/3drisk, main) to a separate staging site.
 on:
   push:
-    branches: [feature/game-box-turn-clarity]
+    branches: [main]
     paths-ignore:
       - "**.md"
   workflow_dispatch:
