@@ -510,11 +510,9 @@ button.warn {
   text-align: center;
 }
 .decision-img {
-  width: 132px;
-  height: 132px;
-  object-fit: contain;
+  height: 150px;
+  width: auto;
   align-self: center;
-  border-radius: 10px;
 }
 .decision-prompt .combat-actions {
   flex-direction: column;
@@ -979,10 +977,8 @@ button.quiet:hover:not(:disabled) {
   border: 1px solid rgba(101, 80, 54, 0.4);
 }
 .action-card-img {
-  width: 144px;
-  height: 144px;
-  object-fit: contain;
-  border-radius: 8px;
+  height: 150px;
+  width: auto;
   flex: none;
 }
 .action-card-text {
