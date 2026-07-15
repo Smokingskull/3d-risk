@@ -47,7 +47,10 @@ export function NewGameDialog({ onStart, onClose }: Props) {
           <button className="tut-x" aria-label="Close" onClick={onClose}><Icon name="close" size={18} /></button>
         </div>
 
-        <label className="field">
+        {/* These fields wrap a *group* of buttons, so they must be <div>s, not
+            <label>s: a <label> associates with its first labelable descendant, and
+            hovering anywhere in it makes that first button match :hover. */}
+        <div className="field">
           <span>Campaign cards</span>
           <div className="segmented">
             <button className={campaign ? "sel" : ""} onClick={() => setCampaign(true)}>
@@ -58,9 +61,9 @@ export function NewGameDialog({ onStart, onClose }: Props) {
             </button>
           </div>
           <span className="field-hint">Deal every player a secret objective — hold a country, seize a continent or assassinate a rival. First to complete theirs wins. No plays a standard last-general-standing game.</span>
-        </label>
+        </div>
 
-        <label className="field">
+        <div className="field">
           <span>Action cards</span>
           <div className="segmented">
             <button className={actionCards ? "sel" : ""} onClick={() => setActionCards(true)}>
@@ -71,9 +74,9 @@ export function NewGameDialog({ onStart, onClose }: Props) {
             </button>
           </div>
           <span className="field-hint">Deal each player 2 secret one-shot special cards to manage.</span>
-        </label>
+        </div>
 
-        <label className="field">
+        <div className="field">
           <span>Players</span>
           <div className="segmented">
             {[2, 3, 4, 5, 6].map((n) => (
@@ -82,7 +85,7 @@ export function NewGameDialog({ onStart, onClose }: Props) {
               </button>
             ))}
           </div>
-        </label>
+        </div>
 
         <div className="field">
           <span>Seats</span>
