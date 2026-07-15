@@ -782,6 +782,19 @@ button.warn {
 .scenario-seat .segmented {
   flex: none;
 }
+/* Badge marking the faction the player commands (fixed by the scenario). */
+.scenario-seat .seat-you {
+  flex: none;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: var(--text);
+  background: linear-gradient(180deg, rgba(213, 174, 105, 0.3), rgba(182, 138, 72, 0.16));
+  border: 1px solid var(--accent);
+}
 .help-content {
   flex: 1;
   min-width: 260px;

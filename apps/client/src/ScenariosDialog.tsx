@@ -1,12 +1,13 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { GameState } from "@risk3d/engine";
 import { SCENARIOS, scenarioById } from "./scenarios/index.js";
 import { Icon } from "./Icon.js";
 
 /**
- * Pick a scenario from the list on the left, read its briefing on the right, and
- * choose which named seat you play as before starting. The board, player count
- * and each seat's CPU difficulty are fixed by the scenario file, so none are shown.
+ * Pick a scenario from the list on the left and read its briefing on the right.
+ * Every scenario plays as designed: the board, player count, each seat's CPU
+ * difficulty and which faction you command are all fixed by the scenario file.
+ * The factions are listed with your side marked, but none can be reassigned.
  */
 export function ScenariosDialog({
   onPlay,
@@ -17,23 +18,6 @@ export function ScenariosDialog({
 }) {
   const [active, setActive] = useState(SCENARIOS[0]?.id);
   const scenario = scenarioById(active) ?? SCENARIOS[0];
-  const [humans, setHumans] = useState<Set<string>>(
-    () => new Set(scenario ? [scenario.defaultHuman] : []),
-  );
-
-  // Reset the seat choices to the scenario's default whenever the selection changes.
-  useEffect(() => {
-    const s = scenarioById(active);
-    setHumans(new Set(s ? [s.defaultHuman] : []));
-  }, [active]);
-
-  const setSeat = (id: string, human: boolean) =>
-    setHumans((prev) => {
-      const next = new Set(prev);
-      if (human) next.add(id);
-      else next.delete(id);
-      return next;
-    });
 
   return (
     <div className="overlay" onClick={onClose}>
@@ -63,19 +47,12 @@ export function ScenariosDialog({
                 <h3>{scenario.name}</h3>
                 <p>{scenario.description}</p>
                 <div className="scenario-seats">
-                  <span className="field-label">Play as</span>
+                  <span className="field-label">Factions</span>
                   {scenario.seats.map((seat) => (
                     <div className="scenario-seat" key={seat.id}>
                       <span className="dot" style={{ background: seat.color }} />
                       <span className="seat-label">{seat.name}</span>
-                      <div className="segmented">
-                        <button className={humans.has(seat.id) ? "sel" : ""} onClick={() => setSeat(seat.id, true)}>
-                          Human
-                        </button>
-                        <button className={!humans.has(seat.id) ? "sel" : ""} onClick={() => setSeat(seat.id, false)}>
-                          CPU
-                        </button>
-                      </div>
+                      {seat.id === scenario.defaultHuman && <span className="seat-you">You</span>}
                     </div>
                   ))}
                 </div>
@@ -86,7 +63,7 @@ export function ScenariosDialog({
               <button className="quiet" onClick={onClose}>
                 Cancel
               </button>
-              <button className="start" onClick={() => onPlay(scenario.build(humans))}>
+              <button className="start" onClick={() => onPlay(scenario.build(new Set([scenario.defaultHuman])))}>
                 Play
               </button>
             </div>
