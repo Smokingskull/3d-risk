@@ -11,6 +11,11 @@
 staging.3drisk.iainwilson.uk {
 	root * /srv/3drisk-staging
 	encode gzip
+	# Staging should always show the latest deploy. `no-cache` makes the browser
+	# revalidate every request (cheap 304s via Caddy's ETags when unchanged), so a
+	# new build — including fixed-name assets like the card PNGs — is picked up
+	# immediately instead of being served from a stale browser cache.
+	header Cache-Control "no-cache"
 	# SPA fallback so any client-side route resolves to the app shell.
 	try_files {path} /index.html
 	file_server
