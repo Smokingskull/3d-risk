@@ -8,7 +8,7 @@ const AI_LABEL: Record<string, string> = {
   easy: "Easy AI",
   medium: "Medium AI",
   hard: "Hard AI",
-  adaptive: "Adaptive AI",
+  joshua: "Joshua",
 };
 
 /**

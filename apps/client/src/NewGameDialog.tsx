@@ -4,12 +4,13 @@ import type { SeatSpec } from "./game/useHotseat.js";
 import { PLAYER_COLORS } from "./players.js";
 import { Button, Dialog, Dot, Field, Segmented } from "./ui/index.js";
 
-type SeatChoice = "human" | "easy" | "medium" | "hard";
+type SeatChoice = "human" | "easy" | "medium" | "hard" | "joshua";
 const CHOICES: { value: SeatChoice; label: string }[] = [
   { value: "human", label: "Human" },
   { value: "easy", label: "Easy" },
   { value: "medium", label: "Medium" },
   { value: "hard", label: "Hard" },
+  { value: "joshua", label: "Joshua" },
 ];
 const toSpec = (c: SeatChoice): SeatSpec => (c === "human" ? { kind: "human" } : { kind: "cpu", difficulty: c });
 const defaultName = (i: number) => `Player ${i + 1}`;

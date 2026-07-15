@@ -40,7 +40,13 @@ export function Hud({ hs, hovered, onOpenHelp, onOpenCards }: { hs: Hotseat; hov
           <PhaseRail game={game} reinforceTotal={hs.reinforceTotal} />
 
 
-      {isCpu && <div className="row cpu">🤖 {active.name} ({active.difficulty}) is planning…</div>}
+      {isCpu && (
+        <div className={`row cpu${hs.thinking ? " thinking" : ""}`}>
+          🤖 {active.name} ({active.difficulty === "joshua" ? "Joshua" : active.difficulty}){" "}
+          {active.difficulty === "joshua" ? "is thinking…" : "is planning…"}
+          {active.difficulty === "joshua" && <em className="cpu-flavour"> Shall we play a game?</em>}
+        </div>
+      )}
 
       {!isCpu && game.phase === "reinforce" && (
         hs.mustTrade ? (
