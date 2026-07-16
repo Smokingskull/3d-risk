@@ -1968,6 +1968,16 @@ button.start:hover:not(:disabled) {
 .ranking-actions > * {
   flex: 1;
 }
+
+/* Game-over choices hub: a stacked menu (watch board / leaderboard / log / leave). */
+.overlay-card.end-choices {
+  width: 360px;
+}
+.end-choices-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
 .lobby-row {
   display: flex;
   align-items: center;

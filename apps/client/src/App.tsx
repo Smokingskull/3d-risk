@@ -108,6 +108,14 @@ export function App() {
   // Action-card view dialog (only when the mode is enabled), opened from the roster.
   const [actionCardsOpen, setActionCardsOpen] = useState(false);
 
+  // Game-over flow (shared with the GAME box): a modal hub. "result" is the
+  // victory/defeat card → "choices" hub → "leaderboard"/"log" (which return to the
+  // hub) or "board" (dismiss the modal to watch the map, then re-open from the HUD).
+  const [endView, setEndView] = useState<"result" | "choices" | "leaderboard" | "log" | "board">("result");
+  useEffect(() => {
+    if (hs.game?.winner) setEndView("result"); // (re)start the flow whenever a game ends
+  }, [hs.game?.winner]);
+
   // Dev-only test hook so headless checks can drive the game deterministically.
   if (import.meta.env.DEV) (window as unknown as { __risk: typeof hs }).__risk = hs;
 
@@ -199,7 +207,13 @@ export function App() {
 
   return (
     <>
-      <Hud hs={hs} hovered={hovered} onOpenHelp={() => setHelpOpen(true)} onOpenCards={() => setCardsOpen(true)} />
+      <Hud
+        hs={hs}
+        hovered={hovered}
+        onOpenHelp={() => setHelpOpen(true)}
+        onOpenCards={() => setCardsOpen(true)}
+        onShowStandings={() => setEndView("choices")}
+      />
       {hs.online && <ChatPanel hs={hs} />}
       <HelpBox hs={hs} onOpenHelp={() => setHelpOpen(true)} />
       <Tutorial hs={hs} />
@@ -208,7 +222,7 @@ export function App() {
       <DecisionPrompt hs={hs} />
       <ActionOutcome hs={hs} />
       <CountryPopup hs={hs} />
-      <VictoryOverlay hs={hs} />
+      <VictoryOverlay hs={hs} view={endView} setView={setEndView} />
       {cardsOpen && <CardPanel hs={hs} onClose={() => setCardsOpen(false)} />}
       {actionCardsOpen && <ActionCardPanel hs={hs} onClose={() => setActionCardsOpen(false)} />}
       <div className="right-stack">

@@ -8,7 +8,19 @@ import { CampaignDialog } from "./CampaignDialog.js";
 import { PhaseRail } from "./PhaseRail.js";
 import { TurnStats } from "./TurnStats.js";
 
-export function Hud({ hs, hovered, onOpenHelp, onOpenCards }: { hs: Hotseat; hovered: string | null; onOpenHelp: () => void; onOpenCards: () => void }) {
+export function Hud({
+  hs,
+  hovered,
+  onOpenHelp,
+  onOpenCards,
+  onShowStandings,
+}: {
+  hs: Hotseat;
+  hovered: string | null;
+  onOpenHelp: () => void;
+  onOpenCards: () => void;
+  onShowStandings: () => void;
+}) {
   const game = hs.game!;
   const active = game.players.find((p) => p.id === game.activePlayer)!;
   const winner = game.winner ? game.players.find((p) => p.id === game.winner) : null;
@@ -109,9 +121,14 @@ export function Hud({ hs, hovered, onOpenHelp, onOpenCards }: { hs: Hotseat; hov
 
       <div className="footer-row">
         {winner ? (
-          <button className="options-btn" onClick={hs.reset}>
-            <Icon name="leaderboards" style={{ color: "#f5c842" }} /> New game
-          </button>
+          <>
+            <button className="options-btn" onClick={onShowStandings}>
+              <Icon name="leaderboards" style={{ color: "#f5c842" }} /> Results
+            </button>
+            <button className="options-btn" onClick={hs.reset}>
+              {hs.online ? "Leave game" : "New game"}
+            </button>
+          </>
         ) : (
           <>
             {game.options.campaign && !isCpu && (

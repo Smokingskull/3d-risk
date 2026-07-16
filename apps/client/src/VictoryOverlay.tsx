@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import type { GameEvent } from "@risk3d/engine";
 import type { Hotseat } from "./game/useHotseat.js";
-import { Button, CloseButton, Dialog } from "./ui/index.js";
+import { Button, Dialog } from "./ui/index.js";
 import { describe } from "./gameLog.js";
 import { RankingScreen } from "./RankingScreen.js";
+
+export type EndView = "result" | "choices" | "leaderboard" | "log" | "board";
 
 interface TurnGroup {
   turn: number;
@@ -20,25 +22,18 @@ const CAMPAIGN_VICTORY: Record<string, string> = {
 };
 
 /**
- * Full-screen win/loss screen shown when a game ends. Picks the image from the
- * human's perspective and the mode:
- *  - a CPU won → defeat;
- *  - campaign won on objective → the art for that objective type;
- *  - otherwise (normal game, or a campaign won by wiping the map) → normal victory.
+ * The end-of-game flow, shown when a game has a winner. A modal hub the player can
+ * only leave via its own buttons:
+ *  - result: the victory/defeat card (from this viewer's perspective) → the choices.
+ *  - choices: watch the board, open the leaderboard/log, or leave the game.
+ *  - leaderboard / log: modal panels that close back to the choices.
+ *  - board: the modal is hidden so the map is visible; the GAME box re-opens the
+ *    choices (and offers Leave game).
+ * The active view is owned by {@link App} so the GAME box can re-open the choices.
  */
-export function VictoryOverlay({ hs }: { hs: Hotseat }) {
+export function VictoryOverlay({ hs, view, setView }: { hs: Hotseat; view: EndView; setView: (v: EndView) => void }) {
   const game = hs.game;
   const winnerId = game?.winner ?? null;
-  const [dismissed, setDismissed] = useState(false);
-  const [logOpen, setLogOpen] = useState(false);
-  const [rankOpen, setRankOpen] = useState(false);
-
-  // Re-show (and reset the sub-views) whenever a new game reaches a winner.
-  useEffect(() => {
-    setDismissed(false);
-    setLogOpen(false);
-    setRankOpen(false);
-  }, [winnerId]);
 
   const nameOf = useMemo(() => {
     const names = new Map((game?.players ?? []).map((p) => [p.id, p.name]));
@@ -67,65 +62,82 @@ export function VictoryOverlay({ hs }: { hs: Hotseat }) {
     return out;
   }, [hs.log, game]);
 
-  if (!game || !winnerId || dismissed) return null;
+  if (!game || !winnerId || view === "board") return null; // watching the board → nothing over the map
   const winner = game.players.find((p) => p.id === winnerId);
   if (!winner) return null;
 
-  // Online: you win only if you ARE the winning seat (another human winning is a loss
-  // for you). Offline hotseat: a human winning is a win for the player at the screen.
+  const leave = hs.online ? "Leave game" : "New game";
+  const canRank = hs.online && !!hs.ranking;
+
+  // Leaderboard / log: modal panels that hide back to the choices hub.
+  if (view === "leaderboard") return <RankingScreen hs={hs} onClose={() => setView("choices")} />;
+  if (view === "log")
+    return (
+      <Dialog title="Game log" cardClassName="game-log-card" onClose={() => setView("choices")} closeOnBackdrop={false} showClose={false}>
+        {groups.length === 0 ? (
+          <p className="hint">No moves were recorded.</p>
+        ) : (
+          <div className="game-log">
+            {groups.map((g, gi) => (
+              <section key={gi} className="game-log-turn">
+                <h3 className="game-log-turn-head">
+                  Turn {g.turn} · {nameOf(g.player)}
+                </h3>
+                {g.events.length === 0 ? (
+                  <p className="game-log-empty">(no moves)</p>
+                ) : (
+                  <ol className="game-log-events">
+                    {g.events.map((e, i) => (
+                      <li key={i}>{describe(e, nameOf)}</li>
+                    ))}
+                  </ol>
+                )}
+              </section>
+            ))}
+          </div>
+        )}
+        <Button onClick={() => setView("choices")}>Back</Button>
+      </Dialog>
+    );
+
+  // Choices hub: watch the board, view the leaderboard/log, or leave.
+  if (view === "choices") {
+    const youWon = hs.online ? winnerId === hs.yourSeat : winner.kind === "human";
+    return (
+      <Dialog title={youWon ? "Victory" : "Defeat"} cardClassName="end-choices" onClose={() => setView("board")} closeOnBackdrop={false} showClose={false}>
+        <div className="end-choices-actions">
+          <Button variant="quiet" onClick={() => setView("board")}>
+            Watch the board
+          </Button>
+          {canRank && (
+            <Button variant="quiet" onClick={() => setView("leaderboard")}>
+              Leaderboard
+            </Button>
+          )}
+          <Button variant="quiet" onClick={() => setView("log")}>
+            Game log
+          </Button>
+          <Button onClick={hs.reset}>{leave}</Button>
+        </div>
+      </Dialog>
+    );
+  }
+
+  // Default (result): the big victory/defeat card → continue to the choices.
   const youWon = hs.online ? winnerId === hs.yourSeat : winner.kind === "human";
   let src: string;
   if (!youWon) src = LOSS;
-  else if (game.options.campaign && hs.winReason === "campaign" && winner.campaign)
-    src = CAMPAIGN_VICTORY[winner.campaign.kind] ?? NORMAL_VICTORY;
+  else if (game.options.campaign && hs.winReason === "campaign" && winner.campaign) src = CAMPAIGN_VICTORY[winner.campaign.kind] ?? NORMAL_VICTORY;
   else src = NORMAL_VICTORY;
 
   return (
-    <div className="overlay victory-overlay" onClick={() => setDismissed(true)}>
-      <div className="victory-card" onClick={(e) => e.stopPropagation()}>
-        <CloseButton className="victory-x" onClick={() => setDismissed(true)} />
+    <div className="overlay victory-overlay">
+      <div className="victory-card">
         <img className="victory-img" src={src} alt={youWon ? "Victory" : "Defeat"} draggable={false} />
         <div className="victory-actions">
-          <Button variant="quiet" onClick={() => setDismissed(true)}>
-            View board
-          </Button>
-          <Button variant="quiet" onClick={() => setLogOpen(true)}>
-            View game log
-          </Button>
-          {hs.online && hs.ranking ? (
-            <Button onClick={() => setRankOpen(true)}>See rankings</Button>
-          ) : (
-            <Button onClick={hs.reset}>New game</Button>
-          )}
+          <Button onClick={() => setView("choices")}>Continue</Button>
         </div>
       </div>
-      {rankOpen && <RankingScreen hs={hs} onClose={() => setRankOpen(false)} />}
-      {logOpen && (
-        <Dialog title="Game log" cardClassName="game-log-card" onClose={() => setLogOpen(false)}>
-          {groups.length === 0 ? (
-            <p className="hint">No moves were recorded.</p>
-          ) : (
-            <div className="game-log">
-              {groups.map((g, gi) => (
-                <section key={gi} className="game-log-turn">
-                  <h3 className="game-log-turn-head">
-                    Turn {g.turn} · {nameOf(g.player)}
-                  </h3>
-                  {g.events.length === 0 ? (
-                    <p className="game-log-empty">(no moves)</p>
-                  ) : (
-                    <ol className="game-log-events">
-                      {g.events.map((e, i) => (
-                        <li key={i}>{describe(e, nameOf)}</li>
-                      ))}
-                    </ol>
-                  )}
-                </section>
-              ))}
-            </div>
-          )}
-        </Dialog>
-      )}
     </div>
   );
 }

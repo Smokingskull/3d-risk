@@ -32,7 +32,7 @@ export function RankingScreen({ hs, onClose }: { hs: Hotseat; onClose: () => voi
   const byId = new Map(game.players.map((p) => [p.id, p]));
 
   return (
-    <Dialog title="Final ranking" cardClassName="ranking-card" onClose={onClose} showClose={false}>
+    <Dialog title="Final ranking" cardClassName="ranking-card" onClose={onClose} closeOnBackdrop={false} showClose={false}>
       <ol className="ranking-list">
         {hs.ranking.map((seat, i) => {
           const p = byId.get(seat);
@@ -58,10 +58,7 @@ export function RankingScreen({ hs, onClose }: { hs: Hotseat; onClose: () => voi
       </ol>
 
       <div className="ranking-actions">
-        <Button variant="quiet" onClick={onClose}>
-          View board
-        </Button>
-        <Button onClick={hs.reset}>Leave</Button>
+        <Button onClick={onClose}>Back</Button>
       </div>
     </Dialog>
   );
