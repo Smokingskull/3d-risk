@@ -12,7 +12,7 @@ import { randomUUID } from "node:crypto";
 import { createServer } from "node:http";
 import { WebSocketServer } from "ws";
 import type { ClientMsg } from "./protocol.js";
-import { createRoom, disconnect, handleIntent, joinRoom, setSeat, startGame, type Conn } from "./rooms.js";
+import { chat, createRoom, disconnect, handleIntent, joinRoom, reconnect, resolveDrop, setSeat, startGame, type Conn } from "./rooms.js";
 
 const PORT = Number(process.env.PORT ?? 8787);
 
@@ -48,6 +48,9 @@ wss.on("connection", (ws) => {
       case "join":
         joinRoom(conn, m.code, m.name);
         break;
+      case "reconnect":
+        reconnect(conn, m.token);
+        break;
       case "setSeat":
         setSeat(conn, m.seat, m.kind, m.difficulty);
         break;
@@ -56,6 +59,12 @@ wss.on("connection", (ws) => {
         break;
       case "intent":
         handleIntent(conn, m.action);
+        break;
+      case "chat":
+        chat(conn, m.text);
+        break;
+      case "resolveDrop":
+        resolveDrop(conn, m.seat, m.choice);
         break;
     }
   });
@@ -79,6 +88,8 @@ const CLIENT_HTML = /* html */ `<!doctype html>
 </style>
 <h2>3D Risk — multiplayer</h2>
 <div id="err" class="err"></div>
+<div id="status" class="k"></div>
+<div id="dropchoice" class="card" style="display:none"></div>
 
 <div id="entry" class="card">
   <div class="seat"><label>Name <input id="name" value="Player" /></label></div>
@@ -99,27 +110,46 @@ const CLIENT_HTML = /* html */ `<!doctype html>
 
 <div id="game" class="card" style="display:none">
   <div id="turn"></div><div id="me"></div><div id="players"></div>
+  <div id="reaction" style="display:none; margin-top:8px"></div>
   <p>
     <button id="deploy">Deploy all reinforcements</button>
     <button id="endAttack">End attack</button>
     <button id="endTurn">End turn</button>
   </p>
   <div id="terr"></div>
+  <div style="margin-top:10px">
+    <div id="chatlog" style="height:80px; overflow:auto; border:1px solid #333; padding:4px; font-size:13px"></div>
+    <input id="chatinput" placeholder="chat…" size="38" /><button id="chatsend">Send</button>
+  </div>
 </div>
 
 <script>
   const ws = new WebSocket((location.protocol === "https:" ? "wss://" : "ws://") + location.host);
-  let you = null, room = null, state = null;
+  let you = null, room = null, state = null, token = null;
   const $ = (id) => document.getElementById(id);
   const send = (m) => ws.send(JSON.stringify(m));
   const err = (t) => { $("err").textContent = t || ""; };
-  window.__mp = () => ({ you, room, state });
+  window.__mp = () => ({ you, room, state, token });
+
+  const addChat = (line) => { const d = $("chatlog"), p = document.createElement("div"); p.textContent = line; d.appendChild(p); d.scrollTop = d.scrollHeight; };
+  function actionBtn(text, action) { const b = document.createElement("button"); b.textContent = text; b.onclick = () => send({ type: "intent", action }); return b; }
+  function showDropChoice(seat, name) {
+    const d = $("dropchoice"); d.style.display = ""; d.innerHTML = "<b>" + name + "</b> didn't return. ";
+    const end = document.createElement("button"); end.textContent = "End game"; end.onclick = () => send({ type: "resolveDrop", seat, choice: "end" });
+    const rep = document.createElement("button"); rep.textContent = "Replace with Joshua"; rep.onclick = () => send({ type: "resolveDrop", seat, choice: "replace" });
+    d.append(end, rep);
+  }
 
   ws.onmessage = (e) => {
     const m = JSON.parse(e.data);
-    if (m.type === "joined") { you = m.you; $("code").value = m.code; }
+    if (m.type === "joined") { you = m.you; token = m.token; $("code").value = m.code; }
     else if (m.type === "lobby") { room = m.room; renderLobby(); }
     else if (m.type === "update" || m.type === "over") { you = m.you; state = m.state; renderGame(m.type === "over" ? m.winner : null); }
+    else if (m.type === "chat") addChat(m.from + ": " + m.text);
+    else if (m.type === "paused") $("status").textContent = "⏸ " + m.name + " disconnected — paused up to " + m.seconds + "s for reconnect…";
+    else if (m.type === "resumed") { $("status").textContent = ""; $("dropchoice").style.display = "none"; }
+    else if (m.type === "dropChoice") showDropChoice(m.seat, m.name);
+    else if (m.type === "ended") $("status").textContent = "🏁 Game ended — " + m.reason;
     else if (m.type === "error") err("⚠ " + m.reason);
   };
 
@@ -129,6 +159,7 @@ const CLIENT_HTML = /* html */ `<!doctype html>
   $("deploy").onclick = () => { err(""); const owned = Object.keys(state.territories).filter(t => state.territories[t].owner === you); if (owned.length) send({ type: "intent", action: { type: "placeArmies", territory: owned[0], count: state.reinforcementsRemaining } }); };
   $("endAttack").onclick = () => send({ type: "intent", action: { type: "endAttack" } });
   $("endTurn").onclick = () => send({ type: "intent", action: { type: "endTurn" } });
+  $("chatsend").onclick = () => { const t = $("chatinput").value; if (t.trim()) { send({ type: "chat", text: t }); $("chatinput").value = ""; } };
 
   function renderLobby() {
     $("entry").style.display = "none";
@@ -166,6 +197,18 @@ const CLIENT_HTML = /* html */ `<!doctype html>
       const n = Object.values(state.territories).filter(t => t.owner === p.id).length;
       return p.name + ": " + n + "t, " + p.cards.length + "c" + (p.id === you ? " (you)" : "");
     }).join(" | ");
+    // Defender reaction window (Minefield / Tactical Retreat)
+    const pd = state.pendingDecision, rdiv = $("reaction");
+    if (pd && pd.player === you) {
+      rdiv.style.display = ""; rdiv.innerHTML = "<b>Reaction — " + pd.kind + ":</b> ";
+      if (pd.kind === "minefield") {
+        rdiv.append(actionBtn("Lay minefield", { type: "resolveDecision", play: true }), actionBtn("Decline", { type: "resolveDecision", play: false }));
+      } else {
+        for (const h of state.board.territories[pd.territory].neighbours.filter(n => state.territories[n].owner === you))
+          rdiv.append(actionBtn("Retreat to " + h, { type: "resolveDecision", play: true, to: h }));
+        rdiv.append(actionBtn("Stay and fight", { type: "resolveDecision", play: false }));
+      }
+    } else rdiv.style.display = "none";
     $("terr").textContent = Object.keys(state.territories).sort().map(t => t.padEnd(22) + (state.territories[t].owner || "-").padEnd(4) + state.territories[t].armies).join("\\n");
   }
 </script>`;
