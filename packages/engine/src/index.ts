@@ -9,6 +9,7 @@ export * from "./events.js";
 export * from "./actions.js";
 export * from "./game.js";
 export * from "./scenario.js";
+export * from "./projection.js";
 export * from "./ai/index.js";
 
 export const ENGINE_VERSION = "0.4.0";
