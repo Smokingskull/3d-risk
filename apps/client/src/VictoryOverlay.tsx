@@ -3,6 +3,7 @@ import type { GameEvent } from "@risk3d/engine";
 import type { Hotseat } from "./game/useHotseat.js";
 import { Button, CloseButton, Dialog } from "./ui/index.js";
 import { describe } from "./gameLog.js";
+import { RankingScreen } from "./RankingScreen.js";
 
 interface TurnGroup {
   turn: number;
@@ -30,11 +31,13 @@ export function VictoryOverlay({ hs }: { hs: Hotseat }) {
   const winnerId = game?.winner ?? null;
   const [dismissed, setDismissed] = useState(false);
   const [logOpen, setLogOpen] = useState(false);
+  const [rankOpen, setRankOpen] = useState(false);
 
-  // Re-show (and reset the log view) whenever a new game reaches a winner.
+  // Re-show (and reset the sub-views) whenever a new game reaches a winner.
   useEffect(() => {
     setDismissed(false);
     setLogOpen(false);
+    setRankOpen(false);
   }, [winnerId]);
 
   const nameOf = useMemo(() => {
@@ -68,9 +71,11 @@ export function VictoryOverlay({ hs }: { hs: Hotseat }) {
   const winner = game.players.find((p) => p.id === winnerId);
   if (!winner) return null;
 
-  const humanWon = winner.kind === "human";
+  // Online: you win only if you ARE the winning seat (another human winning is a loss
+  // for you). Offline hotseat: a human winning is a win for the player at the screen.
+  const youWon = hs.online ? winnerId === hs.yourSeat : winner.kind === "human";
   let src: string;
-  if (!humanWon) src = LOSS;
+  if (!youWon) src = LOSS;
   else if (game.options.campaign && hs.winReason === "campaign" && winner.campaign)
     src = CAMPAIGN_VICTORY[winner.campaign.kind] ?? NORMAL_VICTORY;
   else src = NORMAL_VICTORY;
@@ -79,7 +84,7 @@ export function VictoryOverlay({ hs }: { hs: Hotseat }) {
     <div className="overlay victory-overlay" onClick={() => setDismissed(true)}>
       <div className="victory-card" onClick={(e) => e.stopPropagation()}>
         <CloseButton className="victory-x" onClick={() => setDismissed(true)} />
-        <img className="victory-img" src={src} alt={humanWon ? "Victory" : "Defeat"} draggable={false} />
+        <img className="victory-img" src={src} alt={youWon ? "Victory" : "Defeat"} draggable={false} />
         <div className="victory-actions">
           <Button variant="quiet" onClick={() => setDismissed(true)}>
             View board
@@ -87,9 +92,14 @@ export function VictoryOverlay({ hs }: { hs: Hotseat }) {
           <Button variant="quiet" onClick={() => setLogOpen(true)}>
             View game log
           </Button>
-          <Button onClick={hs.reset}>New game</Button>
+          {hs.online && hs.ranking ? (
+            <Button onClick={() => setRankOpen(true)}>See rankings</Button>
+          ) : (
+            <Button onClick={hs.reset}>New game</Button>
+          )}
         </div>
       </div>
+      {rankOpen && <RankingScreen hs={hs} onClose={() => setRankOpen(false)} />}
       {logOpen && (
         <Dialog title="Game log" cardClassName="game-log-card" onClose={() => setLogOpen(false)}>
           {groups.length === 0 ? (

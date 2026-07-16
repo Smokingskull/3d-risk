@@ -12,7 +12,7 @@ import { randomUUID } from "node:crypto";
 import { createServer } from "node:http";
 import { WebSocketServer } from "ws";
 import type { ClientMsg } from "./protocol.js";
-import { chat, createRoom, disconnect, handleIntent, joinRoom, reconnect, resolveDrop, setSeat, startGame, type Conn } from "./rooms.js";
+import { chat, createRoom, devForceEnd, disconnect, handleIntent, joinRoom, reconnect, resolveDrop, setSeat, startGame, type Conn } from "./rooms.js";
 
 const PORT = Number(process.env.PORT ?? 8787);
 
@@ -65,6 +65,9 @@ wss.on("connection", (ws) => {
         break;
       case "resolveDrop":
         resolveDrop(conn, m.seat, m.choice);
+        break;
+      case "devForceEnd":
+        devForceEnd(conn);
         break;
     }
   });

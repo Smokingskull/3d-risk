@@ -52,6 +52,7 @@ interface Room {
   campaign: boolean;
   actionCards: boolean;
   state: GameState | null;
+  eliminationOrder: string[]; // seat ids in the order they were knocked out (for final ranking)
   cpuTimer?: ReturnType<typeof setTimeout>;
   // disconnect handling
   paused: boolean;
@@ -154,13 +155,15 @@ function broadcastLobby(room: Room): void {
 }
 function broadcastGame(room: Room, events: GameEvent[] = []): void {
   const st = room.state!;
+  // Game over: reveal the true (unfogged) state to everyone and include the final
+  // ranking. Mid-game: each seat gets only its fog-of-war projection.
+  const ranking = st.winner ? computeRanking(st, room.eliminationOrder) : [];
   for (const s of room.seats) {
     if (!s.conn) continue;
-    const view = projectStateForViewer(st, s.id);
     s.conn.send(
       st.winner
-        ? { type: "over", you: s.id, state: view, winner: st.winner }
-        : { type: "update", you: s.id, state: view, events },
+        ? { type: "over", you: s.id, state: st, winner: st.winner, ranking }
+        : { type: "update", you: s.id, state: projectStateForViewer(st, s.id), events },
     );
   }
 }
@@ -181,7 +184,7 @@ export function createRoom(conn: Conn, name: string, players: number, campaign: 
     if (i === 0) return { id, name: name || "Player 1", kind: "human", conn };
     return { id, name: cpuName("medium"), kind: "cpu", difficulty: "medium" };
   });
-  const room: Room = { code: genCode(), owner: "p1", phase: "lobby", seats, campaign, actionCards, state: null, paused: false };
+  const room: Room = { code: genCode(), owner: "p1", phase: "lobby", seats, campaign, actionCards, state: null, eliminationOrder: [], paused: false };
   rooms.set(room.code, room);
   connRoom.set(conn.id, room.code);
   const token = issueToken(room, seats[0]);
@@ -262,6 +265,7 @@ export function startGame(conn: Conn): void {
     campaign: room.campaign,
     actionCardsEnabled: room.actionCards,
   });
+  room.eliminationOrder = [];
   room.phase = "playing";
   broadcastLobby(room);
   broadcastGame(room);
@@ -292,11 +296,54 @@ export function chat(conn: Conn, text: string): void {
   maybeJoshuaReply(room); // Joshua may chime in — only ever in response to real chatter
 }
 
+/** Final placement, best first: the winner, then any still-standing players ordered
+ *  by territories held, then eliminated players in reverse order of elimination (the
+ *  last to be knocked out ranks higher). Campaign wins can end with survivors, hence
+ *  the middle group; a normal elimination game leaves only the winner alive. */
+export function computeRanking(st: GameState, eliminationOrder: string[]): string[] {
+  const territories: Record<string, number> = {};
+  for (const t of Object.values(st.territories)) if (t.owner) territories[t.owner] = (territories[t.owner] ?? 0) + 1;
+
+  const order: string[] = [];
+  const place = (id: string | null) => {
+    if (id && !order.includes(id)) order.push(id);
+  };
+  place(st.winner);
+  st.players
+    .filter((p) => !p.eliminated && p.id !== st.winner)
+    .sort((a, b) => (territories[b.id] ?? 0) - (territories[a.id] ?? 0))
+    .forEach((p) => place(p.id));
+  [...eliminationOrder].reverse().forEach(place);
+  st.players.forEach((p) => place(p.id)); // safety net: anyone not yet placed
+  return order;
+}
+
+/** Dev/test helper (no-op in production): end the caller's current game immediately,
+ *  eliminating every other seat so the reveal + ranking screens have something to show. */
+export function devForceEnd(conn: Conn): void {
+  if (process.env.NODE_ENV === "production") return;
+  const room = roomOf(conn);
+  if (!room || room.phase !== "playing" || !room.state) return;
+  const seat = room.seats.find((s) => s.conn?.id === conn.id);
+  const st = room.state;
+  const winner = seat?.id ?? st.players[0]?.id;
+  for (const p of st.players)
+    if (p.id !== winner && !p.eliminated) {
+      p.eliminated = true;
+      if (!room.eliminationOrder.includes(p.id)) room.eliminationOrder.push(p.id);
+    }
+  st.winner = winner;
+  room.phase = "over";
+  if (room.cpuTimer) clearTimeout(room.cpuTimer);
+  broadcastGame(room);
+}
+
 function applyToRoom(room: Room, action: Action): boolean {
   const st = room.state!;
   if (!isLegal(st, action)) return false;
   const { state, events } = applyAction(st, action);
   room.state = state;
+  for (const e of events) if (e.type === "playerEliminated") room.eliminationOrder.push(e.player);
   if (state.winner) room.phase = "over";
   broadcastGame(room, events);
   return true;
@@ -332,7 +379,12 @@ export function disconnect(conn: Conn): void {
     reapIfEmpty(room);
     return;
   }
-  if (room.phase !== "playing") return;
+  // Game already over: leaving is free — no pause, no abandonment. Just tidy up
+  // the room once the last viewer has gone.
+  if (room.phase !== "playing") {
+    reapIfEmpty(room);
+    return;
+  }
 
   // Pause for a reconnect window (only the first drop drives the timer).
   if (!room.paused) {

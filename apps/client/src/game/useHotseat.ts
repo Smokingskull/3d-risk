@@ -86,6 +86,8 @@ export interface Hotseat {
   online: boolean;
   /** The seat this client controls online (null until joined). */
   yourSeat: PlayerId | null;
+  /** Final placement (seat ids, best→worst) once an online game ends; null otherwise. */
+  ranking: PlayerId[] | null;
   /** The live server connection (for the lobby UI); null when offline. */
   conn: Connection | null;
   /** Enter online play — opens a server connection and shows the lobby. */
@@ -177,6 +179,7 @@ export function useHotseat(): Hotseat {
   // pushed fog-projected views. `yourSeat` is the player id this client controls.
   const [online, setOnline] = useState(false);
   const [yourSeat, setYourSeat] = useState<PlayerId | null>(null);
+  const [ranking, setRanking] = useState<PlayerId[] | null>(null);
   const connRef = useRef<Connection | null>(null);
   const engagementRef = useRef<Engagement | null>(null);
   engagementRef.current = engagement;
@@ -423,6 +426,7 @@ export function useHotseat(): Hotseat {
     connRef.current = null;
     setOnline(false);
     setYourSeat(null);
+    setRanking(null);
     setGame(null);
     setSelectedFrom(null);
     setSelection(null);
@@ -445,6 +449,7 @@ export function useHotseat(): Hotseat {
     sessionRef.current = session;
     conn.on((msg) => {
       if (msg.type === "joined") setYourSeat(msg.you);
+      else if (msg.type === "over") setRanking(msg.ranking);
     });
     setOnline(true);
   }, [reset, applyUpdate]);
@@ -712,6 +717,7 @@ export function useHotseat(): Hotseat {
     thinking,
     online,
     yourSeat,
+    ranking,
     conn: connRef.current,
     goOnline,
     tutorial,

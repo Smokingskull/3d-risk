@@ -27,13 +27,14 @@ export type ClientMsg =
   | { type: "start" }
   | { type: "intent"; action: Action }
   | { type: "chat"; text: string }
-  | { type: "resolveDrop"; seat: string; choice: "end" | "replace" };
+  | { type: "resolveDrop"; seat: string; choice: "end" | "replace" }
+  | { type: "devForceEnd" };
 
 export type ServerMsg =
   | { type: "joined"; code: string; you: string; token: string }
   | { type: "lobby"; room: LobbyInfo }
   | { type: "update"; you: string; state: GameState; events: GameEvent[] }
-  | { type: "over"; you: string; state: GameState; winner: string }
+  | { type: "over"; you: string; state: GameState; winner: string; ranking: string[] }
   | { type: "chat"; from: string; seat: string; text: string }
   | { type: "paused"; seat: string; name: string; seconds: number }
   | { type: "resumed" }

@@ -189,7 +189,13 @@ export function App() {
   };
 
   if (import.meta.env.DEV)
-    (window as unknown as { __app: unknown }).__app = { pickCountry, toggleContinent, selectRegion };
+    (window as unknown as { __app: unknown }).__app = {
+      pickCountry,
+      toggleContinent,
+      selectRegion,
+      // Dev-only: end the current online game now to preview the reveal + ranking.
+      forceEnd: () => hs.conn?.devForceEnd(),
+    };
 
   return (
     <>

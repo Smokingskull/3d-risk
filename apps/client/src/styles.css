@@ -1889,6 +1889,85 @@ button.start:hover:not(:disabled) {
 .lobby-buttons > * {
   flex: 1;
 }
+
+/* ---- final ranking (game over) ---- */
+.overlay-card.ranking-card {
+  width: 480px;
+}
+.ranking-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ranking-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(16, 20, 23, 0.5);
+  border: 1px solid rgba(182, 138, 72, 0.18);
+}
+.ranking-row.you {
+  border-color: var(--accent);
+  background: linear-gradient(180deg, rgba(213, 174, 105, 0.14), rgba(16, 20, 23, 0.5));
+}
+.ranking-place {
+  flex: none;
+  width: 34px;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--accent-bright);
+}
+.ranking-name {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+.ranking-tag {
+  flex: none;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+.ranking-tag.win {
+  color: #0b0e12;
+  background: #f5c842;
+}
+.ranking-tag.me {
+  color: var(--text);
+  border: 1px solid var(--accent);
+}
+.ranking-stats {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+.ranking-aim {
+  font-style: italic;
+  color: var(--text);
+  opacity: 0.85;
+}
+.ranking-actions {
+  display: flex;
+  gap: 12px;
+}
+.ranking-actions > * {
+  flex: 1;
+}
 .lobby-row {
   display: flex;
   align-items: center;

@@ -17,6 +17,8 @@ export interface Connection {
   intent(action: Action): void;
   chat(text: string): void;
   resolveDrop(seat: string, choice: "end" | "replace"): void;
+  /** Dev/test only: ask the server to end the current game now (reveal + ranking). */
+  devForceEnd(): void;
   close(): void;
 }
 
@@ -65,6 +67,7 @@ export function connect(url = serverUrl()): Connection {
     intent: (action) => send({ type: "intent", action }),
     chat: (text) => send({ type: "chat", text }),
     resolveDrop: (seat, choice) => send({ type: "resolveDrop", seat, choice }),
+    devForceEnd: () => send({ type: "devForceEnd" }),
     close: () => ws.close(),
   };
 }

@@ -35,14 +35,17 @@ export type ClientMsg =
   | { type: "intent"; action: Action }
   | { type: "chat"; text: string }
   /** Owner's decision after a dropped player's reconnect window expires. */
-  | { type: "resolveDrop"; seat: string; choice: "end" | "replace" };
+  | { type: "resolveDrop"; seat: string; choice: "end" | "replace" }
+  /** Dev/test only (ignored unless NODE_ENV !== "production"): end the current game
+   *  immediately with the requester as winner, to exercise the reveal/ranking flow. */
+  | { type: "devForceEnd" };
 
 // --- server → client --------------------------------------------------------
 export type ServerMsg =
   | { type: "joined"; code: string; you: string; token: string } // token = reconnect key
   | { type: "lobby"; room: LobbyInfo }
   | { type: "update"; you: string; state: GameState; events: GameEvent[] } // fog-projected view
-  | { type: "over"; you: string; state: GameState; winner: string } // game finished
+  | { type: "over"; you: string; state: GameState; winner: string; ranking: string[] } // finished; state is unfogged (all cards/objectives revealed), ranking is seat ids best→worst
   | { type: "chat"; from: string; seat: string; text: string } // seat = speaker's seat id (for colour)
   /** A player dropped; the game is paused for `seconds` awaiting their reconnect. */
   | { type: "paused"; seat: string; name: string; seconds: number }
