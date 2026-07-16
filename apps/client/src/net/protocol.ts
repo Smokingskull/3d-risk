@@ -34,7 +34,7 @@ export type ServerMsg =
   | { type: "lobby"; room: LobbyInfo }
   | { type: "update"; you: string; state: GameState; events: GameEvent[] }
   | { type: "over"; you: string; state: GameState; winner: string }
-  | { type: "chat"; from: string; text: string }
+  | { type: "chat"; from: string; seat: string; text: string }
   | { type: "paused"; seat: string; name: string; seconds: number }
   | { type: "resumed" }
   | { type: "dropChoice"; seat: string; name: string }

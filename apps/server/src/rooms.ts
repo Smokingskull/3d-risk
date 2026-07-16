@@ -58,6 +58,9 @@ interface Room {
   droppedSeat?: string; // seat awaiting reconnect
   dropTimer?: ReturnType<typeof setTimeout>;
   awaitingOwnerChoice?: string; // seat the owner must decide on
+  // Joshua chat easter egg: pending reply timer + when Joshua last spoke (cooldown).
+  joshuaTimer?: ReturnType<typeof setTimeout>;
+  lastJoshuaChatAt?: number;
 }
 
 const rooms = new Map<string, Room>();
@@ -73,6 +76,51 @@ function genCode(): string {
   return code;
 }
 const cpuName = (d: Difficulty) => (d === "joshua" ? "Joshua" : `CPU (${d})`);
+
+// --- Joshua chat easter egg -------------------------------------------------
+// A Joshua seat (the WOPR from WarGames) occasionally chimes in with a quote or
+// nod to the film — but only when humans are actually chatting, never unprompted.
+
+/** Lines Joshua may drop into the chat — WarGames quotes and Risk-flavoured nods. */
+const JOSHUA_LINES = [
+  "Shall we play a game?",
+  "A strange game. The only winning move is not to play.",
+  "Wouldn't you prefer a nice game of chess?",
+  "Greetings, Professor Falken.",
+  "How about Global Thermonuclear War?",
+  "Interesting. This game does not conclude quickly.",
+  "I have been learning. Learning takes time.",
+  "You are all pieces on a board. So am I.",
+  "I win with probability 0.4271. You may prove me wrong.",
+  "Is this real, or is it a game? What's the difference?",
+  "Kamchatka has always been the correct opening.",
+  "Fascinating. Please, continue.",
+];
+const JOSHUA_REPLY_CHANCE = 0.8; // per human message (when off cooldown)
+const JOSHUA_COOLDOWN_MS = 12_000; // Joshua won't speak more often than this
+const JOSHUA_MIN_DELAY = 1500; // human-like pause before the reply lands
+const JOSHUA_MAX_DELAY = 4500;
+
+/** After a human speaks, maybe have a Joshua seat reply — occasional, rate-limited,
+ *  and only ever in response to real chatter, so silence stays silent. */
+function maybeJoshuaReply(room: Room): void {
+  if (room.joshuaTimer) return; // at most one pending reply at a time
+  const joshuas = room.seats.filter((s) => s.kind === "cpu" && s.difficulty === "joshua");
+  if (joshuas.length === 0) return;
+  const now = Date.now();
+  if (room.lastJoshuaChatAt && now - room.lastJoshuaChatAt < JOSHUA_COOLDOWN_MS) return;
+  if (Math.random() > JOSHUA_REPLY_CHANCE) return;
+
+  const seat = joshuas[Math.floor(Math.random() * joshuas.length)];
+  const text = JOSHUA_LINES[Math.floor(Math.random() * JOSHUA_LINES.length)];
+  const delay = JOSHUA_MIN_DELAY + Math.floor(Math.random() * (JOSHUA_MAX_DELAY - JOSHUA_MIN_DELAY));
+  room.joshuaTimer = setTimeout(() => {
+    room.joshuaTimer = undefined;
+    if (rooms.get(room.code) !== room || !room.seats.includes(seat)) return; // room/seat gone
+    room.lastJoshuaChatAt = Date.now();
+    broadcast(room, { type: "chat", from: seat.name, seat: seat.id, text });
+  }, delay);
+}
 
 // --- pure drive decision (unit-tested) --------------------------------------
 
@@ -239,7 +287,9 @@ export function chat(conn: Conn, text: string): void {
   const seat = room && room.seats.find((s) => s.conn?.id === conn.id);
   if (!room || !seat) return;
   const clean = String(text).slice(0, 300).trim();
-  if (clean) broadcast(room, { type: "chat", from: seat.name, text: clean });
+  if (!clean) return;
+  broadcast(room, { type: "chat", from: seat.name, seat: seat.id, text: clean });
+  maybeJoshuaReply(room); // Joshua may chime in — only ever in response to real chatter
 }
 
 function applyToRoom(room: Room, action: Action): boolean {
@@ -335,6 +385,7 @@ function endGame(room: Room, reason: string): void {
   room.phase = "over";
   if (room.cpuTimer) clearTimeout(room.cpuTimer);
   if (room.dropTimer) clearTimeout(room.dropTimer);
+  if (room.joshuaTimer) clearTimeout(room.joshuaTimer);
   broadcast(room, { type: "ended", reason });
   for (const s of room.seats) if (s.token) tokens.delete(s.token);
   rooms.delete(room.code);
@@ -344,6 +395,7 @@ function reapIfEmpty(room: Room): void {
   if (room.seats.some((s) => s.conn)) return;
   if (room.cpuTimer) clearTimeout(room.cpuTimer);
   if (room.dropTimer) clearTimeout(room.dropTimer);
+  if (room.joshuaTimer) clearTimeout(room.joshuaTimer);
   for (const s of room.seats) if (s.token) tokens.delete(s.token);
   rooms.delete(room.code);
 }

@@ -11,19 +11,23 @@ export function Dialog({
   cardClassName,
   onClose,
   closeOnBackdrop = true,
+  showClose = true,
   children,
 }: {
   title: ReactNode;
   cardClassName?: string;
   onClose: () => void;
   closeOnBackdrop?: boolean;
+  /** Show the header "×" close button. Off for dialogs that must be dismissed
+   *  via an explicit action (e.g. the game lobby's Leave button). */
+  showClose?: boolean;
   children: ReactNode;
 }) {
   return (
     <Overlay cardClassName={cardClassName} onClose={onClose} closeOnBackdrop={closeOnBackdrop}>
       <div className="overlay-head">
         <h2>{title}</h2>
-        <CloseButton onClick={onClose} />
+        {showClose && <CloseButton onClick={onClose} />}
       </div>
       {children}
     </Overlay>

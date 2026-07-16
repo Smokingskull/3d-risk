@@ -14,6 +14,11 @@ export function Hud({ hs, hovered, onOpenHelp, onOpenCards }: { hs: Hotseat; hov
   const winner = game.winner ? game.players.find((p) => p.id === game.winner) : null;
   const pending = game.pendingOccupation;
   const isCpu = active.kind === "cpu" && !winner;
+  // Whether *this* client may act now. Offline hotseat: whoever is active plays at the
+  // shared screen. Online: only the tab that owns the active seat gets the controls —
+  // other humans (and everyone during a CPU turn) just watch.
+  const myTurn = hs.online ? active.id === hs.yourSeat && !winner : !isCpu;
+  const waiting = hs.online && !myTurn && !isCpu && !winner; // another human's turn
   const [open, setOpen] = useState(true);
   const [optionsOpen, setOptionsOpen] = useState(false);
   // Auto-show the campaign card on start for a solo human (not in multi-human games).
@@ -48,7 +53,9 @@ export function Hud({ hs, hovered, onOpenHelp, onOpenCards }: { hs: Hotseat; hov
         </div>
       )}
 
-      {!isCpu && game.phase === "reinforce" && (
+      {waiting && <p className="hint">Waiting for {active.name}…</p>}
+
+      {myTurn && game.phase === "reinforce" && (
         hs.mustTrade ? (
           <div className="banner trade-banner">
             <span>You hold 5+ cards — you must trade a set before deploying.</span>
@@ -59,7 +66,7 @@ export function Hud({ hs, hovered, onOpenHelp, onOpenCards }: { hs: Hotseat; hov
         )
       )}
 
-      {!isCpu && !hs.engagement && game.phase === "attack" && !pending && (
+      {myTurn && !hs.engagement && game.phase === "attack" && !pending && (
         <div className="row action-row">
           <button onClick={hs.endAttack}>End attack <Icon name="arrow-right" size={14} /></button>
           <button className="end-turn" onClick={hs.endTurnNow}>End turn <Icon name="skip-forward" size={14} /></button>
@@ -68,7 +75,7 @@ export function Hud({ hs, hovered, onOpenHelp, onOpenCards }: { hs: Hotseat; hov
           </span>
         </div>
       )}
-      {!isCpu && !hs.engagement && game.phase === "attack" && pending && (
+      {myTurn && !hs.engagement && game.phase === "attack" && pending && (
         <div className="row">
           <span>
             Captured {pending.to} — move armies in:
@@ -78,7 +85,7 @@ export function Hud({ hs, hovered, onOpenHelp, onOpenCards }: { hs: Hotseat; hov
         </div>
       )}
 
-      {!isCpu && game.phase === "fortify" && (
+      {myTurn && game.phase === "fortify" && (
         <div className="row action-row">
           <button className="end-turn" onClick={hs.endTurnNow}>End turn <Icon name="skip-forward" size={14} /></button>
           {game.options.actionCardsEnabled && active.actionCards.includes("troopTransport") && !game.fortifyAnywhere && (

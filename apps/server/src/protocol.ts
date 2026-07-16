@@ -43,7 +43,7 @@ export type ServerMsg =
   | { type: "lobby"; room: LobbyInfo }
   | { type: "update"; you: string; state: GameState; events: GameEvent[] } // fog-projected view
   | { type: "over"; you: string; state: GameState; winner: string } // game finished
-  | { type: "chat"; from: string; text: string }
+  | { type: "chat"; from: string; seat: string; text: string } // seat = speaker's seat id (for colour)
   /** A player dropped; the game is paused for `seconds` awaiting their reconnect. */
   | { type: "paused"; seat: string; name: string; seconds: number }
   | { type: "resumed" }

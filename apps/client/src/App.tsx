@@ -151,9 +151,16 @@ export function App() {
   const camPos: [number, number, number] = [camZ * Math.sin(orbitRad), 0, camZ * Math.cos(orbitRad)];
 
   if (!hs.game) {
-    // Online but not yet in a game → the lobby; otherwise the main menu.
-    if (hs.online) return <OnlineLobby hs={hs} />;
-    return <Home onStart={hs.start} onLoadScenario={hs.loadState} onPlayOnline={hs.goOnline} />;
+    // The create/join screen (online but not yet seated in a room) floats over the
+    // main menu, like the Scenarios / New Game dialogs. Once seated in a room the
+    // lobby stands alone on a blank background.
+    const inRoom = hs.online && hs.yourSeat != null;
+    return (
+      <>
+        {!inRoom && <Home onStart={hs.start} onLoadScenario={hs.loadState} onPlayOnline={hs.goOnline} />}
+        {hs.online && <OnlineLobby hs={hs} />}
+      </>
+    );
   }
 
   const focusOn = (id: string) => {
