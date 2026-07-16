@@ -1,0 +1,59 @@
+name: Deploy (multiplayer server)
+
+# On push to main touching the server (or the engine it bundles): typecheck, build a
+# standalone Node bundle, sync it to the VPS, and restart the systemd service. Caddy
+# reverse-proxies wss://mp.3drisk.iainwilson.uk -> localhost:8787 (see deploy/).
+# One-time VPS setup is owner-only — see the README "Multiplayer server" section.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/server/**"
+      - "packages/engine/**"
+      - ".github/workflows/deploy-server.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: 3drisk-mp-deploy
+  cancel-in-progress: false
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm -r typecheck
+      - run: pnpm --filter @risk3d/server test
+      - run: pnpm --filter @risk3d/server build
+
+      - name: Ensure target directory exists on the VPS
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: sudo mkdir -p /srv/3drisk-mp && sudo chown "$USER":"$USER" /srv/3drisk-mp
+
+      - name: Sync server bundle to the VPS
+        uses: burnett01/rsync-deployments@7.0.1
+        with:
+          switches: -avzr --delete
+          path: apps/server/dist/
+          remote_path: /srv/3drisk-mp/
+          remote_host: ${{ secrets.VPS_HOST }}
+          remote_user: ${{ secrets.VPS_USER }}
+          remote_key: ${{ secrets.VPS_SSH_KEY }}
+
+      - name: Restart the multiplayer service
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: sudo systemctl restart 3drisk-mp

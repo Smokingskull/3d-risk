@@ -1,0 +1,7 @@
+# Multiplayer WebSocket server. Append to /etc/caddy/Caddyfile and reload Caddy.
+# Caddy auto-provisions TLS and transparently upgrades WebSocket connections, so the
+# client can reach it at wss://mp.3drisk.iainwilson.uk. The Node service listens on
+# localhost:8787 (see deploy/3drisk-mp.service).
+mp.3drisk.iainwilson.uk {
+	reverse_proxy localhost:8787
+}

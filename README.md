@@ -114,6 +114,29 @@ The staging site's DNS + Caddy are already set up (Cloudflare A record
 `staging.3drisk` → `167.233.119.140`, DNS-only; `deploy/3drisk-staging.Caddyfile`
 appended to `/etc/caddy/Caddyfile`), so no per-branch infra work is needed.
 
+### Multiplayer server (`apps/server`)
+
+Online play is hosted by an authoritative Node WebSocket server (`apps/server`) that
+reuses the engine. It's a **single production service** (prod and staging clients both
+connect to it) at `wss://mp.3drisk.iainwilson.uk`, reverse-proxied by Caddy to a Node
+process on `localhost:8787`. Pushing to `main` (touching `apps/server` or the engine)
+runs `.github/workflows/deploy-server.yml`, which builds a standalone bundle
+(`apps/server/dist/server.cjs`), rsyncs it to `/srv/3drisk-mp/`, and restarts the
+`3drisk-mp` systemd service. The client's server URL is baked in at build time via
+`VITE_MP_SERVER` (set in both deploy workflows; defaults to `localhost:8787` in dev).
+
+**One-time VPS setup (owner-only), then pushes auto-deploy:**
+
+1. **DNS** — Cloudflare A record `mp.3drisk` → `167.233.119.140` (DNS-only / grey cloud).
+2. **Caddy** — append `deploy/3drisk-mp.Caddyfile` to `/etc/caddy/Caddyfile`, then
+   `sudo systemctl reload caddy` (issues the cert automatically).
+3. **systemd** — copy `deploy/3drisk-mp.service` to `/etc/systemd/system/`, then
+   `sudo systemctl daemon-reload && sudo systemctl enable --now 3drisk-mp`. (Adjust the
+   `node` path in the unit if it isn't on the default `PATH`.) The `VPS_USER` needs
+   passwordless `sudo systemctl restart 3drisk-mp` for the deploy workflow.
+
+Run it locally with `pnpm --filter @risk3d/server dev` (serves http+ws on `:8787`).
+
 ## Build order (roadmap)
 
 1. **Engine** — RISK rules as a pure deterministic module + tests. _(done: types, RNG,

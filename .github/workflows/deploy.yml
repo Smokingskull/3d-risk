@@ -27,6 +27,8 @@ jobs:
       - run: pnpm -r typecheck
       - run: pnpm -r --if-present test
       - run: pnpm --filter @risk3d/client build
+        env:
+          VITE_MP_SERVER: wss://mp.3drisk.iainwilson.uk
 
       - name: Ensure target directory exists on the VPS
         uses: appleboy/ssh-action@v1
