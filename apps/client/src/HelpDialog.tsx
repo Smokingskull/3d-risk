@@ -78,7 +78,7 @@ const TOPICS: Topic[] = [
           <li><strong>Easy</strong> — attacks only with strong odds, doesn't fortify or chase continents; a gentle opponent.</li>
           <li><strong>Medium</strong> — trades cards eagerly, consolidates armies, and presses weak borders.</li>
           <li><strong>Hard</strong> — all of the above plus continent-aware planning: it builds toward bonuses and picks its fights well.</li>
-          <li><strong>Joshua</strong> — a search-based opponent that actually thinks ahead: it looks several moves deep, weighs the odds of each battle, and plans whole offensives rather than one attack at a time. The strongest general on the board. <em>Shall we play a game?</em></li>
+          <li><strong>Joshua</strong> — WOPR (War Operation Plan Response), self-aware supercomputer programmed to run RISK campaigns. <em>Shall we play a game?</em></li>
         </ul>
         <p>In a Campaign, every CPU also actively pursues its own secret objective.</p>
       </>
