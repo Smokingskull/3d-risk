@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  applyAction,
   createAI,
   createGame,
   decideReaction,
-  isLegal,
   maxDisjointSets,
   pathExists,
   type Action,
@@ -17,6 +15,7 @@ import {
   type TerritoryId,
 } from "@risk3d/engine";
 import { PLAYER_COLORS } from "../players.js";
+import { createLocalSession, type GameSession } from "./session.js";
 import { getTutorialEnabled, setTutorialEnabled } from "../settings.js";
 
 /**
@@ -162,6 +161,9 @@ export function useHotseat(): Hotseat {
 
   const gameRef = useRef<GameState | null>(null);
   gameRef.current = game;
+  // The session owns how the authoritative state advances (local apply today; the
+  // server later). The hook mirrors its state into React state for rendering.
+  const sessionRef = useRef<GameSession | null>(null);
   const engagementRef = useRef<Engagement | null>(null);
   engagementRef.current = engagement;
   const autoRef = useRef(false);
@@ -241,13 +243,11 @@ export function useHotseat(): Hotseat {
   const viewerIdRef = useRef<PlayerId | null>(null);
   viewerIdRef.current = viewerId;
 
-  // Single apply path: validates, applies, syncs the ref immediately (so rapid
-  // synchronous callers — the auto-attack loop, CPU replay — never read stale
-  // state), and records events. Returns the events, or null if illegal.
-  const applyAndStore = useCallback((action: Action): GameEvent[] | null => {
-    const g = gameRef.current;
-    if (!g || !isLegal(g, action)) return null;
-    const { state, events } = applyAction(g, action);
+  // React to an advanced state (from a local apply now, or a server push later):
+  // sync the ref immediately (so rapid synchronous callers — the auto-attack loop,
+  // CPU replay — never read stale state), record events, and surface any reactive-
+  // card outcome popups. Shared by every source of state change.
+  const applyUpdate = useCallback((state: GameState, events: GameEvent[]) => {
     gameRef.current = state;
     setGame(state);
     // Full chronological history, kept for the end-of-game transcript (shown from
@@ -309,8 +309,21 @@ export function useHotseat(): Hotseat {
         });
       }
     }
-    return events;
   }, []);
+
+  // Single apply path for a *human* action: delegate the state advance to the
+  // session (local apply today; the server later), then react to the result.
+  const applyAndStore = useCallback(
+    (action: Action): GameEvent[] | null => {
+      const session = sessionRef.current;
+      if (!session) return null;
+      const events = session.submit(action);
+      if (events === null) return null;
+      applyUpdate(session.state, events);
+      return events;
+    },
+    [applyUpdate],
+  );
 
   const start = useCallback((mode: BoardMode, seats: SeatSpec[], names: string[], campaign: boolean, actionCards: boolean) => {
     const seed = Math.floor(Math.random() * 0x7fffffff);
@@ -318,7 +331,11 @@ export function useHotseat(): Hotseat {
     autoRef.current = false;
     lastHumanRef.current = null;
     setActionOutcome(null);
-    setGame(createGame({ players: buildPlayers(seats, names), boardMode: mode, seed, campaign, actionCardsEnabled: actionCards }));
+    const initial = createGame({ players: buildPlayers(seats, names), boardMode: mode, seed, campaign, actionCardsEnabled: actionCards });
+    sessionRef.current?.dispose();
+    sessionRef.current = createLocalSession(initial);
+    gameRef.current = initial;
+    setGame(initial);
     setSelectedFrom(null);
     setSelection(null);
     setEngagement(null);
@@ -335,6 +352,8 @@ export function useHotseat(): Hotseat {
     autoRef.current = false;
     lastHumanRef.current = null;
     setActionOutcome(null);
+    sessionRef.current?.dispose();
+    sessionRef.current = createLocalSession(state);
     gameRef.current = state;
     setGame(state);
     setSelectedFrom(null);
@@ -364,6 +383,8 @@ export function useHotseat(): Hotseat {
     autoRef.current = false;
     lastHumanRef.current = null;
     setActionOutcome(null);
+    sessionRef.current?.dispose();
+    sessionRef.current = null;
     setGame(null);
     setSelectedFrom(null);
     setSelection(null);
