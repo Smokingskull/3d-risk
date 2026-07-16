@@ -5,6 +5,7 @@ import * as THREE from "three";
 import { Globe } from "./Globe.js";
 import { Hud } from "./Hud.js";
 import { Home } from "./Home.js";
+import { OnlineLobby } from "./OnlineLobby.js";
 import { Tutorial } from "./Tutorial.js";
 import { HelpBox } from "./HelpBox.js";
 import { HelpDialog } from "./HelpDialog.js";
@@ -148,7 +149,11 @@ export function App() {
   const orbitRad = ((Number(params.get("orbit")) || 0) * Math.PI) / 180;
   const camPos: [number, number, number] = [camZ * Math.sin(orbitRad), 0, camZ * Math.cos(orbitRad)];
 
-  if (!hs.game) return <Home onStart={hs.start} onLoadScenario={hs.loadState} />;
+  if (!hs.game) {
+    // Online but not yet in a game → the lobby; otherwise the main menu.
+    if (hs.online) return <OnlineLobby hs={hs} />;
+    return <Home onStart={hs.start} onLoadScenario={hs.loadState} onPlayOnline={hs.goOnline} />;
+  }
 
   const focusOn = (id: string) => {
     if (!hs.autoRotate) return; // auto-rotate disabled → never rotate the globe

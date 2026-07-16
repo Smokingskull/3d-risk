@@ -18,9 +18,10 @@ type Dialog =
 interface Props {
   onStart: (mode: BoardMode, seats: SeatSpec[], names: string[], campaign: boolean, actionCards: boolean) => void;
   onLoadScenario: (state: GameState) => void;
+  onPlayOnline: () => void;
 }
 
-export function Home({ onStart, onLoadScenario }: Props) {
+export function Home({ onStart, onLoadScenario, onPlayOnline }: Props) {
   const [dialog, setDialog] = useState<Dialog>(null);
 
   return (
@@ -35,6 +36,10 @@ export function Home({ onStart, onLoadScenario }: Props) {
           <button className="home-btn primary" onClick={() => setDialog({ kind: "scenarios" })}>
             Scenarios
             <span className="home-desc">Refight history — Alexander, Rome, the Mongols, Napoleon, the World Wars. Command a faction and chase its objective.</span>
+          </button>
+          <button className="home-btn primary" onClick={onPlayOnline}>
+            Play Online
+            <span className="home-desc">Create or join a room by code and play against friends over the internet — fill any empty seats with CPUs, including Joshua.</span>
           </button>
           <button className="home-btn" onClick={() => setDialog({ kind: "options" })}>
             Options

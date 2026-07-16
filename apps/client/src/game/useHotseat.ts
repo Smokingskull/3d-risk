@@ -15,7 +15,8 @@ import {
   type TerritoryId,
 } from "@risk3d/engine";
 import { PLAYER_COLORS } from "../players.js";
-import { createLocalSession, type GameSession } from "./session.js";
+import { createLocalSession, createOnlineSession, type GameSession } from "./session.js";
+import { connect, type Connection } from "../net/connection.js";
 import { getTutorialEnabled, setTutorialEnabled } from "../settings.js";
 
 /**
@@ -81,6 +82,14 @@ export interface Hotseat {
   isHumanTurn: boolean;
   /** True while a CPU is computing its move in the worker (drives the HUD indicator). */
   thinking: boolean;
+  /** Online multiplayer: connected to the server (in a lobby or game). */
+  online: boolean;
+  /** The seat this client controls online (null until joined). */
+  yourSeat: PlayerId | null;
+  /** The live server connection (for the lobby UI); null when offline. */
+  conn: Connection | null;
+  /** Enter online play — opens a server connection and shows the lobby. */
+  goOnline: () => void;
   tutorial: boolean;
   toggleTutorial: () => void;
   autoRotate: boolean;
@@ -161,9 +170,14 @@ export function useHotseat(): Hotseat {
 
   const gameRef = useRef<GameState | null>(null);
   gameRef.current = game;
-  // The session owns how the authoritative state advances (local apply today; the
-  // server later). The hook mirrors its state into React state for rendering.
+  // The session owns how the authoritative state advances (local apply, or the
+  // server when online). The hook mirrors its state into React state for rendering.
   const sessionRef = useRef<GameSession | null>(null);
+  // Online play: the server is authoritative; the client sends intents and renders
+  // pushed fog-projected views. `yourSeat` is the player id this client controls.
+  const [online, setOnline] = useState(false);
+  const [yourSeat, setYourSeat] = useState<PlayerId | null>(null);
+  const connRef = useRef<Connection | null>(null);
   const engagementRef = useRef<Engagement | null>(null);
   engagementRef.current = engagement;
   const autoRef = useRef(false);
@@ -228,17 +242,22 @@ export function useHotseat(): Hotseat {
   useEffect(() => () => aiWorker.current?.terminate(), []);
 
   const activePlayer = game?.players.find((p) => p.id === game.activePlayer) ?? null;
-  const isHumanTurn = !!game && !game.winner && activePlayer?.kind === "human";
+  // Online: it's your turn only when the active seat is *yours*. Local hotseat: any
+  // human seat that's active is the (single) player at the keyboard.
+  const isHumanTurn = online
+    ? !!game && !game.winner && game.activePlayer === yourSeat
+    : !!game && !game.winner && activePlayer?.kind === "human";
 
   // Whose perspective the board is rendered from (for Misinformation fog): the
   // active player while it's a human's turn, otherwise the last human to act (so a
   // human watching a CPU turn keeps their own view). Falls back to the first human.
   const lastHumanRef = useRef<PlayerId | null>(null);
   if (activePlayer?.kind === "human") lastHumanRef.current = activePlayer.id;
-  const viewerId: PlayerId | null =
-    (activePlayer?.kind === "human" ? activePlayer.id : lastHumanRef.current) ??
-    game?.players.find((p) => p.kind === "human")?.id ??
-    null;
+  const viewerId: PlayerId | null = online
+    ? yourSeat // online the board is always your seat's fog view
+    : (activePlayer?.kind === "human" ? activePlayer.id : lastHumanRef.current) ??
+      game?.players.find((p) => p.kind === "human")?.id ??
+      null;
   // Ref so applyAndStore (stable callback) can read the current viewer.
   const viewerIdRef = useRef<PlayerId | null>(null);
   viewerIdRef.current = viewerId;
@@ -385,6 +404,10 @@ export function useHotseat(): Hotseat {
     setActionOutcome(null);
     sessionRef.current?.dispose();
     sessionRef.current = null;
+    connRef.current?.close();
+    connRef.current = null;
+    setOnline(false);
+    setYourSeat(null);
     setGame(null);
     setSelectedFrom(null);
     setSelection(null);
@@ -395,6 +418,22 @@ export function useHotseat(): Hotseat {
     setWinReason(null);
   }, []);
 
+  // Enter online multiplayer: open a server connection and wire an online session.
+  // The server pushes fog-projected views (driving applyUpdate); intents are sent,
+  // not applied locally; CPU seats are driven server-side (the CPU loop is off).
+  const goOnline = useCallback(() => {
+    reset();
+    const conn = connect();
+    connRef.current = conn;
+    const session = createOnlineSession(conn);
+    session.onUpdate = (state, events) => applyUpdate(state, events);
+    sessionRef.current = session;
+    conn.on((msg) => {
+      if (msg.type === "joined") setYourSeat(msg.you);
+    });
+    setOnline(true);
+  }, [reset, applyUpdate]);
+
   // Drive CPU turns and CPU defender reactions one action at a time. Stepping
   // (rather than planning a whole turn) is required because reactive cards make a
   // turn interactive: an attack may open a defender decision window mid-turn. The
@@ -402,6 +441,7 @@ export function useHotseat(): Hotseat {
   // or their own decision window) — resuming when the state next changes.
   useEffect(() => {
     const g = game;
+    if (online) return; // online: the server drives CPU seats, not the client
     if (!g || g.winner || cpuRunning.current) return;
     const actorId = g.pendingDecision ? g.pendingDecision.player : g.activePlayer;
     if (g.players.find((p) => p.id === actorId)?.kind !== "cpu") return;
@@ -424,7 +464,7 @@ export function useHotseat(): Hotseat {
       setThinking(false);
       cpuRunning.current = false;
     })();
-  }, [game?.activePlayer, game?.turn, game?.winner, game?.pendingDecision, applyAndStore, decideAi]);
+  }, [game?.activePlayer, game?.turn, game?.winner, game?.pendingDecision, applyAndStore, decideAi, online]);
 
   // Drop stale selection/engagement when they stop being valid.
   useEffect(() => {
@@ -662,6 +702,10 @@ export function useHotseat(): Hotseat {
     log,
     isHumanTurn,
     thinking,
+    online,
+    yourSeat,
+    conn: connRef.current,
+    goOnline,
     tutorial,
     toggleTutorial,
     autoRotate,

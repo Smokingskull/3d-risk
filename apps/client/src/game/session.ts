@@ -1,4 +1,5 @@
 import { applyAction, isLegal, type Action, type GameEvent, type GameState } from "@risk3d/engine";
+import type { Connection } from "../net/connection.js";
 
 /**
  * How the authoritative game state advances — so the UI never calls `applyAction`
@@ -35,4 +36,33 @@ export function createLocalSession(initial: GameState): GameSession {
     },
     dispose() {},
   };
+}
+
+/** Online session: the server is authoritative. `submit` sends an intent (returns
+ *  null — the authoritative result arrives asynchronously); state advances are
+ *  pushed by the server and delivered via `onUpdate`. */
+export interface OnlineSession extends GameSession {
+  onUpdate?: (state: GameState, events: GameEvent[]) => void;
+}
+export function createOnlineSession(conn: Connection): OnlineSession {
+  let state: GameState | null = null;
+  const session: OnlineSession = {
+    get state() {
+      return state as GameState; // only read on the local path; online reads via onUpdate
+    },
+    submit(action) {
+      conn.intent(action);
+      return null;
+    },
+    dispose() {
+      unsub();
+    },
+  };
+  const unsub = conn.on((msg) => {
+    if (msg.type === "update" || msg.type === "over") {
+      state = msg.state;
+      session.onUpdate?.(msg.state, msg.type === "update" ? msg.events : []);
+    }
+  });
+  return session;
 }
