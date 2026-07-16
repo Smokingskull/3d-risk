@@ -1889,3 +1889,35 @@ button.start:hover:not(:disabled) {
   margin: 6px 0;
   background: rgba(16, 20, 23, 0.5);
 }
+
+/* ---- in-game chat panel (online) ---- */
+.chat-panel {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  z-index: 20;
+  width: 260px;
+  background: rgba(40, 49, 55, 0.92);
+  border: 1px solid rgba(182, 138, 72, 0.4);
+  border-radius: 10px;
+  padding: 8px;
+  backdrop-filter: blur(4px);
+}
+.chat-log {
+  height: 130px;
+  overflow-y: auto;
+  font-size: 13px;
+  line-height: 1.45;
+  margin-bottom: 6px;
+}
+.chat-log strong {
+  color: var(--accent-bright);
+}
+.chat-row {
+  display: flex;
+  gap: 6px;
+}
+.chat-row input {
+  flex: 1;
+  min-width: 0;
+}

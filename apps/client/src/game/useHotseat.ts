@@ -328,6 +328,21 @@ export function useHotseat(): Hotseat {
         });
       }
     }
+    // Combat-modal feedback for *your* engagement — derived from events here so it
+    // works whether the state advanced from a local apply or a server push (online).
+    const eng = engagementRef.current;
+    const atk = events.find((e) => e.type === "attacked") as AttackedEvent | undefined;
+    if (atk && eng && atk.from === eng.from && atk.to === eng.to) {
+      setLastCombat(atk);
+      setCombatSeq((s) => s + 1);
+    }
+    const airHit = events.find((e) => e.type === "airStrikeResolved");
+    if (airHit && airHit.type === "airStrikeResolved" && viewer === airHit.player)
+      setCombatNote(
+        airHit.nullifiedBy
+          ? "Air Strike nullified by Anti-Aircraft!"
+          : `Air Strike hit — ${airHit.removed} ${airHit.removed === 1 ? "army" : "armies"} destroyed.`,
+      );
   }, []);
 
   // Single apply path for a *human* action: delegate the state advance to the
@@ -570,34 +585,26 @@ export function useHotseat(): Hotseat {
     if (!g || !eng || g.pendingOccupation || g.pendingDecision || g.winner) return;
     const from = g.territories[eng.from];
     if (!from || from.armies < 2 || from.owner !== g.activePlayer) return;
-    const events = applyAndStore({ type: "attack", from: eng.from, to: eng.to, dice: Math.min(3, from.armies - 1) });
-    if (events) {
-      const atk = events.find((e) => e.type === "attacked") as AttackedEvent | undefined;
-      if (atk) setLastCombat(atk);
-      setCombatSeq((s) => s + 1);
-      setCombatNote(null); // the air-strike note only applies before the first roll
-      // A CPU defender's reaction (Minefield / Tactical Retreat) resolves immediately so
-      // it doesn't interrupt the attacker; a human defender is prompted instead.
+    setCombatNote(null); // the air-strike note only applies before the first roll
+    // Fire the attack; the dice feedback (lastCombat/combatSeq) is set in applyUpdate,
+    // so it works for both a local apply and an online server push.
+    applyAndStore({ type: "attack", from: eng.from, to: eng.to, dice: Math.min(3, from.armies - 1) });
+    // Local only: resolve a CPU defender's reaction immediately so it doesn't interrupt
+    // the attacker (a human defender is prompted). Online, the server does this.
+    if (!online) {
       const pd = gameRef.current?.pendingDecision;
       if (pd && gameRef.current!.players.find((p) => p.id === pd.player)?.kind === "cpu")
         applyAndStore(decideReaction(gameRef.current!));
     }
-  }, [applyAndStore]);
+  }, [applyAndStore, online]);
 
   // Play an action card as the human (Air Strike from combat, Troop Transport from
   // the fortify row). Surfaces the Air Strike outcome as a transient combat note.
   const playActionCard = useCallback(
     (a: Extract<Action, { type: "playActionCard" }>) => {
       if (!isHumanTurn) return;
-      const events = applyAndStore(a);
-      if (!events) return;
-      const res = events.find((e) => e.type === "airStrikeResolved");
-      if (res && res.type === "airStrikeResolved")
-        setCombatNote(
-          res.nullifiedBy
-            ? "Air Strike nullified by Anti-Aircraft!"
-            : `Air Strike hit — ${res.removed} ${res.removed === 1 ? "army" : "armies"} destroyed.`,
-        );
+      // The Air Strike combat note is surfaced in applyUpdate (works online too).
+      applyAndStore(a);
     },
     [isHumanTurn, applyAndStore],
   );
@@ -630,6 +637,7 @@ export function useHotseat(): Hotseat {
   };
 
   const startAuto = useCallback(() => {
+    if (online) return; // online: attacks resolve via server pushes, so roll one at a time
     if (!canContinue()) return;
     autoRef.current = true;
     setAutoAttacking(true);
@@ -640,7 +648,7 @@ export function useHotseat(): Hotseat {
       setTimeout(step, AUTO_ATTACK_DELAY);
     };
     step();
-  }, [rollOnce, stopAuto]);
+  }, [rollOnce, stopAuto, online]);
 
   const closeEngagement = useCallback(() => {
     if (gameRef.current?.pendingOccupation) return; // must resolve a capture first

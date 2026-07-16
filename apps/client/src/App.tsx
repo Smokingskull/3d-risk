@@ -6,6 +6,7 @@ import { Globe } from "./Globe.js";
 import { Hud } from "./Hud.js";
 import { Home } from "./Home.js";
 import { OnlineLobby } from "./OnlineLobby.js";
+import { ChatPanel } from "./ChatPanel.js";
 import { Tutorial } from "./Tutorial.js";
 import { HelpBox } from "./HelpBox.js";
 import { HelpDialog } from "./HelpDialog.js";
@@ -186,6 +187,7 @@ export function App() {
   return (
     <>
       <Hud hs={hs} hovered={hovered} onOpenHelp={() => setHelpOpen(true)} onOpenCards={() => setCardsOpen(true)} />
+      {hs.online && <ChatPanel hs={hs} />}
       <HelpBox hs={hs} onOpenHelp={() => setHelpOpen(true)} />
       <Tutorial hs={hs} />
       {helpOpen && <HelpDialog onClose={() => setHelpOpen(false)} />}

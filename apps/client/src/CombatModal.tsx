@@ -162,7 +162,7 @@ export function CombatModal({ hs }: { hs: Hotseat }) {
                 </button>
               )}
               <Button onClick={hs.rollOnce}>🎲 Roll once</Button>
-              <button onClick={hs.startAuto}>Attack till resolved</button>
+              {!hs.online && <button onClick={hs.startAuto}>Attack till resolved</button>}
               <Button variant="quiet" onClick={hs.closeEngagement}>
                 Retreat
               </Button>

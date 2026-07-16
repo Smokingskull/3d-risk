@@ -12,6 +12,7 @@ export function DecisionPrompt({ hs }: { hs: Hotseat }) {
   if (!game || !pd) return null;
   const decider = game.players.find((p) => p.id === pd.player);
   if (decider?.kind !== "human") return null; // CPU resolves automatically
+  if (hs.online && pd.player !== hs.yourSeat) return null; // another player's decision, not yours
   const attacker = game.players.find((p) => p.id === game.territories[pd.from]?.owner);
 
   if (pd.kind === "minefield") {
