@@ -1,0 +1,41 @@
+/**
+ * Wire protocol for the multiplayer server (rooms/lobby + hosting slice).
+ * All messages are JSON. The client sends *intents*; the server is authoritative
+ * and replies with lobby state and per-viewer game views (fog applied).
+ */
+import type { Action, Difficulty, GameEvent, GameState } from "@risk3d/engine";
+
+/** A seat's public lobby info. A "human" seat with no `connected` is an open slot. */
+export interface SeatInfo {
+  id: string; // engine player id, e.g. "p1"
+  name: string;
+  kind: "human" | "cpu";
+  difficulty?: Difficulty;
+  connected: boolean; // a human is currently occupying it
+}
+
+export interface LobbyInfo {
+  code: string;
+  owner: string; // seat id of the room owner
+  phase: "lobby" | "playing" | "over";
+  seats: SeatInfo[];
+}
+
+// --- client → server --------------------------------------------------------
+export type ClientMsg =
+  | { type: "create"; name: string; players: number; campaign?: boolean; actionCards?: boolean }
+  | { type: "join"; name: string; code: string }
+  /** Owner-only, in lobby: set a seat to a CPU of `difficulty`, or open it for a
+   *  human (`kind: "human"` with no difficulty). Can't touch a seat a different
+   *  human currently holds. */
+  | { type: "setSeat"; seat: string; kind: "human" | "cpu"; difficulty?: Difficulty }
+  | { type: "start" } // owner-only
+  | { type: "intent"; action: Action };
+
+// --- server → client --------------------------------------------------------
+export type ServerMsg =
+  | { type: "joined"; code: string; you: string } // you = your seat id
+  | { type: "lobby"; room: LobbyInfo }
+  | { type: "update"; you: string; state: GameState; events: GameEvent[] } // fog-projected view
+  | { type: "over"; you: string; state: GameState; winner: string } // game finished
+  | { type: "error"; reason: string };
