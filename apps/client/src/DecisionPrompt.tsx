@@ -14,6 +14,10 @@ export function DecisionPrompt({ hs }: { hs: Hotseat }) {
   if (decider?.kind !== "human") return null; // CPU resolves automatically
   if (hs.online && pd.player !== hs.yourSeat) return null; // another player's decision, not yours
   const attacker = game.players.find((p) => p.id === game.territories[pd.from]?.owner);
+  // Hotseat shares one screen between humans, so name whose decision this is; solo and
+  // online have a single local human, where "you" is already unambiguous.
+  const humanCount = game.players.filter((p) => p.kind === "human").length;
+  const who = !hs.online && humanCount > 1 ? `${decider.name} — ` : "";
 
   if (pd.kind === "minefield") {
     const info = actionCardInfo("minefield");
@@ -22,6 +26,7 @@ export function DecisionPrompt({ hs }: { hs: Hotseat }) {
         <h2 className="combat-title">Minefield?</h2>
         <img className="decision-img" src={info.image} alt={info.name} draggable={false} />
         <p className="combat-result">
+          {who}
           {attacker?.name ?? "The enemy"} took <strong>{pd.territory}</strong>. Lay a minefield to
           destroy some of the armies they move in?
         </p>
@@ -45,6 +50,7 @@ export function DecisionPrompt({ hs }: { hs: Hotseat }) {
         <h2 className="combat-title">Tactical Retreat?</h2>
         <img className="decision-img" src={info.image} alt={info.name} draggable={false} />
         <p className="combat-result">
+          {who}
           {attacker?.name ?? "The enemy"} is attacking <strong>{pd.territory}</strong>. Pull all your
           armies out to an adjacent territory — you keep them, but forfeit {pd.territory}.
         </p>
