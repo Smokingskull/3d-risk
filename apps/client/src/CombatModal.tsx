@@ -63,6 +63,11 @@ export function CombatModal({ hs }: { hs: Hotseat }) {
   const to = game.territories[eng.to];
   if (!from || !to) return null;
 
+  // Read-only defence view: the local seat's territory is under attack (solo + online).
+  // While one of our reactive-card decisions is open, the DecisionPrompt takes over.
+  const defending = eng.role === "defender";
+  if (defending && game.pendingDecision?.player === hs.localSeat) return null;
+
   const color = (owner: string | null) => game.players.find((p) => p.id === owner)?.color ?? "#6b7280";
   const pending = game.pendingOccupation;
   const captured = !!pending && pending.to === eng.to;
@@ -94,7 +99,7 @@ export function CombatModal({ hs }: { hs: Hotseat }) {
 
   return (
     <Overlay backdropClassName="combat-backdrop" cardBaseClassName="combat" closeOnBackdrop={false}>
-        <h2 className="combat-title">Battle for {eng.to}</h2>
+        <h2 className="combat-title">{defending ? `Defending ${eng.to}` : `Battle for ${eng.to}`}</h2>
 
         <div className="combat-arena">
           <div className="combat-side">
@@ -122,7 +127,17 @@ export function CombatModal({ hs }: { hs: Hotseat }) {
         </div>
 
         <div className="combat-result">
-          {hs.combatNote && !captured ? (
+          {defending ? (
+            captured ? (
+              <strong>{eng.to} lost.</strong>
+            ) : hs.lastCombat && !rolling ? (
+              <span>
+                They lost {hs.lastCombat.attackerLosses}, you lost {hs.lastCombat.defenderLosses}.
+              </span>
+            ) : (
+              <span className="dice-hint">Defending {eng.to}…</span>
+            )
+          ) : hs.combatNote && !captured ? (
             <strong className="combat-note">{hs.combatNote}</strong>
           ) : captured ? (
             <strong>Territory captured!</strong>
@@ -136,7 +151,9 @@ export function CombatModal({ hs }: { hs: Hotseat }) {
         </div>
 
         <div className="combat-actions">
-          {captured && pending ? (
+          {defending ? (
+            <span className="hint">Under attack — a live view of your defence.</span>
+          ) : captured && pending ? (
             game.pendingDecision ? (
               <span className="hint">Defender is reacting…</span>
             ) : (

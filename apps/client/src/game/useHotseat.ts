@@ -48,6 +48,12 @@ export interface ActionOutcome {
 export interface Engagement {
   from: TerritoryId;
   to: TerritoryId;
+  /**
+   * "attacker" — the local human is instigating this attack (full controls).
+   * "defender" — the local seat's territory is under attack; a read-only live view
+   * of the exchange (no controls). Only opened solo + online, never hotseat.
+   */
+  role: "attacker" | "defender";
 }
 
 function buildPlayers(seats: SeatSpec[], names: string[]) {
@@ -192,6 +198,10 @@ export function useHotseat(): Hotseat {
   const connRef = useRef<Connection | null>(null);
   const engagementRef = useRef<Engagement | null>(null);
   engagementRef.current = engagement;
+  // Ref so the stable applyUpdate can tell hotseat apart (it needs `online`, which is
+  // React state, not a ref) when deciding whether to open the read-only defence view.
+  const onlineRef = useRef(false);
+  onlineRef.current = online;
   const autoRef = useRef(false);
   // Reinforce-meter tracking: the peak reinforcementsRemaining seen during the
   // current reinforce phase (captures trade bonuses added mid-phase), keyed by
@@ -355,13 +365,37 @@ export function useHotseat(): Hotseat {
         });
       }
     }
-    // Combat-modal feedback for *your* engagement — derived from events here so it
-    // works whether the state advanced from a local apply or a server push (online).
+    // Combat-modal feedback, derived from events here so it works whether the state
+    // advanced from a local apply or a server push (online). Two cases:
+    //  - our own attack (engagement role "attacker") — animate each exchange;
+    //  - an attack *on us* (solo + online only) — open a read-only defence view and
+    //    animate it as each incoming exchange arrives (per-event pacing).
     const eng = engagementRef.current;
     const atk = events.find((e) => e.type === "attacked") as AttackedEvent | undefined;
-    if (atk && eng && atk.from === eng.from && atk.to === eng.to) {
-      setLastCombat(atk);
-      setCombatSeq((s) => s + 1);
+    if (atk) {
+      const local = localSeatRef.current;
+      const humanCount = state.players.filter((p) => p.kind === "human").length;
+      const hotseat = !onlineRef.current && humanCount > 1;
+      const ourOffence = eng?.role === "attacker" && atk.from === eng.from && atk.to === eng.to;
+      // The defender owned the target before the attack; on a conquest the live owner
+      // has already flipped, so read the previous owner from the conquest event.
+      const conq = events.find(
+        (e): e is Extract<GameEvent, { type: "territoryConquered" }> => e.type === "territoryConquered" && e.to === atk.to,
+      );
+      const defender = conq ? conq.previousOwner : state.territories[atk.to]?.owner ?? null;
+      const incoming = !hotseat && local != null && atk.player !== local && defender === local;
+      if (ourOffence) {
+        setLastCombat(atk);
+        setCombatSeq((s) => s + 1);
+      } else if (incoming) {
+        setEngagement({ from: atk.from, to: atk.to, role: "defender" });
+        setLastCombat(atk);
+        setCombatSeq((s) => s + 1);
+      } else if (eng?.role === "defender") {
+        // The attacker moved on to someone else — our defence episode is over.
+        setEngagement(null);
+        setLastCombat(null);
+      }
     }
     const airHit = events.find((e) => e.type === "airStrikeResolved");
     if (airHit && airHit.type === "airStrikeResolved" && viewer === airHit.player)
@@ -529,6 +563,19 @@ export function useHotseat(): Hotseat {
     }
   }, [game, selectedFrom]);
 
+  // Close the read-only defence view once our territory has fallen — immediately,
+  // unless one of our reactive-card decisions (Minefield / Tactical Retreat) is still
+  // open, which holds it while the DecisionPrompt is answered. (The generic effect
+  // above already drops it when the attacker leaves the attack phase.)
+  useEffect(() => {
+    if (engagement?.role !== "defender" || !game || game.winner) return;
+    if (game.pendingDecision?.player === localSeat) return; // our decision holds it open
+    if (game.territories[engagement.to]?.owner !== localSeat) {
+      setEngagement(null);
+      setLastCombat(null);
+    }
+  }, [game, engagement, localSeat]);
+
   // Track the total armies to place this reinforce phase (for the meter). The
   // running peak captures the base plus any trade bonuses added mid-phase; the
   // turn+player key resets it when a new reinforce phase opens.
@@ -590,7 +637,7 @@ export function useHotseat(): Hotseat {
       // Committing to the attack lifts any Misinformation on the target for us
       // (persists even if we retreat before rolling).
       if (gameRef.current?.misinformation[to]) applyAndStore({ type: "revealMisinformation", territory: to });
-      setEngagement({ from: selectedFrom, to });
+      setEngagement({ from: selectedFrom, to, role: "attacker" });
       setLastCombat(null);
       setCombatNote(null);
       setSelection(null);
