@@ -143,6 +143,10 @@ const CANONICAL_BY_SANITIZED = new Map(
 // Scratch vectors reused each frame (single globe instance, single render thread).
 const _labelDir = new THREE.Vector3();
 const _camDir = new THREE.Vector3();
+const _worldUp = new THREE.Vector3(0, 1, 0);
+const _labelX = new THREE.Vector3();
+const _labelY = new THREE.Vector3();
+const _labelBasis = new THREE.Matrix4();
 
 // Seconds for a rotate-to-territory glide (smooth, eased — no jump).
 const FOCUS_DURATION = 0.6;
@@ -189,15 +193,28 @@ interface LabelEntry {
   text: string;
 }
 
-/** Army-count labels that always face the camera; far-side ones are hidden. */
+/** Army-count labels laid flat on the globe (tangent to the surface, upright toward
+ *  north) so they read as printed on the terrain rather than floating billboards.
+ *  Far-side ones are hidden. */
 function Labels({ entries }: { entries: LabelEntry[] }) {
   const group = useRef<THREE.Group>(null);
   useFrame(({ camera }) => {
     if (!group.current) return;
     _camDir.copy(camera.position).normalize();
     for (const child of group.current.children) {
-      child.quaternion.copy(camera.quaternion);
-      child.visible = _labelDir.copy(child.position).normalize().dot(_camDir) > 0.12;
+      // Outward surface normal at this label's anchor.
+      const n = _labelDir.copy(child.position).normalize();
+      child.visible = n.dot(_camDir) > 0.12; // hide the ones round the back
+      if (!child.visible) continue;
+      // Lie in the tangent plane, front (+Z) facing outward so it's read from
+      // outside; "up" (+Y) is north (world up projected into the tangent plane),
+      // with a fallback at the poles where that projection vanishes.
+      _labelY.copy(_worldUp).addScaledVector(n, -_worldUp.dot(n));
+      if (_labelY.lengthSq() < 1e-6) _labelY.set(0, 0, 1).addScaledVector(n, -n.z);
+      _labelY.normalize();
+      _labelX.crossVectors(_labelY, n).normalize();
+      _labelBasis.makeBasis(_labelX, _labelY, n);
+      child.quaternion.setFromRotationMatrix(_labelBasis);
     }
   });
   return (
