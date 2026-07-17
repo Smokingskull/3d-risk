@@ -56,10 +56,16 @@ The three modes are distinguished by `hs.online` + human count
 
 ## Phased implementation
 
-Following the usual working style: land each phase on its own, commit at the boundary,
-check in before moving on.
+**✅ Complete — all six phases shipped, merged to `main`, and deployed to production
+(`3drisk.iainwilson.uk`) on 2026-07-17.** A follow-up also landed: the army-count
+labels were laid flat on the terrain and anchored to each territory's real surface
+radius (they had been floating above the wrong countries), and a `pnpm screenshot`
+dev tool was added for local headless globe captures.
 
-### Phase 1 — "Seat perspective" derivation (foundation, no visible change)
+Landed one phase at a time, committing at each boundary and verifying on staging
+(`feature/multiplayer-spike` → `staging.3drisk.iainwilson.uk`) before the final merge.
+
+### ✅ Phase 1 — "Seat perspective" derivation (foundation, no visible change)
 Add derived values so the UI stops reading `game.activePlayer` for "who am I". In
 `useHotseat.ts` (exposed on `Hotseat`), or a tiny helper:
 - `localSeat: PlayerId | null` per the definition above.
@@ -68,14 +74,14 @@ Add derived values so the UI stops reading `game.activePlayer` for "who am I". I
 
 Everything below consumes these; low risk, unblocks the rest.
 
-### Phase 2 — Campaign button + dialog
+### ✅ Phase 2 — Campaign button + dialog
 - `Hud.tsx`: show the button whenever `localSeat != null` (always in solo/online;
   hotseat only when the current player is human). Drop the `!isCpu` gate.
 - `CampaignDialog.tsx`: take an explicit `playerId` prop (= `localSeat`) instead of
   reading `game.activePlayer`, so solo shows the human's campaign even during a CPU turn.
 - Keep the solo auto-open on game start, keyed off `localSeat`.
 
-### Phase 3 — GAME box restructure
+### ✅ Phase 3 — GAME box restructure
 - Bullet + name (`.turn`): render `localSeat`'s colour + name; when `localSeat` is null
   (hotseat, no active human) render an empty/placeholder bullet to signal "no local
   active human".
@@ -85,32 +91,34 @@ Everything below consumes these; low risk, unblocks the rest.
   and the small online "Waiting…" hint).
 - `TurnStats`: follow `localSeat` (hide when null). *(see Q2)*
 
-### Phase 4 — PLAYERS box active-row status
+### ✅ Phase 4 — PLAYERS box active-row status
 - `PlayersPanel.tsx`: on the active row (when `isActive && !game.winner`), show a short
   status derived from `game.phase`: **Reinforcing… / Attacking… / Fortifying…** —
   alongside/under the name. No counts or specifics. Applies to every current player in
   all modes (human or CPU).
 
-### Phase 5 — ATTACK box: read-only defence view (solo + online only)
+### ✅ Phase 5 — ATTACK box: read-only defence view (solo + online only)
 - `useHotseat.ts`: detect an **incoming** attack on `localSeat`'s territory in
   `applyUpdate` (an `attacked` event whose target was owned by `localSeat`), and open a
   **defender engagement** that reuses the existing `lastCombat`/`combatSeq` animation
   path. Tag engagements with a role (`"attacker" | "defender"`).
   - **Suppress in hotseat** (defence view is solo/online only).
-  - Close the defence view on: territory captured (brief "captured", then close),
-    the attacker's phase leaving `attack` (`phaseChanged`/`turnEnded`), or an idle
-    timeout with no further attack. *(see Q3)*
+  - **As shipped (per Q3):** close on capture — immediately, unless one of our
+    reactive-card decisions (Minefield / Tactical Retreat) is open, which holds it
+    until that resolves; also closes when the attacker leaves the attack phase or
+    moves on to attack someone else. No idle timeout.
 - `CombatModal.tsx`: in defender role, hide all action buttons (Roll / Attack-till-
   resolved / Air Strike / Retreat) and show a "Defending {territory}…" framing; keep
   the dice, odds, and result line as a live spectator view.
 
-### Phase 6 — Defender popups name the player (hotseat clarity)
+### ✅ Phase 6 — Defender popups name the player (hotseat clarity)
 - `DecisionPrompt.tsx`: include the **defender's name** (and keep the attacker's) so in
   hotseat it's clear whose decision it is, e.g. "{Defender} — {Attacker} took {X}. Lay a
-  minefield?" *(see Q6 for wording)*
-- Sanity-check the `ActionOutcome` popup text (`useHotseat.applyUpdate`) in hotseat,
-  where "you/your" is framed from `viewerId` (last human); make sure a defender's result
-  reads correctly for whoever just acted.
+  minefield?" *(shipped; solo/online keep plain "you" since there's one local human.)*
+- Sanity-checked the `ActionOutcome` popup text (`useHotseat.applyUpdate`): its
+  viewer-relative "you/your" reads correctly for whoever's turn it is. Left as-is, with a
+  known minor edge case in 3+-human hotseat where a defender's result banner may not
+  surface (the decision popup — the thing that names the player — is unaffected).
 
 ## Test / verification
 - Manual: run each mode (solo, 2-human hotseat, online with a second tab) and walk
