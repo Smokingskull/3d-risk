@@ -362,7 +362,10 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
     // per continent (for rotate-to-continent). Keyed distinctly (region names vs
     // continent ids), both looked up by focus.
     const centroidDirs = new Map<string, THREE.Vector3>();
-    const toDir = (v: THREE.Vector3) => v.clone().sub(sphere.center).normalize().applyEuler(POLE_FIX).multiplyScalar(TARGET_RADIUS * 1.03);
+    // Surface anchors sit just proud of the globe so army labels hug the terrain
+    // rather than float above it (camera-focus reuses these but normalises, so the
+    // exact offset only affects the labels). Tune the factor to taste.
+    const toDir = (v: THREE.Vector3) => v.clone().sub(sphere.center).normalize().applyEuler(POLE_FIX).multiplyScalar(TARGET_RADIUS * 1.015);
     const contSum = new Map<string, THREE.Vector3>();
     const contCount = new Map<string, number>();
     for (const [territory, acc] of sum) {
