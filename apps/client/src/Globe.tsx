@@ -375,22 +375,42 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
     root.scale.setScalar(s);
     root.rotation.copy(POLE_FIX);
 
+    // Per-territory mean surface radius (model space). The bounding sphere radius is
+    // the *max* vertex distance, so anchoring labels there floats them above every
+    // territory whose local surface sits below that max. Averaging each territory's
+    // own vertex radii puts its label on that territory's actual surface.
+    const meanRadius = new Map<string, number>();
+    {
+      const p = new THREE.Vector3();
+      for (const [territory, meshes] of byTerritory) {
+        let rSum = 0;
+        let rCount = 0;
+        for (const m of meshes) {
+          const attr = m.geometry.getAttribute("position");
+          for (let i = 0; i < attr.count; i++) {
+            rSum += p.fromBufferAttribute(attr, i).distanceTo(sphere.center);
+            rCount++;
+          }
+        }
+        meanRadius.set(territory, rCount ? rSum / rCount : sphere.radius);
+      }
+    }
+
     // One surface anchor per territory (mean of its member vertices), plus one
     // per continent (for rotate-to-continent). Keyed distinctly (region names vs
     // continent ids), both looked up by focus.
     const centroidDirs = new Map<string, THREE.Vector3>();
-    // Surface anchors sit just proud of the globe so army labels hug the terrain
-    // rather than float above it. The labels are billboarded, so a radial offset
-    // only shows as an off-centre screen gap — it has to be tiny to read as "on the
-    // surface" (the mesh is a smooth sphere; the relief is normal-mapped, so we can
-    // sit close without clipping). Camera-focus reuses these but normalises, so the
-    // exact offset only affects the labels. Tune the factor to taste.
-    const toDir = (v: THREE.Vector3) => v.clone().sub(sphere.center).normalize().applyEuler(POLE_FIX).multiplyScalar(TARGET_RADIUS * 1.004);
+    // Anchor at the given world radius. Territory labels sit just proud (x1.004) of
+    // that territory's own surface so they lie flush on the terrain; continents pass
+    // TARGET_RADIUS since focus only uses the direction (it normalises).
+    const toDir = (v: THREE.Vector3, worldRadius: number) =>
+      v.clone().sub(sphere.center).normalize().applyEuler(POLE_FIX).multiplyScalar(worldRadius);
     const contSum = new Map<string, THREE.Vector3>();
     const contCount = new Map<string, number>();
     for (const [territory, acc] of sum) {
       const n = counts.get(territory) || 1;
-      centroidDirs.set(territory, toDir(acc.clone().multiplyScalar(1 / n)));
+      const rWorld = s * (meanRadius.get(territory) ?? sphere.radius) * 1.004;
+      centroidDirs.set(territory, toDir(acc.clone().multiplyScalar(1 / n), rWorld));
       const cont = board.territories[territory]?.continent;
       if (!cont) continue;
       let cs = contSum.get(cont);
@@ -398,7 +418,7 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
       cs.add(acc);
       contCount.set(cont, (contCount.get(cont) ?? 0) + n);
     }
-    for (const [cont, acc] of contSum) centroidDirs.set(cont, toDir(acc.clone().multiplyScalar(1 / (contCount.get(cont) || 1))));
+    for (const [cont, acc] of contSum) centroidDirs.set(cont, toDir(acc.clone().multiplyScalar(1 / (contCount.get(cont) || 1)), TARGET_RADIUS));
     return { group: g, meshesByTerritory: byTerritory, outlinesByTerritory: outlines, outlineMaterials, centroids: centroidDirs };
   }, [scene, countryToTerritory, board, crackTex]);
 
