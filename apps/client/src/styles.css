@@ -542,6 +542,45 @@ button.warn {
   font-size: 14px;
 }
 
+/* Spectator state in the GAME box: this screen isn't driving the current player
+   (a CPU, or a human elsewhere online), so the phase controls give way to a large,
+   centred note saying who we're waiting on. */
+.waiting-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 22px 8px;
+  text-align: center;
+}
+.waiting-main {
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text);
+}
+.waiting-bot {
+  margin-right: 6px;
+}
+.waiting-flavour {
+  font-size: 14px;
+  font-style: italic;
+  color: #f5c842;
+}
+/* Gentle pulse while a CPU is computing its move. */
+.waiting-box.thinking .waiting-main {
+  animation: waiting-pulse 1.4s ease-in-out infinite;
+}
+@keyframes waiting-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+/* Empty player swatch when there's no active local human (hotseat CPU turn). */
+.dot-empty {
+  border: 1px dashed rgba(255, 255, 255, 0.35);
+  background: transparent !important;
+}
+
 .seat {
   display: flex;
   align-items: center;
