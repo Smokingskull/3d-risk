@@ -1,4 +1,4 @@
-import type { GameState } from "@risk3d/engine";
+import type { GameState, PlayerId } from "@risk3d/engine";
 import { Button, Dialog } from "./ui/index.js";
 
 const ART: Record<string, string> = {
@@ -7,10 +7,11 @@ const ART: Record<string, string> = {
   assassination: "/assets/cards/assassination-campaign-card.png",
 };
 
-/** Shows the ACTIVE player's secret campaign objective — the card art plus the
- *  specific aim. Only ever the current player's target (never a rival's). */
-export function CampaignDialog({ game, onClose }: { game: GameState; onClose: () => void }) {
-  const me = game.players.find((p) => p.id === game.activePlayer);
+/** Shows the LOCAL player's secret campaign objective — the card art plus the
+ *  specific aim. Always the seat at this screen (never the current player when that
+ *  differs, e.g. during a CPU turn or another human's turn), never a rival's. */
+export function CampaignDialog({ game, playerId, onClose }: { game: GameState; playerId: PlayerId; onClose: () => void }) {
+  const me = game.players.find((p) => p.id === playerId);
   const c = me?.campaign;
   if (!c) return null;
 

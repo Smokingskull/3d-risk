@@ -34,8 +34,9 @@ export function Hud({
   const [open, setOpen] = useState(true);
   const [optionsOpen, setOptionsOpen] = useState(false);
   // Auto-show the campaign card on start for a solo human (not in multi-human games).
+  // Keyed off the local seat so it still opens when a CPU happens to move first.
   const humanCount = game.players.filter((p) => p.kind === "human").length;
-  const [campaignOpen, setCampaignOpen] = useState(game.options.campaign && humanCount === 1 && active.kind === "human");
+  const [campaignOpen, setCampaignOpen] = useState(game.options.campaign && humanCount === 1 && hs.localSeat != null);
 
   return (
     <>
@@ -131,7 +132,7 @@ export function Hud({
           </>
         ) : (
           <>
-            {game.options.campaign && !isCpu && (
+            {game.options.campaign && hs.localSeat && (
               <button className="campaign-btn" onClick={() => setCampaignOpen(true)}>
                 <Icon name="star" /> Campaign
               </button>
@@ -155,7 +156,7 @@ export function Hud({
       )}
     </div>
     {optionsOpen && !winner && <OptionsDialog hs={hs} onClose={() => setOptionsOpen(false)} onHelp={onOpenHelp} />}
-    {campaignOpen && active.kind === "human" && <CampaignDialog game={game} onClose={() => setCampaignOpen(false)} />}
+    {campaignOpen && hs.localSeat && <CampaignDialog game={game} playerId={hs.localSeat} onClose={() => setCampaignOpen(false)} />}
     </>
   );
 }
