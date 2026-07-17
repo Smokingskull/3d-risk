@@ -1071,6 +1071,11 @@ button.quiet:hover:not(:disabled) {
   letter-spacing: 0.04em;
   color: var(--text-dim);
 }
+/* Current player's live phase indicator, in place of the kind/cards meta. */
+.player-doing {
+  color: var(--accent-bright);
+  font-weight: 600;
+}
 .player-stats {
   display: flex;
   flex-direction: column;

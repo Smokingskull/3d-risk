@@ -1,7 +1,15 @@
 import { useState } from "react";
-import { perceivedArmies } from "@risk3d/engine";
+import { perceivedArmies, type GameState } from "@risk3d/engine";
 import type { Hotseat } from "./game/useHotseat.js";
 import { Icon } from "./Icon.js";
+
+/** What the current player is doing, by phase — a bare indicator (no specifics like
+ *  armies placed; the game report has the detail). */
+const DOING: Record<GameState["phase"], string> = {
+  reinforce: "Reinforcing…",
+  attack: "Attacking…",
+  fortify: "Fortifying…",
+};
 
 /** Right-hand roster: every player with their territory count, army total, card
  *  count, the active player highlighted and eliminated players dimmed. Opens the
@@ -60,6 +68,8 @@ export function PlayersPanel({ hs, onOpenCards, onOpenActionCards }: { hs: Hotse
                       <>
                         <Icon name="skull" /> eliminated
                       </>
+                    ) : isActive ? (
+                      <span className="player-doing">{DOING[game.phase]}</span>
                     ) : (
                       <>
                         {p.kind === "cpu" ? `CPU · ${p.difficulty}` : "Human"} · {cards} {cards === 1 ? "card" : "cards"}
