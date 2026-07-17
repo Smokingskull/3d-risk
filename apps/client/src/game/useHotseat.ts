@@ -75,6 +75,15 @@ export interface Hotseat {
   game: GameState | null;
   /** Whose perspective the board is shown from (Misinformation fog); null pre-game. */
   viewerId: PlayerId | null;
+  /**
+   * The seat *this screen* represents — distinct from the current player. Solo and
+   * online have one permanent human at the screen, so it's fixed (the human / your
+   * seat). Local hotseat may share one machine between several humans, so it's the
+   * current player when they're human, else null (e.g. during a CPU turn — no local
+   * active human). Drives the campaign button, the GAME box identity, and which
+   * incoming attacks open the read-only defence view.
+   */
+  localSeat: PlayerId | null;
   selectedFrom: TerritoryId | null;
   validTargets: Set<TerritoryId>;
   /** Full chronological event history for the current game (end-of-game transcript). */
@@ -264,6 +273,21 @@ export function useHotseat(): Hotseat {
   // Ref so applyAndStore (stable callback) can read the current viewer.
   const viewerIdRef = useRef<PlayerId | null>(null);
   viewerIdRef.current = viewerId;
+
+  // The seat this screen represents (see Hotseat.localSeat). Solo/online: the single
+  // permanent human (the sole human seat / your seat). Hotseat (multiple humans on one
+  // machine): the current player while they're human, else none.
+  const humanSeats = game?.players.filter((p) => p.kind === "human") ?? [];
+  const localSeat: PlayerId | null = online
+    ? yourSeat
+    : humanSeats.length === 1
+      ? humanSeats[0].id
+      : activePlayer?.kind === "human"
+        ? activePlayer.id
+        : null;
+  // Ref for stable callbacks (the defence-view detection reads this in applyUpdate).
+  const localSeatRef = useRef<PlayerId | null>(null);
+  localSeatRef.current = localSeat;
 
   // React to an advanced state (from a local apply now, or a server push later):
   // sync the ref immediately (so rapid synchronous callers — the auto-attack loop,
@@ -710,6 +734,7 @@ export function useHotseat(): Hotseat {
   return {
     game,
     viewerId,
+    localSeat,
     selectedFrom,
     validTargets,
     log,
