@@ -363,9 +363,12 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
     // continent ids), both looked up by focus.
     const centroidDirs = new Map<string, THREE.Vector3>();
     // Surface anchors sit just proud of the globe so army labels hug the terrain
-    // rather than float above it (camera-focus reuses these but normalises, so the
-    // exact offset only affects the labels). Tune the factor to taste.
-    const toDir = (v: THREE.Vector3) => v.clone().sub(sphere.center).normalize().applyEuler(POLE_FIX).multiplyScalar(TARGET_RADIUS * 1.015);
+    // rather than float above it. The labels are billboarded, so a radial offset
+    // only shows as an off-centre screen gap — it has to be tiny to read as "on the
+    // surface" (the mesh is a smooth sphere; the relief is normal-mapped, so we can
+    // sit close without clipping). Camera-focus reuses these but normalises, so the
+    // exact offset only affects the labels. Tune the factor to taste.
+    const toDir = (v: THREE.Vector3) => v.clone().sub(sphere.center).normalize().applyEuler(POLE_FIX).multiplyScalar(TARGET_RADIUS * 1.004);
     const contSum = new Map<string, THREE.Vector3>();
     const contCount = new Map<string, number>();
     for (const [territory, acc] of sum) {
