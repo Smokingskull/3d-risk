@@ -4,6 +4,7 @@ import type { Hotseat } from "./game/useHotseat.js";
 import { Button, Dialog } from "./ui/index.js";
 import { describe } from "./gameLog.js";
 import { RankingScreen } from "./RankingScreen.js";
+import { WoprTerminal } from "./WoprTerminal.js";
 
 export type EndView = "result" | "choices" | "leaderboard" | "log" | "board";
 
@@ -125,6 +126,12 @@ export function VictoryOverlay({ hs, view, setView }: { hs: Hotseat; view: EndVi
 
   // Default (result): the big victory/defeat card → continue to the choices.
   const youWon = hs.online ? winnerId === hs.yourSeat : winner.kind === "human";
+
+  // Easter egg: beating a game that included the Joshua (WOPR) CPU tier opens the
+  // WarGames terminal as the result step, before the normal choices hub.
+  const joshuaPlayed = game.players.some((p) => p.kind === "cpu" && p.difficulty === "joshua");
+  if (youWon && joshuaPlayed) return <WoprTerminal onDone={() => setView("choices")} />;
+
   let src: string;
   if (!youWon) src = LOSS;
   else if (game.options.campaign && hs.winReason === "campaign" && winner.campaign) src = CAMPAIGN_VICTORY[winner.campaign.kind] ?? NORMAL_VICTORY;

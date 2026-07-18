@@ -1671,6 +1671,98 @@ button.quiet:hover:not(:disabled) {
   display: flex;
   gap: 12px;
 }
+
+/* WarGames (Joshua) easter-egg terminal — black screen, off-white type that appears
+   one character at a time behind a filled block cursor (WOPR). */
+.wopr {
+  position: fixed;
+  inset: 0;
+  z-index: 100; /* above every HUD panel and overlay */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  padding: 8vh 6vw;
+  background: #000;
+  cursor: default;
+  animation: wopr-power 0.5s ease-out;
+}
+.wopr-screen {
+  margin: 0;
+  max-width: 900px;
+  font-family: "SFMono-Regular", ui-monospace, "Menlo", "Consolas", "Liberation Mono", monospace;
+  font-size: clamp(15px, 2.4vw, 26px);
+  line-height: 1.9;
+  letter-spacing: 0.06em;
+  color: #e8e6da; /* off-white */
+  white-space: pre-wrap;
+  word-break: break-word;
+  text-shadow: 0 0 6px rgba(232, 230, 218, 0.35);
+}
+.wopr-cursor {
+  display: inline-block; /* filled block cursor at the write head */
+  color: #e8e6da;
+  text-shadow: 0 0 8px rgba(232, 230, 218, 0.5);
+}
+.wopr-cursor-blink {
+  animation: wopr-blink 1.05s steps(1) infinite;
+}
+.wopr-continue {
+  font-family: inherit;
+  font-size: clamp(13px, 1.6vw, 18px);
+  letter-spacing: 0.14em;
+  color: #e8e6da;
+  background: transparent;
+  border: none;
+  padding: 6px 10px;
+  cursor: pointer;
+  opacity: 0.85;
+  animation: wopr-fade-in 0.6s ease-out;
+  text-shadow: 0 0 6px rgba(232, 230, 218, 0.35);
+}
+.wopr-continue:hover {
+  opacity: 1;
+}
+.wopr-continue:focus-visible {
+  outline: 1px solid rgba(232, 230, 218, 0.5);
+  outline-offset: 3px;
+}
+@keyframes wopr-blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  50.01%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes wopr-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.85;
+  }
+}
+@keyframes wopr-power {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wopr,
+  .wopr-continue {
+    animation: none;
+  }
+  .wopr-cursor-blink {
+    animation: none;
+  }
+}
 /* Full-game transcript, opened from the win/loss screen. */
 .game-log-card {
   width: 560px;
