@@ -35,7 +35,7 @@
   --font-body: "Roboto Condensed", "Oswald", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
   /* Gunmetal / bronze / military-red palette. */
-  --bg: #101417; /* main background */
+  --bg: #191d22; /* main background */
   --panel: #1b2227; /* secondary panels */
   --raised: #283137; /* raised panels / dialogs */
   --accent: #b68a48; /* burnished bronze */

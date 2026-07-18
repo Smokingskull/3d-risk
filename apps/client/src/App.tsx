@@ -78,8 +78,8 @@ function SkyBackground() {
     c.height = 256;
     const ctx = c.getContext("2d")!;
     const g = ctx.createLinearGradient(0, 0, 0, 256);
-    g.addColorStop(0, "#00092e"); // top
-    g.addColorStop(1, "#101417"); // bottom (current background colour)
+    g.addColorStop(0, "#0a1436"); // top
+    g.addColorStop(1, "#191d22"); // bottom (current background colour, matches --bg)
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, 4, 256);
     const tex = new THREE.CanvasTexture(c);
