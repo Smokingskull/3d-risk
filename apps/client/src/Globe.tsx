@@ -26,6 +26,15 @@ const CRACK_DARK = 0.55; // how much crack lines darken the tint (0 = bevel only
 const CRACK_ROUGH = 0.2; // extra roughness in the cracks
 const CRACK_BUMP = 1.7; // relief strength — scales the baked normal so cracks catch light
 
+// Continent relief. The model's 42 territories are open coastline shells sitting on
+// an invisible unit sphere with open ocean gaps between them — deliberately no sea,
+// so the globe reads as a hollow, see-through shell. We keep that: each land shell is
+// raised radially (LAND_HEIGHT) and given cliff "skirt" walls down its coastline to
+// the base sphere level, so continents read as raised plates with thickness while the
+// ocean gaps stay open (you see straight through to the back of the globe).
+const LAND_HEIGHT = 0.035; // radial extrusion of land above the base sphere (model units, r=1.0)
+const SKIRT_BASE = 1.0; // cliffs drop from the raised top back to the base shell level (land thickness)
+
 // Small deterministic RNG so the generated crack pattern is stable across runs.
 function mulberry32(seed: number): () => number {
   return () => {
@@ -126,6 +135,50 @@ function makeCrackTexture(size = 512, cells = 14, seed = 20260714): THREE.DataTe
   tex.anisotropy = 8;
   tex.needsUpdate = true;
   return tex;
+}
+
+// Build cliff "skirt" walls dropping each open coastline edge of a raised land shell
+// down to (just under) sea level, so extruded continents read as solid land with
+// sides rather than floating rims. A boundary edge is one used by exactly one
+// triangle (the shells are open surfaces, so coastlines are open edges). The welded
+// per-territory geometry is passed in, so member-country seams have already dropped
+// out and only the true outer coastline remains. Winding is unimportant — the skirt
+// takes the territory's DoubleSide material.
+function buildSkirt(geo: THREE.BufferGeometry, baseRadius: number): THREE.BufferGeometry | null {
+  const indexed = geo.index ? geo : mergeVertices(geo);
+  const idx = indexed.index!;
+  const pos = indexed.getAttribute("position");
+  const edges = new Map<string, { a: number; b: number; n: number }>();
+  const key = (a: number, b: number) => (a < b ? `${a}_${b}` : `${b}_${a}`);
+  for (let t = 0; t < idx.count; t += 3) {
+    const tri = [idx.getX(t), idx.getX(t + 1), idx.getX(t + 2)];
+    for (let e = 0; e < 3; e++) {
+      const a = tri[e];
+      const b = tri[(e + 1) % 3];
+      const rec = edges.get(key(a, b));
+      if (rec) rec.n++;
+      else edges.set(key(a, b), { a, b, n: 1 });
+    }
+  }
+  const verts: number[] = [];
+  const va = new THREE.Vector3();
+  const vb = new THREE.Vector3();
+  const ba = new THREE.Vector3();
+  const bb = new THREE.Vector3();
+  for (const { a, b, n } of edges.values()) {
+    if (n !== 1) continue; // interior edge — no wall
+    va.fromBufferAttribute(pos, a);
+    vb.fromBufferAttribute(pos, b);
+    ba.copy(va).normalize().multiplyScalar(baseRadius);
+    bb.copy(vb).normalize().multiplyScalar(baseRadius);
+    verts.push(va.x, va.y, va.z, vb.x, vb.y, vb.z, bb.x, bb.y, bb.z);
+    verts.push(va.x, va.y, va.z, bb.x, bb.y, bb.z, ba.x, ba.y, ba.z);
+  }
+  if (!verts.length) return null;
+  const out = new THREE.BufferGeometry();
+  out.setAttribute("position", new THREE.Float32BufferAttribute(verts, 3));
+  out.computeVertexNormals();
+  return out;
 }
 import { getBoard, perceivedArmies, type GameState, type PlayerId, type TerritoryId } from "@risk3d/engine";
 import { NEUTRAL_COLOR } from "./players.js";
@@ -323,7 +376,19 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
       const country = CANONICAL_BY_SANITIZED.get(raw) ?? raw;
       const territory = countryToTerritory.get(country) ?? country;
 
-      if (!mesh.geometry.getAttribute("normal")) mesh.geometry.computeVertexNormals();
+      // Raise the land radially so continents stand proud of sea level. Vertices are
+      // unit-length on the model sphere, so this is a clean radial push; done before
+      // any centroid/outline/label math below so they all track the raised surface.
+      const rawPos = mesh.geometry.getAttribute("position");
+      for (let i = 0; i < rawPos.count; i++) {
+        const x = rawPos.getX(i);
+        const y = rawPos.getY(i);
+        const z = rawPos.getZ(i);
+        const inv = (1 + LAND_HEIGHT) / (Math.hypot(x, y, z) || 1);
+        rawPos.setXYZ(i, x * inv, y * inv, z * inv);
+      }
+      rawPos.needsUpdate = true;
+      mesh.geometry.computeVertexNormals();
       const material = new THREE.MeshStandardMaterial({ color: new THREE.Color(NEUTRAL_COLOR), roughness: 0.85, side: THREE.DoubleSide });
       material.onBeforeCompile = applyCrack;
       mesh.material = material;
@@ -347,6 +412,8 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
     // country geometries merged + welded so shared internal borders drop out of
     // EdgesGeometry). Always visible as a thin dark border (buttonised look);
     // paint() thickens + brightens it when the territory is picked. Non-interactive.
+    // The same welded geometry drives each territory's coastline cliff skirt.
+    const skirts = new Map<string, THREE.Mesh[]>();
     for (const [territory, meshes] of byTerritory) {
       const geos = meshes.map((m) => {
         const src = m.geometry.index ? m.geometry.toNonIndexed() : m.geometry;
@@ -364,6 +431,19 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
       root.add(seg);
       outlines.set(territory, seg);
       outlineMaterials.push(mat);
+
+      // Cliff walls giving the raised land visible thickness down its coastline to the
+      // base shell level. Its own crack material so paint() tints it in the owner
+      // colour with the land above; the open ocean gaps stay see-through.
+      const skirtGeo = buildSkirt(merged, SKIRT_BASE);
+      if (skirtGeo) {
+        const skirtMat = new THREE.MeshStandardMaterial({ color: new THREE.Color(NEUTRAL_COLOR), roughness: 0.85, side: THREE.DoubleSide });
+        skirtMat.onBeforeCompile = applyCrack;
+        const skirt = new THREE.Mesh(skirtGeo, skirtMat);
+        skirt.userData.territory = territory;
+        root.add(skirt);
+        skirts.set(territory, [skirt]);
+      }
     }
 
     const sphere = new THREE.Sphere().setFromPoints(points);
@@ -395,6 +475,11 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
         meanRadius.set(territory, rCount ? rSum / rCount : sphere.radius);
       }
     }
+
+    // Fold the cliff skirts into each territory's mesh list now that mean radius (for
+    // label anchoring) has been read from the land tops only — so paint() recolours
+    // the walls with the land, but labels stay on the raised surface, not the cliffs.
+    for (const [territory, list] of skirts) byTerritory.get(territory)?.push(...list);
 
     // One surface anchor per territory (mean of its member vertices), plus one
     // per continent (for rotate-to-continent). Keyed distinctly (region names vs
