@@ -432,18 +432,35 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
       outlines.set(territory, seg);
       outlineMaterials.push(mat);
 
-      // Cliff walls giving the raised land visible thickness down its coastline to the
-      // base shell level. Its own crack material so paint() tints it in the owner
-      // colour with the land above; the open ocean gaps stay see-through.
+      // Close each continent into a solid slab: cliff walls down its coastline plus a
+      // floor cap (the land shape projected to the base radius) so it isn't a hollow
+      // open-bottomed shell. Both take their own crack material so paint() tints them
+      // in the owner colour with the land above; the ocean gaps between slabs stay
+      // see-through (the globe as a whole is still hollow, only the land is solid).
+      const crackMat = () => {
+        const m = new THREE.MeshStandardMaterial({ color: new THREE.Color(NEUTRAL_COLOR), roughness: 0.85, side: THREE.DoubleSide });
+        m.onBeforeCompile = applyCrack;
+        return m;
+      };
+      const extras: THREE.Mesh[] = [];
       const skirtGeo = buildSkirt(merged, SKIRT_BASE);
-      if (skirtGeo) {
-        const skirtMat = new THREE.MeshStandardMaterial({ color: new THREE.Color(NEUTRAL_COLOR), roughness: 0.85, side: THREE.DoubleSide });
-        skirtMat.onBeforeCompile = applyCrack;
-        const skirt = new THREE.Mesh(skirtGeo, skirtMat);
-        skirt.userData.territory = territory;
-        root.add(skirt);
-        skirts.set(territory, [skirt]);
+      if (skirtGeo) extras.push(new THREE.Mesh(skirtGeo, crackMat()));
+      // Floor: the welded land projected radially down to the base shell radius.
+      const floorGeo = merged.clone();
+      const fpos = floorGeo.getAttribute("position");
+      const fv = new THREE.Vector3();
+      for (let i = 0; i < fpos.count; i++) {
+        fv.fromBufferAttribute(fpos, i).normalize().multiplyScalar(SKIRT_BASE);
+        fpos.setXYZ(i, fv.x, fv.y, fv.z);
       }
+      fpos.needsUpdate = true;
+      floorGeo.computeVertexNormals();
+      extras.push(new THREE.Mesh(floorGeo, crackMat()));
+      for (const m of extras) {
+        m.userData.territory = territory;
+        root.add(m);
+      }
+      skirts.set(territory, extras);
     }
 
     const sphere = new THREE.Sphere().setFromPoints(points);
