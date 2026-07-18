@@ -119,6 +119,12 @@ export function App() {
   // Dev-only test hook so headless checks can drive the game deterministically.
   if (import.meta.env.DEV) (window as unknown as { __risk: typeof hs }).__risk = hs;
 
+  // `window.risk` — the cheat console for forcing game conditions (run `risk.help()`).
+  // Enabled in dev, and in any build (incl. staging/production) via ?dev=1, so game
+  // states can be forced for manual testing on staging. Absent for normal players.
+  const devConsoleOn = import.meta.env.DEV || new URLSearchParams(window.location.search).get("dev") === "1";
+  if (devConsoleOn) (window as unknown as { risk: typeof hs.dev }).risk = hs.dev;
+
   // Dev-only: ?autostart=classic boots straight into a game so headless
   // screenshots can capture the live globe (which only renders in-game).
   const autostarted = useRef(false);
