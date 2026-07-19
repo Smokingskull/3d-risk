@@ -11,6 +11,16 @@ const BORDER_COLOR = "#0a0e18"; // permanent thin territory border (buttonised l
 const BORDER_WIDTH = 1.4;
 const PICK_WIDTH = 4.5;
 
+// Continent highlight. Highlighting a continent rings its member countries in gold
+// (a touch slimmer than the pick outline) instead of dimming everyone else. The two
+// behaviours are independently switchable so the old dimming is one flag away:
+//   SHOW_CONTINENT_OUTLINE  – draw the gold rings (the new default)
+//   DIM_CONTINENT_NONMEMBERS – dim non-members to 15% (the old behaviour, off)
+const CONTINENT_OUTLINE_COLOR = "#f5c842"; // gold, matching the UI accent
+const CONTINENT_OUTLINE_WIDTH = 3.2; // slimmer than PICK_WIDTH so the selected country still stands out
+const SHOW_CONTINENT_OUTLINE = true;
+const DIM_CONTINENT_NONMEMBERS = false;
+
 // The model's north pole is on +Z; rotate it to +Y so the globe shows north-up
 // (standard orientation) rather than pole-on. Applied to meshes, labels, and foci.
 const POLE_FIX = new THREE.Euler(-Math.PI / 2, 0, 0);
@@ -297,7 +307,7 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
   }, [board]);
 
   // Prepare the scene once per board: per-territory material grouping + centroids.
-  const { group, meshesByTerritory, outlinesByTerritory, outlineMaterials, centroids } = useMemo(() => {
+  const { group, meshesByTerritory, outlinesByTerritory, goldOutlinesByTerritory, outlineMaterials, centroids } = useMemo(() => {
     const root = scene.clone(true);
 
     // Shared crack shader. One function reference for every material, so three
@@ -363,6 +373,7 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
 
     const byTerritory = new Map<string, THREE.Mesh[]>();
     const outlines = new Map<string, LineSegments2>();
+    const goldOutlines = new Map<string, LineSegments2>();
     const outlineMaterials: LineMaterial[] = [];
     const sum = new Map<string, THREE.Vector3>();
     const counts = new Map<string, number>();
@@ -431,6 +442,19 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
       root.add(seg);
       outlines.set(territory, seg);
       outlineMaterials.push(mat);
+
+      // A parallel gold outline on the same welded edges, hidden until this
+      // territory's continent is highlighted (paint() toggles visibility). Sits
+      // just above the dark border so it reads over it.
+      const goldMat = new LineMaterial({ color: new THREE.Color(CONTINENT_OUTLINE_COLOR).getHex(), linewidth: CONTINENT_OUTLINE_WIDTH, transparent: true });
+      const goldSeg = new LineSegments2(lsg, goldMat);
+      goldSeg.scale.setScalar(1.0045);
+      goldSeg.renderOrder = 4;
+      goldSeg.visible = false;
+      goldSeg.raycast = () => {};
+      root.add(goldSeg);
+      goldOutlines.set(territory, goldSeg);
+      outlineMaterials.push(goldMat);
 
       // Close each continent into a solid slab: cliff walls down its coastline plus a
       // floor cap (the land shape projected to the base radius) so it isn't a hollow
@@ -521,7 +545,7 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
       contCount.set(cont, (contCount.get(cont) ?? 0) + n);
     }
     for (const [cont, acc] of contSum) centroidDirs.set(cont, toDir(acc.clone().multiplyScalar(1 / (contCount.get(cont) || 1)), TARGET_RADIUS));
-    return { group: g, meshesByTerritory: byTerritory, outlinesByTerritory: outlines, outlineMaterials, centroids: centroidDirs };
+    return { group: g, meshesByTerritory: byTerritory, outlinesByTerritory: outlines, goldOutlinesByTerritory: goldOutlines, outlineMaterials, centroids: centroidDirs };
   }, [scene, countryToTerritory, board, crackTex]);
 
   // Fat lines need the viewport resolution for correct pixel width.
@@ -556,10 +580,12 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
     const owner = playableHere ? r.game.territories[territory]?.owner : null;
     const base = !playableHere ? INERT_COLOR : owner ? (r.ownerColor.get(owner) ?? NEUTRAL_COLOR) : NEUTRAL_COLOR;
 
-    // Highlighting a continent keeps members' true owner colours and dims
-    // everything else hard, so real ownership stays visible (spotlight, not recolour).
+    // Highlighting a continent rings its members in gold (paint() shows the gold
+    // outline for non-selected members below). Optionally it can also dim non-members
+    // (the old behaviour, off by default) — kept as a one-flag switch-back.
     const hl = r.highlightContinent;
-    const dimNonMember = !!hl && playableHere && r.game.board.territories[territory]?.continent !== hl;
+    const isMember = !!hl && playableHere && r.game.board.territories[territory]?.continent === hl;
+    const dimNonMember = !!hl && playableHere && !isMember;
 
     // A picked territory (attack source / open dialog) gets a bold, bright border.
     // Hover and attack targets use a soft fill instead. Every territory keeps its
@@ -575,7 +601,7 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
     for (const mesh of meshes) {
       const mat = mesh.material as THREE.MeshStandardMaterial;
       mat.color.set(base);
-      if (dimNonMember) mat.color.multiplyScalar(0.15);
+      if (dimNonMember && DIM_CONTINENT_NONMEMBERS) mat.color.multiplyScalar(0.15);
       mat.emissive.set(emissive);
       mat.emissiveIntensity = intensity;
     }
@@ -585,6 +611,10 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
       mat.color.set(pickColor ?? BORDER_COLOR);
       mat.linewidth = pickColor ? PICK_WIDTH : BORDER_WIDTH;
     }
+    // Gold continent ring: shown on members of the highlighted continent, except the
+    // selected country (which keeps its own pick outline instead).
+    const goldSeg = goldOutlinesByTerritory.get(territory);
+    if (goldSeg) goldSeg.visible = SHOW_CONTINENT_OUTLINE && isMember && !pickColor;
   };
 
   const paintAll = () => {
