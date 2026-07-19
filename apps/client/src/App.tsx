@@ -11,7 +11,7 @@ import { Tutorial } from "./Tutorial.js";
 import { HelpBox } from "./HelpBox.js";
 import { HelpDialog } from "./HelpDialog.js";
 import { CombatModal } from "./CombatModal.js";
-import { CountryPopup } from "./CountryPopup.js";
+import { CountryPanel } from "./CountryPanel.js";
 import { VictoryOverlay } from "./VictoryOverlay.js";
 import { ContinentsPanel } from "./ContinentsPanel.js";
 import { PlayersPanel } from "./PlayersPanel.js";
@@ -215,7 +215,6 @@ export function App() {
     <>
       <Hud
         hs={hs}
-        hovered={hovered}
         onOpenHelp={() => setHelpOpen(true)}
         onOpenCards={() => setCardsOpen(true)}
         onShowStandings={() => setEndView("choices")}
@@ -227,7 +226,7 @@ export function App() {
       <CombatModal hs={hs} />
       <DecisionPrompt hs={hs} />
       <ActionOutcome hs={hs} />
-      <CountryPopup hs={hs} />
+      <CountryPanel hs={hs} hovered={hovered} />
       <VictoryOverlay hs={hs} view={endView} setView={setEndView} />
       {cardsOpen && <CardPanel hs={hs} onClose={() => setCardsOpen(false)} />}
       {actionCardsOpen && <ActionCardPanel hs={hs} onClose={() => setActionCardsOpen(false)} />}

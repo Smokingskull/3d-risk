@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { perceivedArmies } from "@risk3d/engine";
 import type { Hotseat } from "./game/useHotseat.js";
 import { Icon } from "./Icon.js";
 import { Button, Dot } from "./ui/index.js";
@@ -10,13 +9,11 @@ import { TurnStats } from "./TurnStats.js";
 
 export function Hud({
   hs,
-  hovered,
   onOpenHelp,
   onOpenCards,
   onShowStandings,
 }: {
   hs: Hotseat;
-  hovered: string | null;
   onOpenHelp: () => void;
   onOpenCards: () => void;
   onShowStandings: () => void;
@@ -130,7 +127,6 @@ export function Hud({
 
           {localPlayer && <TurnStats game={game} playerId={localPlayer.id} />}
 
-      <div className="hovered">{hovered ? `${hovered}${game.territories[hovered] ? ` — ${hs.viewerId ? perceivedArmies(game, hs.viewerId, hovered) : game.territories[hovered].armies} armies` : " (not in play)"}` : " "}</div>
 
       <div className="footer-row">
         {winner ? (

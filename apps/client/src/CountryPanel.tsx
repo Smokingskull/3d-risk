@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { perceivedArmies, reinforcementsFor } from "@risk3d/engine";
 import type { Hotseat } from "./game/useHotseat.js";
-import { Button, CloseButton, Dot } from "./ui/index.js";
+import { Icon } from "./Icon.js";
+import { Button, Dot } from "./ui/index.js";
 
 function Stepper({ min, max, value, onChange }: { min: number; max: number; value: number; onChange: (n: number) => void }) {
   const clamp = (n: number) => Math.min(max, Math.max(min, n));
@@ -19,32 +20,112 @@ function Stepper({ min, max, value, onChange }: { min: number; max: number; valu
   );
 }
 
-export function CountryPopup({ hs }: { hs: Hotseat }) {
-  const game = hs.game;
-  const id = hs.selection;
+/** A can/can't capability line in the hints block. */
+function Hint({ ok, children }: { ok: boolean; children: React.ReactNode }) {
+  return (
+    <div className={`country-hint${ok ? " yes" : " no"}`}>
+      <span className="country-hint-mark" aria-hidden>{ok ? "✓" : "✗"}</span>
+      <span>{children}</span>
+    </div>
+  );
+}
 
-  // Deploy/move amount, reset whenever the dialog opens on a new country.
+/**
+ * The always-on country box, sitting between the GAME and PLAYERS boxes. Its title,
+ * ownership/armies line, and capability hints follow the moused-over country (falling
+ * back to the selected one, then to an empty resting state). The action controls at the
+ * bottom always act on the *selected* (clicked) country.
+ */
+export function CountryPanel({ hs, hovered }: { hs: Hotseat; hovered: string | null }) {
+  const game = hs.game;
+  const sel = hs.selection;
+
+  const [open, setOpen] = useState(true);
+  // Deploy/move amount, reset whenever a new country is selected.
   const [amount, setAmount] = useState(1);
   useEffect(() => {
-    if (game && id) setAmount(game.reinforcementsRemaining || 1);
-  }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (game && sel) setAmount(game.reinforcementsRemaining || 1);
+  }, [sel]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!game || !id) return null;
-  const t = game.territories[id];
-  if (!t) return null;
+  if (!game) return null;
 
+  // The country shown in the title/info/hints: hover wins, else the selection, else none.
+  const displayId = hovered ?? sel ?? null;
+  const dt = displayId ? game.territories[displayId] : null;
+  const owner = dt?.owner ?? null;
+  const ownerPlayer = owner ? game.players.find((p) => p.id === owner) : null;
+  const ownerColor = ownerPlayer?.color ?? "#6b7280";
+  const title = displayId ?? "No Country";
+
+  return (
+    <div className={open ? "country-panel" : "country-panel collapsed"}>
+      <div className="panel-header">
+        <h1 className="country-title">
+          {displayId ? <Dot color={ownerColor} /> : <Dot className="dot-empty" color="transparent" />}
+          <span>{title}</span>
+        </h1>
+        <button className="collapse" aria-label={open ? "Collapse" : "Expand"} onClick={() => setOpen((o) => !o)}>
+          <Icon name={open ? "chevron-down" : "chevron-right"} size={16} />
+        </button>
+      </div>
+
+      {open && (
+        <>
+          {displayId && dt ? (
+            <CountryDetails hs={hs} id={displayId} />
+          ) : (
+            <p className="hint">No country selected — hover or click a country.</p>
+          )}
+          {sel && game.territories[sel] && <CountryActions hs={hs} id={sel} amount={amount} setAmount={setAmount} />}
+        </>
+      )}
+    </div>
+  );
+}
+
+/** Ownership/armies line + the reinforce/attack/fortify capability hints for `id`. */
+function CountryDetails({ hs, id }: { hs: Hotseat; id: string }) {
+  const game = hs.game!;
   const me = game.activePlayer;
+  const t = game.territories[id];
   const mine = t.owner === me;
   const ownerName = game.players.find((p) => p.id === t.owner)?.name ?? "—";
-  const ownerColor = game.players.find((p) => p.id === t.owner)?.color ?? "#6b7280";
+
+  const perceived = hs.viewerId ? perceivedArmies(game, hs.viewerId, id) : t.armies;
+  const mis = game.misinformation[id];
+
+  const neighbours = game.board.territories[id]?.neighbours ?? [];
+  const bordersEnemy = neighbours.some((n) => game.territories[n]?.owner !== me);
+  const bordersOwned = neighbours.some((n) => game.territories[n]?.owner === me);
+  const canReinforce = mine;
+  const canAttackFrom = mine && t.armies >= 2 && bordersEnemy;
+  const canFortifyFrom = mine && t.armies >= 2 && (game.fortifyAnywhere || bordersOwned);
+
+  return (
+    <>
+      <div className="pop-info">
+        {t.owner == null ? `Unclaimed · ${t.armies} armies` : mine ? `Your territory · ${t.armies} armies` : `Held by ${ownerName} · ${perceived} armies`}
+        {mine && mis ? <span className="misinfo-note"> (shown to enemies as {mis.fake})</span> : null}
+      </div>
+      <div className="country-hints">
+        <Hint ok={canReinforce}>{canReinforce ? "Can reinforce here" : "Can't reinforce here"}</Hint>
+        <Hint ok={canAttackFrom}>{canAttackFrom ? "Can attack from here" : "Can't attack from here"}</Hint>
+        <Hint ok={canFortifyFrom}>{canFortifyFrom ? "Can fortify from here" : "Can't fortify from here"}</Hint>
+      </div>
+    </>
+  );
+}
+
+/** The phase-driven action controls for the *selected* country (`id`). */
+function CountryActions({ hs, id, amount, setAmount }: { hs: Hotseat; id: string; amount: number; setAmount: (n: number) => void }) {
+  const game = hs.game!;
+  const me = game.activePlayer;
+  const t = game.territories[id];
+  const mine = t.owner === me;
   const isSource = hs.selectedFrom === id;
   const isTarget = hs.validTargets.has(id);
   const fromArmies = hs.selectedFrom ? (game.territories[hs.selectedFrom]?.armies ?? 0) : 0;
 
-  // Misinformation: enemies see the perceived (possibly fake) count; the owner sees
-  // the real count plus their own bluff.
-  const perceived = hs.viewerId ? perceivedArmies(game, hs.viewerId, id) : t.armies;
-  const mis = game.misinformation[id];
   const canMisinform =
     game.options.actionCardsEnabled &&
     game.phase === "reinforce" &&
@@ -118,20 +199,8 @@ export function CountryPopup({ hs }: { hs: Hotseat }) {
     }
   }
 
-  return (
-    <div className="country-pop">
-      <div className="pop-head">
-        <Dot color={ownerColor} />
-        <strong>{id}</strong>
-        <CloseButton onClick={hs.closeDialog} />
-      </div>
-      <div className="pop-info">
-        {mine ? `Your territory · ${t.armies} armies` : `Held by ${ownerName} · ${perceived} armies`}
-        {mine && mis ? <span className="misinfo-note"> (shown to enemies as {mis.fake})</span> : null}
-      </div>
-      <div className="pop-body">{body}</div>
-    </div>
-  );
+  if (!body) return null;
+  return <div className="pop-body">{body}</div>;
 }
 
 /** Set a fake displayed army count on an owned territory (Misinformation). */

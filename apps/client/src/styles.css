@@ -55,8 +55,8 @@ body {
    labels) stays on Oswald via the inherited --font-ui default above. */
 .hint,
 .home-desc,
-.hovered,
 .pop-info,
+.country-hint,
 .tutorial p,
 .combat-result {
   font-family: var(--font-body);
@@ -441,14 +441,6 @@ button.warn {
   font-size: 12px;
   line-height: 1.45;
   color: var(--text-dim);
-}
-
-.hovered {
-  font-size: 13px;
-  color: var(--text-dim);
-  min-height: 18px;
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
-  padding-top: 8px;
 }
 
 .banner {
@@ -1257,30 +1249,64 @@ button.quiet:hover:not(:disabled) {
   font-variant-numeric: tabular-nums;
 }
 
-/* ---- country action dialog (bottom-centre) ---- */
-.country-pop {
+/* ---- country box (top-centre, sits between the GAME and PLAYERS boxes) ---- */
+.country-panel {
   position: fixed;
-  bottom: 20px;
+  top: 16px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 15;
+  z-index: 10;
   width: 340px;
   max-width: calc(100vw - 32px);
   padding: 14px 16px;
   border-radius: 12px;
-  background: rgba(40, 49, 55, 0.96);
+  background: rgba(27, 34, 39, 0.88);
+  backdrop-filter: blur(10px);
   border: 2px solid rgba(182, 138, 72, 0.6);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
   color: var(--text);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
-.pop-head {
+/* Collapsed: box is just the title bar (matches the other panels). */
+.country-panel.collapsed {
+  padding-bottom: 0;
+}
+.country-panel.collapsed .panel-header {
+  margin-bottom: 0;
+  border-bottom: none;
+  border-radius: 10px;
+}
+/* Title bar reuses .panel-header / h1 (same gold shade, uppercase); the h1 just
+   flexes so the ownership dot sits beside the name. */
+.country-title {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 16px;
 }
-.pop-head .tut-x {
-  margin-left: auto;
+/* Can/can't reinforce·attack·fortify capability hints. */
+.country-hints {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+}
+.country-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-dim);
+}
+.country-hint-mark {
+  width: 14px;
+  text-align: center;
+  font-weight: 700;
+}
+.country-hint.yes .country-hint-mark {
+  color: #6bd08b;
+}
+.country-hint.no .country-hint-mark {
+  color: #c0554e;
 }
 .pop-info {
   font-size: 13px;
