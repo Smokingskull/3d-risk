@@ -732,6 +732,18 @@ export function useHotseat(): Hotseat {
     }
   }, [game, selectedFrom]);
 
+  // The selected country persists through a player's whole turn (reinforce → attack →
+  // fortify), so it only needs picking once. Drop it at the turn hand-off — the next
+  // player (human or CPU) starts with a clean selection.
+  const lastActiveRef = useRef<string | null>(null);
+  useEffect(() => {
+    const active = game?.activePlayer ?? null;
+    if (lastActiveRef.current !== active) {
+      lastActiveRef.current = active;
+      setSelection(null);
+    }
+  }, [game?.activePlayer]);
+
   // Close the read-only defence view once our territory has fallen — immediately,
   // unless one of our reactive-card decisions (Minefield / Tactical Retreat) is still
   // open, which holds it while the DecisionPrompt is answered. (The generic effect
@@ -788,7 +800,9 @@ export function useHotseat(): Hotseat {
   const deploy = useCallback(
     (territory: TerritoryId, count: number) => {
       applyAndStore({ type: "placeArmies", territory, count });
-      setSelection(null);
+      // Keep the territory selected so it carries through the rest of the turn
+      // (e.g. reinforce → attack without having to re-select). Cleared at the
+      // turn hand-off by the active-player effect below.
     },
     [applyAndStore],
   );
