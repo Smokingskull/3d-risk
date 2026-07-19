@@ -610,6 +610,11 @@ export function Globe({ game, selectedFrom, validTargets, selection, highlightCo
       const mat = seg.material as LineMaterial;
       mat.color.set(pickColor ?? BORDER_COLOR);
       mat.linewidth = pickColor ? PICK_WIDTH : BORDER_WIDTH;
+      // A selected territory's outline must read all the way around, even where a
+      // gold-ringed continent neighbour abuts it. Lift it above the gold rings
+      // (scale 1.0045 / renderOrder 4) both radially and in draw order so it wins.
+      seg.scale.setScalar(pickColor ? 1.006 : 1.004);
+      seg.renderOrder = pickColor ? 6 : 3;
     }
     // Gold continent ring: shown on members of the highlighted continent, except the
     // selected country (which keeps its own pick outline instead).
