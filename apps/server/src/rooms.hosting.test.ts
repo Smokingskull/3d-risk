@@ -13,6 +13,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { GameState } from "@risk3d/engine";
 import type { ServerMsg } from "./protocol.js";
 import {
+  chat,
   createRoom,
   disconnect,
   handleIntent,
@@ -227,6 +228,31 @@ describe("disconnect / reconnect / owner choice", () => {
     const p2b = makeConn();
     reconnect(p2b.conn, token2);
     expect(last(p2b.sent, "error")?.reason).toBe("cannot reconnect");
+  });
+});
+
+describe("abuse hardening", () => {
+  it("caps a connection to one live room", () => {
+    const p1 = makeConn();
+    createRoom(p1.conn, "P1", 3, false, false);
+    const code = last(p1.sent, "joined")!.code;
+    createRoom(p1.conn, "P1", 3, false, false); // second create refused
+    expect(last(p1.sent, "error")?.reason).toBe("already in a room");
+    joinRoom(p1.conn, code, "P1"); // joining another refused too
+    expect(last(p1.sent, "error")?.reason).toBe("already in a room");
+  });
+
+  it("rate-limits chat per seat", () => {
+    const { p1 } = startTwoHumans();
+    const before = all(p1.sent, "chat").length;
+    for (let i = 0; i < 8; i++) chat(p1.conn, `msg ${i}`); // CHAT_MAX = 8 in the window
+    expect(all(p1.sent, "chat").length).toBe(before + 8);
+    chat(p1.conn, "one too many");
+    expect(all(p1.sent, "chat").length).toBe(before + 8); // dropped
+    expect(last(p1.sent, "error")?.reason).toMatch(/too quickly/);
+    vi.advanceTimersByTime(11_000); // window passes
+    chat(p1.conn, "later");
+    expect(all(p1.sent, "chat").length).toBe(before + 9);
   });
 });
 

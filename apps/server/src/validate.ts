@@ -102,3 +102,17 @@ export function protocolVersionError(reqUrl: string | undefined): string | null 
   if (v !== null && Number(v) !== PROTOCOL_VERSION) return `unsupported protocol version ${v} (server speaks ${PROTOCOL_VERSION})`;
   return null;
 }
+
+/**
+ * Cross-site WebSocket-hijacking guard. Opt-in: the check is OFF unless
+ * `MP_ALLOWED_ORIGINS` is set (comma-separated allowlist; `*` also disables it), so
+ * default deployments are unaffected and it can be switched on with an env change +
+ * restart (no redeploy). When on, a browser `Origin` that isn't allowlisted is rejected;
+ * an absent Origin (non-browser clients — they can't mount a CSWSH attack) is allowed.
+ */
+export function originAllowed(origin: string | undefined): boolean {
+  const cfg = process.env.MP_ALLOWED_ORIGINS?.trim();
+  if (!cfg || cfg === "*") return true; // check disabled (default)
+  if (!origin) return true; // no browser Origin → not a cross-site vector
+  return cfg.split(",").map((s) => s.trim()).filter(Boolean).includes(origin);
+}

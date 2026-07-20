@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { protocolVersionError, validateClientMsg } from "./validate.js";
+import { afterEach, describe, expect, it } from "vitest";
+import { originAllowed, protocolVersionError, validateClientMsg } from "./validate.js";
 import { PROTOCOL_VERSION } from "./protocol.js";
 
 describe("validateClientMsg — well-formed messages", () => {
@@ -65,5 +65,33 @@ describe("protocolVersionError (connect handshake)", () => {
   });
   it("rejects a mismatched version", () => {
     expect(protocolVersionError(`/?v=${PROTOCOL_VERSION + 1}`)).toMatch(/unsupported protocol version/);
+  });
+});
+
+describe("originAllowed (CSWSH guard, opt-in)", () => {
+  afterEach(() => {
+    delete process.env.MP_ALLOWED_ORIGINS;
+  });
+
+  it("allows everything when unset (default off)", () => {
+    expect(originAllowed("https://anything.example")).toBe(true);
+    expect(originAllowed(undefined)).toBe(true);
+  });
+
+  it("allows everything when set to *", () => {
+    process.env.MP_ALLOWED_ORIGINS = "*";
+    expect(originAllowed("https://evil.example")).toBe(true);
+  });
+
+  it("enforces the allowlist when configured", () => {
+    process.env.MP_ALLOWED_ORIGINS = "https://3drisk.iainwilson.uk, https://staging.3drisk.iainwilson.uk";
+    expect(originAllowed("https://3drisk.iainwilson.uk")).toBe(true);
+    expect(originAllowed("https://staging.3drisk.iainwilson.uk")).toBe(true);
+    expect(originAllowed("https://evil.example")).toBe(false);
+  });
+
+  it("allows an absent Origin (non-browser clients can't mount CSWSH)", () => {
+    process.env.MP_ALLOWED_ORIGINS = "https://3drisk.iainwilson.uk";
+    expect(originAllowed(undefined)).toBe(true);
   });
 });

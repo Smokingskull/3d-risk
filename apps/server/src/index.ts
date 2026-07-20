@@ -12,7 +12,7 @@ import { randomUUID } from "node:crypto";
 import { createServer } from "node:http";
 import { WebSocketServer } from "ws";
 import { chat, createRoom, devForceEnd, disconnect, handleIntent, joinRoom, reconnect, resolveDrop, setSeat, startGame, type Conn } from "./rooms.js";
-import { protocolVersionError, validateClientMsg } from "./validate.js";
+import { originAllowed, protocolVersionError, validateClientMsg } from "./validate.js";
 
 const PORT = Number(process.env.PORT ?? 8787);
 
@@ -27,6 +27,24 @@ const server = createServer((req, res) => {
 });
 
 const wss = new WebSocketServer({ server });
+
+// Heartbeat: ping every client periodically and terminate any that didn't answer the
+// previous ping, so half-open/dead sockets are reaped (their close → disconnect()).
+type Alive = { isAlive?: boolean };
+const HEARTBEAT_MS = 30_000;
+const heartbeat = setInterval(() => {
+  for (const ws of wss.clients) {
+    const w = ws as typeof ws & Alive;
+    if (w.isAlive === false) {
+      ws.terminate();
+      continue;
+    }
+    w.isAlive = false;
+    ws.ping();
+  }
+}, HEARTBEAT_MS);
+wss.on("close", () => clearInterval(heartbeat));
+
 wss.on("connection", (ws, req) => {
   const conn: Conn = {
     id: randomUUID(),
@@ -34,6 +52,17 @@ wss.on("connection", (ws, req) => {
       if (ws.readyState === ws.OPEN) ws.send(JSON.stringify(msg));
     },
   };
+  const w = ws as typeof ws & Alive;
+  w.isAlive = true;
+  ws.on("pong", () => {
+    w.isAlive = true;
+  });
+  // Cross-site WebSocket-hijacking guard (opt-in via MP_ALLOWED_ORIGINS).
+  if (!originAllowed(req.headers.origin)) {
+    conn.send({ type: "error", reason: "origin not allowed" });
+    ws.close();
+    return;
+  }
   // Connect-time protocol handshake: reject a client that declares a mismatched version.
   const versionErr = protocolVersionError(req.url);
   if (versionErr) {

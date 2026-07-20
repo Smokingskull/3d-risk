@@ -48,7 +48,12 @@ interface Seat {
   difficulty?: Difficulty;
   conn?: Conn; // present iff a human currently occupies it
   token?: string; // reconnect key for a human seat
+  chatTimes?: number[]; // recent chat send times, for rate limiting
 }
+
+/** Chat rate limit: at most CHAT_MAX messages per CHAT_WINDOW_MS, per seat. */
+const CHAT_WINDOW_MS = 10_000;
+const CHAT_MAX = 8;
 
 interface Room {
   code: string;
@@ -186,6 +191,8 @@ function issueToken(room: Room, seat: Seat): string {
 }
 
 export function createRoom(conn: Conn, name: string, players: number, campaign: boolean, actionCards: boolean): void {
+  // One live room per connection — stops a single socket spawning rooms unbounded.
+  if (roomOf(conn)) return conn.send({ type: "error", reason: "already in a room" });
   const n = Math.max(2, Math.min(6, players || 3));
   const seats: Seat[] = Array.from({ length: n }, (_, i) => {
     const id = `p${i + 1}`;
@@ -201,6 +208,7 @@ export function createRoom(conn: Conn, name: string, players: number, campaign: 
 }
 
 export function joinRoom(conn: Conn, code: string, name: string): void {
+  if (roomOf(conn)) return conn.send({ type: "error", reason: "already in a room" });
   const room = rooms.get(code.toUpperCase());
   if (!room) return conn.send({ type: "error", reason: "no such room" });
   if (room.phase !== "lobby") return conn.send({ type: "error", reason: "game already started" });
@@ -300,6 +308,11 @@ export function chat(conn: Conn, text: string): void {
   if (!room || !seat) return;
   const clean = String(text).slice(0, 300).trim();
   if (!clean) return;
+  // Rate limit: drop (with a nudge) if this seat is over CHAT_MAX in the window.
+  const now = Date.now();
+  seat.chatTimes = (seat.chatTimes ?? []).filter((t) => now - t < CHAT_WINDOW_MS);
+  if (seat.chatTimes.length >= CHAT_MAX) return conn.send({ type: "error", reason: "you're sending messages too quickly" });
+  seat.chatTimes.push(now);
   broadcast(room, { type: "chat", from: seat.name, seat: seat.id, text: clean });
   maybeJoshuaReply(room); // Joshua may chime in — only ever in response to real chatter
 }
