@@ -174,8 +174,9 @@ pnpm --filter @risk3d/engine build:classic
 
 The generated board JSON is validated at build time and should not be hand-edited —
 edit the manifest and rerun. Load it via `getBoard("classic")` from `@risk3d/engine`.
-3. **AI** — heuristic → MCTS in a Web Worker; single-player vs CPU. _(done: easy/medium/hard
-   deterministic policies + exact combat odds, run in a Web Worker; MCTS + adaptive
+3. **AI** — heuristic tiers → search, in a Web Worker; single-player vs CPU. _(done:
+   Easy/Medium/Hard deterministic heuristic policies + exact combat odds, plus a
+   search-based **Joshua** tier, all run in a Web Worker; true MCTS + adaptive
    opponent-modelling still to come)_
 4. **Server** — authoritative online multiplayer; mixed local + remote sessions. _(done: a
    bare-`ws` Node server — **not** Colyseus — reusing the engine: rooms/lobby, per-viewer
@@ -190,7 +191,18 @@ at the RNG), `evaluate.ts` (position scoring), and `policy.ts` (`createAI(diffic
 + `planTurn(state)`). All deterministic, so CPU turns are reproducible and tested,
 including full CPU-vs-CPU games that terminate with a winner. In the client the AI
 runs in `apps/client/src/game/ai.worker.ts` off the main thread; seats are chosen in
-the start menu (Human / Easy / Medium / Hard, any mix).
+the start menu (Human / Easy / Medium / Hard / **Joshua**, any mix).
+
+**Joshua** is the top tier — a step beyond the greedy heuristic difficulties. Rather than
+taking the best immediate move, it runs a bounded look-ahead **search** over attack
+sequences (a beam-limited expectimax built on the same exact combat odds) and places its
+reinforcements where that search says they buy the most — so it plans a turn instead of
+reacting to it. It's measurably stronger than Hard (the test suite pits them head-to-head).
+`search.ts` drives it; true MCTS and opponent-modelling are the next step up.
+
+Joshua is named for a certain 1983 film about a computer that learns not to lose. Reach that
+tier and a few WarGames easter eggs are waiting — what triggers them, and what they do, is
+left for you to find. Shall we play a game?
 5. **Persistence** — accounts, resumable games, move-log archive.
 6. **Learning** — per-opponent modelling, then optional self-play RL.
 
