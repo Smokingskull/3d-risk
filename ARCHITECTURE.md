@@ -153,7 +153,7 @@ the server's protocol types (drift risk, acknowledged in a comment).
 
 ---
 
-## 5. The server — authoritative, hand-rolled, under-tested
+## 5. The server — authoritative, hand-rolled
 
 **Headline: it does not use Colyseus** (the README is stale). It's a bespoke `ws`
 WebSocket server. `index.ts` runs one HTTP+WS server on port 8787; `rooms.ts` (463
@@ -175,25 +175,68 @@ It also handles reconnection (5-min pause with tokens), owner-drop →
 end-or-replace-with-Joshua, CPU seats driven server-side on a timer, chat, ranking on
 game-over, and a Joshua chat easter egg.
 
-**Where it's weak:**
+**Hardening status (all Tier-1 security work has since shipped):**
 
-- **No runtime message validation.** The inbound envelope is only `JSON.parse`d; every
-  field (`m.action`, `m.players`, `m.token`…) is trusted. `isLegal` catches illegal
-  *game* actions downstream, but malformed envelopes aren't guarded, and there's no
-  protocol version.
-- **The events channel isn't fog-projected.** `broadcastGame` sends the *same* `events`
-  array to every seat (only *state* is redacted). This was intentional (it enabled the
-  read-only online defence view with no server change), but it's an un-audited leak
-  vector for anything secret-bearing.
-- **Almost no server tests.** Only two pure helpers (`nextCpuAction`, `computeRanking`)
-  are covered. There are **no** integration tests for turn-ownership rejection, `isLegal`
-  gating, fog leaks, or reconnect flow — and no `projection.test.ts` asserting "a viewer
-  never sees another seat's cards/objective." The multiplayer plan explicitly promised
-  these.
-- **Abuse surface:** no per-connection room cap, no chat rate-limit (only a 300-char
-  length cap), no WS origin check, no ping/pong heartbeat.
-- All state is in module `Map`s — a restart loses every in-progress game (accepted for
-  the MVP).
+- ✅ **Runtime message validation** (#2) — `validate.ts` (`validateClientMsg`) checks every
+  `ClientMsg` and the nested `Action` before dispatch; malformed frames and bad JSON are
+  rejected. A `PROTOCOL_VERSION` handshake (a `?v=` query param) rejects mismatched clients.
+- ✅ **Per-viewer event projection** (#3) — `projectEventsForViewer` withholds a
+  Misinformation play from opponents (the one event that leaked hidden state); all other
+  events remain public (their effects are observable anyway).
+- ✅ **Server integration tests** (#4) — `rooms.hosting.test.ts` drives the handlers with
+  fake connections + fake timers (turn-ownership, `isLegal` gating, reconnect/token,
+  pause/resume, owner end-vs-replace, reaping), plus `projection.test.ts` and
+  `validate.test.ts`.
+- ✅ **Abuse hardening** (#5) — per-connection room cap (one live room per socket), chat
+  rate-limit (8/10s per seat), an **opt-in** WS origin check (`MP_ALLOWED_ORIGINS`), and a
+  ws ping/pong heartbeat that reaps dead sockets.
+- ✅ **Idle turn/reaction timeout** (#6) — **opt-in** via `MP_TURN_TIMEOUT_MS`; auto-declines
+  a stalled reaction or auto-ends an idle turn, so a connected-but-idle player can't hang a game.
+
+**Remaining gaps:**
+
+- **In-memory only.** All room/game state lives in module `Map`s — a restart loses every
+  in-progress game. SQLite-backed persistence is the fix (#14); the engine already
+  serializes cleanly (`serializeGame`).
+- **Single-process / single-core AI** — see *Capacity & scaling* below.
+- **Per-connection (not per-IP) room cap.** The cap keys on the socket, so many sockets can
+  each still create a room; a per-IP / global backstop is tracked in #17.
+
+### Capacity & scaling
+
+The server is a **single Node process, single main thread**; `driveCpu` runs the AI's
+`decide()` **synchronously** on that thread (there are no server-side worker threads — the
+AI worker is client-only). So all AI across all rooms serialises onto **one core**,
+regardless of how many the VPS has. That, not memory, is the binding constraint.
+
+Benchmarked (6-player, action cards on, all-Joshua — the heaviest case) on a fast
+Apple-Silicon dev core:
+
+| Measure | Value |
+|---|---|
+| Joshua `decide()` — average | **~0.6 ms** |
+| Joshua `decide()` — worst single call | **~8 ms** (worst event-loop block per move) |
+| Mid-game `GameState` (serialized) | **~9 KB** |
+| CPU pacing between CPU moves (`CPU_DELAY`) | 350 ms |
+
+- **Memory is not the limit.** ~9 KB per room-state, and the board is a **shared singleton**
+  (not copied per room — `getBoard` returns one instance, `cloneState` shares the reference),
+  so thousands of rooms cost only hundreds of MB.
+- **AI worst case:** at one `decide()` per active room per 350 ms, `350 / 0.6 ≈ ~570`
+  continuously-active all-Joshua 6-player rooms saturate one core on dev hardware; de-rate
+  ~2–3× for a typical VPS vCPU → **~200–300** such rooms. Beyond that it **degrades
+  gracefully** — `decide()` calls queue and bot turns simply pace out slower; each call is
+  ≤ ~8 ms, far too short to block networking or drop connections.
+- **Realistic games are connection-bound, not CPU-bound.** A human consumes *zero* server
+  CPU while thinking (their turn is just an idle timer); CPU is spent only on bot moves. So
+  the practical ceiling is concurrent WebSocket count — **low-thousands of players → a few
+  hundred rooms** — comfortably under the AI worst case.
+- **Scaling lever (unbuilt, no current need):** shard rooms across multiple Node
+  processes/workers behind Caddy — each adds a core of AI. The engine's determinism and
+  per-room isolation make this clean.
+
+*(Measured on dev hardware; treat the VPS de-rate as a rough factor, not a guarantee. To
+re-measure, time `createAI("joshua").decide()` over full 6-Joshua games.)*
 
 ---
 
@@ -288,9 +331,13 @@ defaults.
 
 ## 8. Improvements, now that features are in place
 
-Ordered by value.
+Ordered by value. These are now tracked as GitHub issues on `Smokingskull/3d-risk`.
+**Status: Tier 1 is complete** — all five items below shipped as #2 (validation), #3 (fog
+leak), #4 (server tests), #5 (abuse hardening) and #6 (idle timeout); see §5. Tier 2 and
+Tier 3 remain open (plus follow-ups #16 docs, #17 per-IP cap). The list is kept here for
+context.
 
-### Tier 1 — correctness & security (do these first)
+### Tier 1 — correctness & security (✅ done — #2–#6)
 
 1. **Server-side runtime message validation.** Add a schema layer (zod or hand-rolled)
    for every `ClientMsg` at `index.ts:44-73`, and add a protocol version field. Today
@@ -367,3 +414,8 @@ risks are (a) the server's thin input-validation/test coverage now that it's exp
 online, and (b) two oversized client files (`useHotseat`, `Globe`) that concentrate
 complexity. Tier 1 addresses the first; Tier 2 addresses the second. Neither is a
 redesign — the bones are good.
+
+**Update (v1.1.x):** Tier 1 is now complete — the server has runtime message validation +
+a protocol version, per-viewer event projection, an integration test suite, abuse
+hardening, and an opt-in idle timeout (#2–#6; see §5 and *Capacity & scaling*). The
+remaining risk (b) — the two oversized client files — is Tier 2 and still open.
