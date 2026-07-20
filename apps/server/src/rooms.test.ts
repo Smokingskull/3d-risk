@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createGame, isLegal, type GameState } from "@risk3d/engine";
-import { computeRanking, nextCpuAction } from "./rooms.js";
+import { computeRanking, nextCpuAction, timeoutAction } from "./rooms.js";
 
 /** A CPU-vs-human classic game with the CPU to move first. */
 function cpuFirstGame(): GameState {
@@ -42,6 +42,25 @@ describe("nextCpuAction (server drive logic)", () => {
   it("never acts once the game is won", () => {
     const s = { ...cpuFirstGame(), winner: "p1" } as GameState;
     expect(nextCpuAction(s, SEATS)).toBeNull();
+  });
+});
+
+describe("timeoutAction (idle auto-finish)", () => {
+  it("places reinforcements when an idle player's reinforce turn is open", () => {
+    expect(timeoutAction(cpuFirstGame())?.type).toBe("placeArmies");
+  });
+
+  it("declines an open defender reaction", () => {
+    const s = {
+      ...cpuFirstGame(),
+      pendingDecision: { kind: "minefield", player: "p2", territory: "Brazil", from: "Peru" },
+    } as GameState;
+    expect(timeoutAction(s)).toEqual({ type: "resolveDecision", play: false });
+  });
+
+  it("ends the turn from the fortify phase", () => {
+    const s = { ...cpuFirstGame(), phase: "fortify" } as GameState;
+    expect(timeoutAction(s)?.type).toBe("endTurn");
   });
 });
 

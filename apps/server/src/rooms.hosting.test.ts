@@ -70,6 +70,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.clearAllTimers();
   vi.useRealTimers();
+  delete process.env.MP_TURN_TIMEOUT_MS;
 });
 
 describe("lobby", () => {
@@ -226,5 +227,23 @@ describe("disconnect / reconnect / owner choice", () => {
     const p2b = makeConn();
     reconnect(p2b.conn, token2);
     expect(last(p2b.sent, "error")?.reason).toBe("cannot reconnect");
+  });
+});
+
+describe("idle turn timeout (opt-in via MP_TURN_TIMEOUT_MS)", () => {
+  it("auto-ends an idle human's turn once the timeout elapses", () => {
+    process.env.MP_TURN_TIMEOUT_MS = "60000";
+    const { p1 } = startTwoHumans(); // room captures the timeout at creation
+    delete process.env.MP_TURN_TIMEOUT_MS;
+
+    expect(stateSeenBy(p1.sent)!.activePlayer).toBe("p1");
+    vi.advanceTimersByTime(61_000); // nobody acted → p1's turn is auto-finished
+    expect(stateSeenBy(p1.sent)!.activePlayer).toBe("p2");
+  });
+
+  it("stays put when no timeout is configured (casual default)", () => {
+    const { p1 } = startTwoHumans(); // no MP_TURN_TIMEOUT_MS → off
+    vi.advanceTimersByTime(10 * 60_000);
+    expect(stateSeenBy(p1.sent)!.activePlayer).toBe("p1"); // still p1's turn
   });
 });

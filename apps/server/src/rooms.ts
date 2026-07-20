@@ -18,6 +18,7 @@ import {
   createGame,
   decideReaction,
   isLegal,
+  listLegalActions,
   projectEventsForViewer,
   projectStateForViewer,
   type Action,
@@ -30,6 +31,10 @@ import type { LobbyInfo, SeatInfo, ServerMsg } from "./protocol.js";
 const PALETTE = ["#e6194b", "#3cb44b", "#4363d8", "#f58231", "#911eb4", "#42d4f4"];
 const CPU_DELAY = 350; // ms between CPU actions (casual pacing)
 const RECONNECT_MS = Number(process.env.MP_RECONNECT_MS ?? 5 * 60 * 1000); // 5 min (overridable for tests)
+/** Idle turn/reaction timeout, off by default (casual). When set, a human who doesn't
+ *  act within this many ms has their reaction auto-declined or their turn auto-ended,
+ *  so a connected-but-idle player can't hang the game. Read per room at creation. */
+const turnTimeoutMs = () => Number(process.env.MP_TURN_TIMEOUT_MS ?? 0);
 
 export interface Conn {
   id: string;
@@ -54,7 +59,9 @@ interface Room {
   actionCards: boolean;
   state: GameState | null;
   eliminationOrder: string[]; // seat ids in the order they were knocked out (for final ranking)
+  turnTimeoutMs: number; // idle timeout for human turns/reactions (0 = off)
   cpuTimer?: ReturnType<typeof setTimeout>;
+  turnTimer?: ReturnType<typeof setTimeout>; // idle timeout for the current human actor
   // disconnect handling
   paused: boolean;
   droppedSeat?: string; // seat awaiting reconnect
@@ -185,7 +192,7 @@ export function createRoom(conn: Conn, name: string, players: number, campaign: 
     if (i === 0) return { id, name: name || "Player 1", kind: "human", conn };
     return { id, name: cpuName("medium"), kind: "cpu", difficulty: "medium" };
   });
-  const room: Room = { code: genCode(), owner: "p1", phase: "lobby", seats, campaign, actionCards, state: null, eliminationOrder: [], paused: false };
+  const room: Room = { code: genCode(), owner: "p1", phase: "lobby", seats, campaign, actionCards, state: null, eliminationOrder: [], turnTimeoutMs: turnTimeoutMs(), paused: false };
   rooms.set(room.code, room);
   connRoom.set(conn.id, room.code);
   const token = issueToken(room, seats[0]);
@@ -336,6 +343,7 @@ export function devForceEnd(conn: Conn): void {
   st.winner = winner;
   room.phase = "over";
   if (room.cpuTimer) clearTimeout(room.cpuTimer);
+  if (room.turnTimer) clearTimeout(room.turnTimer);
   broadcastGame(room);
 }
 
@@ -352,11 +360,57 @@ function applyToRoom(room: Room, action: Action): boolean {
 
 function driveCpu(room: Room): void {
   if (room.cpuTimer) clearTimeout(room.cpuTimer);
+  if (room.turnTimer) clearTimeout(room.turnTimer); // reset the idle timer on every settle
   if (room.phase !== "playing" || room.paused || !room.state) return;
   const action = nextCpuAction(room.state, room.seats);
-  if (!action) return; // a human must act (or the game is over)
+  if (!action) {
+    armTurnTimer(room); // a human must act — bound their idle time if a timeout is set
+    return;
+  }
   applyToRoom(room, action);
   room.cpuTimer = setTimeout(() => driveCpu(room), CPU_DELAY);
+}
+
+/** Arm the idle timeout for the human whose move we're waiting on (no-op if off/over). */
+function armTurnTimer(room: Room): void {
+  if (!room.state || room.state.winner || room.turnTimeoutMs <= 0) return;
+  room.turnTimer = setTimeout(() => onTurnTimeout(room), room.turnTimeoutMs);
+}
+
+/**
+ * The move that ends an idle player's current obligation without playing aggressively:
+ * decline an open reaction, else trade-if-forced / place reinforcements / skip attacking
+ * / end the turn. Picked from the engine's own legal moves, so it's always valid.
+ */
+export function timeoutAction(state: GameState): Action | null {
+  const actions = listLegalActions(state);
+  if (actions.length === 0) return null;
+  const decline = actions.find((a) => a.type === "resolveDecision" && a.play === false);
+  if (decline) return decline;
+  const order: Action["type"][] = ["endTurn", "endAttack", "occupy", "placeArmies", "tradeCards", "fortify"];
+  for (const t of order) {
+    const a = actions.find((x) => x.type === t);
+    if (a) return a;
+  }
+  return actions[0];
+}
+
+/** The idle timeout fired: auto-finish the stuck human's turn (or auto-decline their
+ *  reaction), then hand control back to the CPU driver / re-arm for the next human. */
+function onTurnTimeout(room: Room): void {
+  if (room.phase !== "playing" || room.paused || !room.state || room.state.winner) return;
+  const startActor = room.state.pendingDecision ? room.state.pendingDecision.player : room.state.activePlayer;
+  for (let guard = 0; guard < 1000; guard++) {
+    const st = room.state;
+    if (!st || st.winner) break;
+    const actor = st.pendingDecision ? st.pendingDecision.player : st.activePlayer;
+    if (actor !== startActor) break; // control has left the idle player (turn ended / reaction resolved)
+    const seat = room.seats.find((s) => s.id === actor);
+    if (!seat || seat.kind !== "human") break;
+    const action = timeoutAction(st);
+    if (!action || !applyToRoom(room, action)) break;
+  }
+  driveCpu(room);
 }
 
 // --- disconnect / reconnect / owner choice ----------------------------------
@@ -392,6 +446,7 @@ export function disconnect(conn: Conn): void {
     room.paused = true;
     room.droppedSeat = seat.id;
     if (room.cpuTimer) clearTimeout(room.cpuTimer);
+    if (room.turnTimer) clearTimeout(room.turnTimer);
     broadcast(room, { type: "paused", seat: seat.id, name: seat.name, seconds: Math.round(RECONNECT_MS / 1000) });
     room.dropTimer = setTimeout(() => onReconnectExpired(room, seat.id), RECONNECT_MS);
   }
@@ -437,6 +492,7 @@ export function resolveDrop(conn: Conn, seatId: string, choice: "end" | "replace
 function endGame(room: Room, reason: string): void {
   room.phase = "over";
   if (room.cpuTimer) clearTimeout(room.cpuTimer);
+  if (room.turnTimer) clearTimeout(room.turnTimer);
   if (room.dropTimer) clearTimeout(room.dropTimer);
   if (room.joshuaTimer) clearTimeout(room.joshuaTimer);
   broadcast(room, { type: "ended", reason });
@@ -447,6 +503,7 @@ function endGame(room: Room, reason: string): void {
 function reapIfEmpty(room: Room): void {
   if (room.seats.some((s) => s.conn)) return;
   if (room.cpuTimer) clearTimeout(room.cpuTimer);
+  if (room.turnTimer) clearTimeout(room.turnTimer);
   if (room.dropTimer) clearTimeout(room.dropTimer);
   if (room.joshuaTimer) clearTimeout(room.joshuaTimer);
   for (const s of room.seats) if (s.token) tokens.delete(s.token);
