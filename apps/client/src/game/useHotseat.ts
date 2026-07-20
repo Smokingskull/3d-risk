@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  createAI,
   createGame,
   decideReaction,
   maxDisjointSets,
@@ -8,9 +7,6 @@ import {
   type Action,
   type ActionCardType,
   type BoardMode,
-  type CampaignKind,
-  type Card,
-  type CardSymbol,
   type Difficulty,
   type GameEvent,
   type GameState,
@@ -21,25 +17,10 @@ import { PLAYER_COLORS } from "../players.js";
 import { createLocalSession, createOnlineSession, type GameSession } from "./session.js";
 import { connect, type Connection } from "../net/connection.js";
 import { getTutorialEnabled, setTutorialEnabled } from "../settings.js";
-
-/**
- * The next action for whichever CPU must act — the player owing a pending
- * decision (a defender reaction), else the active CPU. Returns null when a human
- * must act (their turn, or their decision window). Run on the main thread: the
- * heuristic AI is cheap and this avoids re-serializing the board to a worker each
- * step (needed now that reactive cards make turns interactive rather than
- * plannable up front).
- */
-function nextAiAction(state: GameState): Action | null {
-  if (state.winner) return null;
-  if (state.pendingDecision) {
-    const decider = state.players.find((p) => p.id === state.pendingDecision!.player);
-    return decider?.kind === "cpu" ? decideReaction(state) : null;
-  }
-  const active = state.players.find((p) => p.id === state.activePlayer);
-  if (active?.kind !== "cpu") return null;
-  return createAI((active.difficulty as Difficulty) ?? "medium").decide(state);
-}
+import { useAiWorker } from "./useAiWorker.js";
+import { useReinforceMeter } from "./useReinforceMeter.js";
+import { useUiPrefs } from "./useUiPrefs.js";
+import { useDevConsole, type DevConsole } from "./useDevConsole.js";
 
 export type SeatSpec = { kind: "human" } | { kind: "cpu"; difficulty: Difficulty };
 export type AttackedEvent = Extract<GameEvent, { type: "attacked" }>;
@@ -79,31 +60,6 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const delayFor = (a: Action) =>
   a.type === "placeArmies" || a.type === "tradeCards" ? 160 : a.type === "endTurn" ? 320 : 220;
 const AUTO_ATTACK_DELAY = 600;
-
-/**
- * Dev-only cheat console (exposed as `window.risk` in DEV). Forces game conditions
- * that are otherwise unreachable by legal play — for manual testing (e.g. reaching
- * the win/loss screens and the Joshua easter egg on demand). Each command clones the
- * live state, mutates it, and re-seats the session, so the changes are authoritative
- * for subsequent play. Players are referenced by id (e.g. "p1"); run `risk.help()`.
- */
-export interface DevConsole {
-  /** Log the available commands and the current players (ids/names/kinds). */
-  help: () => void;
-  listPlayers: () => { id: PlayerId; name: string; kind: string; difficulty?: string }[];
-  /** Add a unit card to a player's hand (draws a real card unless a symbol is given). */
-  addUnitCard: (playerId: PlayerId, symbol?: CardSymbol) => void;
-  /** Set a player's secret campaign objective. arg = territoryId / continentId / target playerId. */
-  setCampaign: (playerId: PlayerId, kind: CampaignKind, arg: string) => void;
-  /** Replace a player's action-card hand. */
-  setActionCards: (playerId: PlayerId, cards: ActionCardType[]) => void;
-  /** End the game now: playerId wins by campaign objective. */
-  winCampaign: (playerId: PlayerId) => void;
-  /** End the game now: playerId wins by total conquest (all others eliminated). */
-  winTotal: (playerId: PlayerId) => void;
-  /** End the game now: you lose — a CPU (or the given player) wins. */
-  lose: (playerId?: PlayerId) => void;
-}
 
 export interface Hotseat {
   game: GameState | null;
@@ -200,9 +156,6 @@ export function useHotseat(): Hotseat {
   const [selectedFrom, setSelectedFrom] = useState<TerritoryId | null>(null);
   const [log, setLog] = useState<GameEvent[]>([]);
   const [tutorial, setTutorial] = useState(getTutorialEnabled);
-  const [autoRotate, setAutoRotate] = useState(true);
-  const [mode, setMode] = useState<"rotate" | "select">("select");
-  const [tourNonce, setTourNonce] = useState(0);
   const [engagement, setEngagement] = useState<Engagement | null>(null);
   const [lastCombat, setLastCombat] = useState<AttackedEvent | null>(null);
   const [combatSeq, setCombatSeq] = useState(0);
@@ -213,7 +166,8 @@ export function useHotseat(): Hotseat {
   const [autoAttacking, setAutoAttacking] = useState(false);
   const [selection, setSelection] = useState<TerritoryId | null>(null);
   const [winReason, setWinReason] = useState<"elimination" | "campaign" | null>(null);
-  const [reinforceTotal, setReinforceTotal] = useState(0);
+  const { autoRotate, toggleAutoRotate, mode, toggleMode, tourNonce, startTour } = useUiPrefs();
+  const { decideAi } = useAiWorker();
 
   const gameRef = useRef<GameState | null>(null);
   gameRef.current = game;
@@ -233,65 +187,14 @@ export function useHotseat(): Hotseat {
   const onlineRef = useRef(false);
   onlineRef.current = online;
   const autoRef = useRef(false);
-  // Reinforce-meter tracking: the peak reinforcementsRemaining seen during the
-  // current reinforce phase (captures trade bonuses added mid-phase), keyed by
-  // turn+player so it resets each new reinforce phase.
-  const reinforceTotalRef = useRef(0);
-  const reinforceKeyRef = useRef("");
 
   // Whether the CPU step-loop is currently running (prevents re-entry).
   const cpuRunning = useRef(false);
   // True while the worker is computing a CPU action (drives the HUD "thinking" line).
   const [thinking, setThinking] = useState(false);
 
-  // AI web worker: computes CPU actions off the main thread so the search-based
-  // Joshua tier never freezes the globe. Falls back to a synchronous decide if the
-  // worker can't start or errors.
-  const aiWorker = useRef<Worker | null>(null);
-  const aiWorkerDead = useRef(false);
-  const aiPending = useRef(new Map<number, { resolve: (a: Action | null) => void; state: GameState }>());
-  const aiReqSeq = useRef(0);
-
-  const decideAi = useCallback((state: GameState): Promise<Action | null> => {
-    if (!aiWorker.current && !aiWorkerDead.current) {
-      try {
-        const w = new Worker(new URL("./ai.worker.ts", import.meta.url), { type: "module" });
-        w.onmessage = (e: MessageEvent<{ reqId: number; action: Action | null }>) => {
-          const p = aiPending.current.get(e.data.reqId);
-          if (p) {
-            aiPending.current.delete(e.data.reqId);
-            p.resolve(e.data.action);
-          }
-        };
-        w.onerror = () => {
-          aiWorkerDead.current = true;
-          aiWorker.current = null;
-          for (const [id, p] of aiPending.current) {
-            aiPending.current.delete(id);
-            p.resolve(nextAiAction(p.state)); // fall back synchronously
-          }
-        };
-        aiWorker.current = w;
-      } catch {
-        aiWorkerDead.current = true;
-      }
-    }
-    const w = aiWorker.current;
-    if (!w) return Promise.resolve(nextAiAction(state));
-    const reqId = ++aiReqSeq.current;
-    return new Promise((resolve) => {
-      aiPending.current.set(reqId, { resolve, state });
-      try {
-        w.postMessage({ reqId, state });
-      } catch {
-        aiPending.current.delete(reqId);
-        resolve(nextAiAction(state));
-      }
-    });
-  }, []);
-
-  // Tear the worker down with the hook.
-  useEffect(() => () => aiWorker.current?.terminate(), []);
+  // Reinforce meter (peak reinforcements this phase, incl. mid-phase trade bonuses).
+  const reinforceTotal = useReinforceMeter(game);
 
   const activePlayer = game?.players.find((p) => p.id === game.activePlayer) ?? null;
   // Online: it's your turn only when the active seat is *yours*. Local hotseat: any
@@ -491,144 +394,17 @@ export function useHotseat(): Hotseat {
     setWinReason(null);
   }, []);
 
-  // Dev cheat plumbing: clone the live state (pure data), let the caller mutate it and
-  // return any synthetic events, then re-seat the local session on the mutated state and
-  // push it through the normal update path (so React re-renders, the log appends, and
-  // winReason is derived from a `gameWon` event). Bypasses the engine's legality checks
-  // on purpose — this is a debug tool. See DevConsole / window.risk.
-  const devMutate = useCallback(
-    (mutate: (s: GameState) => GameEvent[] | void) => {
-      const cur = gameRef.current;
-      if (!cur) {
-        console.warn("[risk] no game in progress — start one first");
-        return;
-      }
-      const next = structuredClone(cur);
-      const events = mutate(next) ?? [];
+  // Re-seat the local session on a mutated state and push it through the normal update
+  // path — the one place the dev console reaches into session ownership.
+  const applyDevMutation = useCallback(
+    (next: GameState, events: GameEvent[]) => {
       sessionRef.current?.dispose();
       sessionRef.current = createLocalSession(next);
       applyUpdate(next, events);
     },
     [applyUpdate],
   );
-
-  const dev = useMemo<DevConsole>(() => {
-    const ACTION_CARDS: ActionCardType[] = [
-      "troopTransport",
-      "airStrike",
-      "misinformation",
-      "antiAircraft",
-      "minefield",
-      "tacticalRetreat",
-    ];
-    const listPlayers = () =>
-      (gameRef.current?.players ?? []).map((p) => ({ id: p.id, name: p.name, kind: p.kind, difficulty: p.difficulty }));
-    // Resolve a player in the *clone*; log valid ids and bail (returns undefined) on miss.
-    const player = (s: GameState, id: PlayerId) => {
-      const p = s.players.find((pl) => pl.id === id);
-      if (!p) console.warn(`[risk] no player "${id}". Valid ids:`, s.players.map((pl) => pl.id));
-      return p;
-    };
-    let synthSeq = 0;
-    return {
-      help() {
-        console.log("%cwindow.risk — dev console", "font-weight:bold;font-size:13px");
-        console.table(listPlayers());
-        console.log(
-          [
-            "commands (players by id, e.g. 'p1'):",
-            "  risk.addUnitCard(id, symbol?)      symbol: infantry|cavalry|artillery|wild (default: draw a card)",
-            "  risk.setCampaign(id, kind, arg)    kind: 'country' arg=territoryId | 'continent' arg=continentId | 'assassination' arg=playerId",
-            "  risk.setActionCards(id, [cards])   " + ACTION_CARDS.join(" | "),
-            "  risk.winCampaign(id)               end now — id wins by campaign",
-            "  risk.winTotal(id)                  end now — id wins by total conquest",
-            "  risk.lose(id?)                     end now — you lose (a CPU wins)",
-            "  risk.listPlayers()                 ids / names / kinds",
-          ].join("\n"),
-        );
-      },
-      listPlayers,
-      addUnitCard(playerId, symbol) {
-        devMutate((s) => {
-          const p = player(s, playerId);
-          if (!p) return;
-          let card: Card;
-          if (symbol) {
-            const ids = Object.keys(s.board.territories);
-            const territory = symbol === "wild" ? null : ids[synthSeq % ids.length];
-            card = { id: `dev:${playerId}:${synthSeq++}`, territory, symbol };
-          } else {
-            card = s.deck.pop() ?? { id: `dev:${playerId}:${synthSeq++}`, territory: null, symbol: "wild" };
-          }
-          p.cards.push(card);
-          console.log(`[risk] ${p.name} now holds ${p.cards.length} unit card(s)`);
-        });
-      },
-      setCampaign(playerId, kind, arg) {
-        devMutate((s) => {
-          const p = player(s, playerId);
-          if (!p) return;
-          if (kind === "country") {
-            if (!s.board.territories[arg])
-              return void console.warn(`[risk] no territory "${arg}". Valid:`, Object.keys(s.board.territories));
-            p.campaign = { kind: "country", territory: arg, heldTurns: 0 };
-          } else if (kind === "continent") {
-            if (!s.board.continents[arg])
-              return void console.warn(`[risk] no continent "${arg}". Valid:`, Object.keys(s.board.continents));
-            p.campaign = { kind: "continent", continent: arg };
-          } else if (kind === "assassination") {
-            if (!s.players.some((pl) => pl.id === arg))
-              return void console.warn(`[risk] no player "${arg}". Valid:`, s.players.map((pl) => pl.id));
-            p.campaign = { kind: "assassination", target: arg };
-          } else {
-            return void console.warn(`[risk] kind must be 'country' | 'continent' | 'assassination'`);
-          }
-          console.log(`[risk] ${p.name} campaign:`, p.campaign);
-        });
-      },
-      setActionCards(playerId, cards) {
-        devMutate((s) => {
-          const p = player(s, playerId);
-          if (!p) return;
-          const unknown = cards.filter((c) => !ACTION_CARDS.includes(c));
-          if (unknown.length) return void console.warn(`[risk] unknown action card(s): ${unknown.join(", ")}. Valid:`, ACTION_CARDS);
-          p.actionCards = [...cards];
-          console.log(`[risk] ${p.name} action cards:`, p.actionCards);
-        });
-      },
-      winCampaign(playerId) {
-        devMutate((s) => {
-          const p = player(s, playerId);
-          if (!p) return;
-          s.winner = playerId;
-          console.log(`[risk] ${p.name} wins by campaign`);
-          return [{ type: "gameWon", winner: playerId, reason: "campaign" }];
-        });
-      },
-      winTotal(playerId) {
-        devMutate((s) => {
-          const p = player(s, playerId);
-          if (!p) return;
-          for (const pl of s.players) if (pl.id !== playerId) pl.eliminated = true;
-          s.winner = playerId;
-          console.log(`[risk] ${p.name} wins by total conquest`);
-          return [{ type: "gameWon", winner: playerId, reason: "elimination" }];
-        });
-      },
-      lose(playerId) {
-        devMutate((s) => {
-          const winnerId = playerId ?? s.players.find((pl) => pl.kind === "cpu" && !pl.eliminated)?.id;
-          if (!winnerId) return void console.warn("[risk] no CPU to hand the win to — pass a playerId to lose(id)");
-          if (!s.players.some((pl) => pl.id === winnerId))
-            return void console.warn(`[risk] no player "${winnerId}"`);
-          for (const pl of s.players) if (pl.id !== winnerId) pl.eliminated = true;
-          s.winner = winnerId;
-          console.log(`[risk] you lose — ${s.players.find((pl) => pl.id === winnerId)?.name} wins`);
-          return [{ type: "gameWon", winner: winnerId, reason: "elimination" }];
-        });
-      },
-    };
-  }, [devMutate]);
+  const dev = useDevConsole({ getState: () => gameRef.current, applyDevMutation });
 
   const toggleTutorial = useCallback(
     () =>
@@ -638,9 +414,6 @@ export function useHotseat(): Hotseat {
       }),
     [],
   );
-  const toggleAutoRotate = useCallback(() => setAutoRotate((a) => !a), []);
-  const toggleMode = useCallback(() => setMode((m) => (m === "select" ? "rotate" : "select")), []);
-  const startTour = useCallback(() => setTourNonce((n) => n + 1), []);
 
   const reset = useCallback(() => {
     cpuRunning.current = false;
@@ -756,20 +529,6 @@ export function useHotseat(): Hotseat {
       setLastCombat(null);
     }
   }, [game, engagement, localSeat]);
-
-  // Track the total armies to place this reinforce phase (for the meter). The
-  // running peak captures the base plus any trade bonuses added mid-phase; the
-  // turn+player key resets it when a new reinforce phase opens.
-  useEffect(() => {
-    if (!game || game.phase !== "reinforce") return;
-    const key = `${game.turn}:${game.activePlayer}`;
-    if (reinforceKeyRef.current !== key) {
-      reinforceKeyRef.current = key;
-      reinforceTotalRef.current = 0;
-    }
-    reinforceTotalRef.current = Math.max(reinforceTotalRef.current, game.reinforcementsRemaining);
-    if (reinforceTotalRef.current !== reinforceTotal) setReinforceTotal(reinforceTotalRef.current);
-  }, [game, reinforceTotal]);
 
   const validTargets = useMemo<Set<TerritoryId>>(() => {
     if (!game || !selectedFrom) return new Set();
