@@ -17,6 +17,7 @@
  * fed back into `applyAction`; the server always mutates the true state.
  */
 import { perceivedArmies } from "./game.js";
+import type { GameEvent } from "./events.js";
 import type { Card, GameState, PlayerId, TerritoryId, TerritoryState } from "./types.js";
 
 const maskedCard = (owner: PlayerId, i: number): Card => ({ id: `hidden:${owner}:${i}`, territory: null, symbol: "infantry" });
@@ -52,4 +53,18 @@ export function projectStateForViewer(state: GameState, viewer: PlayerId): GameS
     rngSeed: 0, // dice stay server-side authority
     rngCursor: 0,
   };
+}
+
+/**
+ * Redact the event stream for a viewer before broadcasting. Events are otherwise
+ * public (their effects are observable in RISK), with one exception: laying a
+ * Misinformation bluff. Broadcasting `actionCardPlayed{card:"misinformation"}` to
+ * opponents would tell them exactly which territory is bluffed — defeating the very
+ * concealment `projectStateForViewer` preserves — so that event is delivered only to
+ * the player who laid it. Pure; call once per viewer alongside the state projection.
+ */
+export function projectEventsForViewer(events: GameEvent[], viewer: PlayerId): GameEvent[] {
+  return events.filter(
+    (e) => !(e.type === "actionCardPlayed" && e.card === "misinformation" && e.player !== viewer),
+  );
 }

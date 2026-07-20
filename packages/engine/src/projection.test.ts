@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createGame } from "./game.js";
-import { projectStateForViewer } from "./projection.js";
+import { projectEventsForViewer, projectStateForViewer } from "./projection.js";
+import type { GameEvent } from "./events.js";
 import type { GameState } from "./types.js";
 
 // A 2-player classic game with some secret state planted on p2.
@@ -83,5 +84,35 @@ describe("projectStateForViewer (fog of war)", () => {
     expect(view.board).toBe(s.board);
     for (const id of Object.keys(s.territories))
       expect(view.territories[id].owner).toBe(s.territories[id].owner);
+  });
+});
+
+describe("projectEventsForViewer (event fog of war)", () => {
+  const events: GameEvent[] = [
+    { type: "actionCardPlayed", player: "p2", card: "misinformation", target: "Brazil" },
+    { type: "armiesPlaced", player: "p2", territory: "Brazil", count: 3 },
+    { type: "actionCardPlayed", player: "p2", card: "airStrike", target: "Peru" },
+  ];
+
+  it("hides an opponent's Misinformation play but keeps public events", () => {
+    const seen = projectEventsForViewer(events, "p1");
+    expect(seen).toHaveLength(2);
+    expect(seen.some((e) => e.type === "actionCardPlayed" && e.card === "misinformation")).toBe(false);
+    expect(seen.some((e) => e.type === "armiesPlaced")).toBe(true);
+    expect(seen.some((e) => e.type === "actionCardPlayed" && e.card === "airStrike")).toBe(true);
+  });
+
+  it("shows the bluffer their own Misinformation play", () => {
+    const seen = projectEventsForViewer(events, "p2");
+    expect(seen).toHaveLength(3);
+    expect(seen.some((e) => e.type === "actionCardPlayed" && e.card === "misinformation")).toBe(true);
+  });
+
+  it("leaves an event stream without secrets untouched", () => {
+    const publicOnly: GameEvent[] = [
+      { type: "attacked", player: "p1", from: "Peru", to: "Brazil", attackerDice: [6], defenderDice: [3], attackerLosses: 0, defenderLosses: 1, conquered: false },
+      { type: "phaseChanged", phase: "attack", player: "p1" },
+    ];
+    expect(projectEventsForViewer(publicOnly, "p2")).toEqual(publicOnly);
   });
 });

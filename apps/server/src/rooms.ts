@@ -18,6 +18,7 @@ import {
   createGame,
   decideReaction,
   isLegal,
+  projectEventsForViewer,
   projectStateForViewer,
   type Action,
   type Difficulty,
@@ -163,7 +164,7 @@ function broadcastGame(room: Room, events: GameEvent[] = []): void {
     s.conn.send(
       st.winner
         ? { type: "over", you: s.id, state: st, winner: st.winner, ranking }
-        : { type: "update", you: s.id, state: projectStateForViewer(st, s.id), events },
+        : { type: "update", you: s.id, state: projectStateForViewer(st, s.id), events: projectEventsForViewer(events, s.id) },
     );
   }
 }
