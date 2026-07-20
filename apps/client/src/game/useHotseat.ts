@@ -21,6 +21,7 @@ import { useAiWorker } from "./useAiWorker.js";
 import { useReinforceMeter } from "./useReinforceMeter.js";
 import { useUiPrefs } from "./useUiPrefs.js";
 import { useDevConsole, type DevConsole } from "./useDevConsole.js";
+import { useGameStore } from "./useGameStore.js";
 
 export type SeatSpec = { kind: "human" } | { kind: "cpu"; difficulty: Difficulty };
 export type AttackedEvent = Extract<GameEvent, { type: "attacked" }>;
@@ -152,7 +153,7 @@ export interface Hotseat {
 }
 
 export function useHotseat(): Hotseat {
-  const [game, setGame] = useState<GameState | null>(null);
+  const { game, getGame, commitGame } = useGameStore();
   const [selectedFrom, setSelectedFrom] = useState<TerritoryId | null>(null);
   const [log, setLog] = useState<GameEvent[]>([]);
   const [tutorial, setTutorial] = useState(getTutorialEnabled);
@@ -169,10 +170,8 @@ export function useHotseat(): Hotseat {
   const { autoRotate, toggleAutoRotate, mode, toggleMode, tourNonce, startTour } = useUiPrefs();
   const { decideAi } = useAiWorker();
 
-  const gameRef = useRef<GameState | null>(null);
-  gameRef.current = game;
   // The session owns how the authoritative state advances (local apply, or the
-  // server when online). The hook mirrors its state into React state for rendering.
+  // server when online). The hook mirrors its state into the game store for rendering.
   const sessionRef = useRef<GameSession | null>(null);
   // Online play: the server is authoritative; the client sends intents and renders
   // pushed fog-projected views. `yourSeat` is the player id this client controls.
@@ -237,8 +236,7 @@ export function useHotseat(): Hotseat {
   // CPU replay — never read stale state), record events, and surface any reactive-
   // card outcome popups. Shared by every source of state change.
   const applyUpdate = useCallback((state: GameState, events: GameEvent[]) => {
-    gameRef.current = state;
-    setGame(state);
+    commitGame(state);
     // Full chronological history, kept for the end-of-game transcript (shown from
     // the victory/defeat screen, not live in the GAME box).
     setLog((prev) => prev.concat(events));
@@ -337,7 +335,7 @@ export function useHotseat(): Hotseat {
           ? "Air Strike nullified by Anti-Aircraft!"
           : `Air Strike hit — ${airHit.removed} ${airHit.removed === 1 ? "army" : "armies"} destroyed.`,
       );
-  }, []);
+  }, [commitGame]);
 
   // Single apply path for a *human* action: delegate the state advance to the
   // session (local apply today; the server later), then react to the result.
@@ -362,8 +360,7 @@ export function useHotseat(): Hotseat {
     const initial = createGame({ players: buildPlayers(seats, names), boardMode: mode, seed, campaign, actionCardsEnabled: actionCards });
     sessionRef.current?.dispose();
     sessionRef.current = createLocalSession(initial);
-    gameRef.current = initial;
-    setGame(initial);
+    commitGame(initial);
     setSelectedFrom(null);
     setSelection(null);
     setEngagement(null);
@@ -373,7 +370,7 @@ export function useHotseat(): Hotseat {
     // Tutorial tips are a persisted global preference, toggled from Options.
     setTutorial(getTutorialEnabled());
     setWinReason(null);
-  }, []);
+  }, [commitGame]);
 
   const loadState = useCallback((state: GameState) => {
     cpuRunning.current = false;
@@ -382,8 +379,7 @@ export function useHotseat(): Hotseat {
     setActionOutcome(null);
     sessionRef.current?.dispose();
     sessionRef.current = createLocalSession(state);
-    gameRef.current = state;
-    setGame(state);
+    commitGame(state);
     setSelectedFrom(null);
     setSelection(null);
     setEngagement(null);
@@ -392,7 +388,7 @@ export function useHotseat(): Hotseat {
     setLog([]);
     setTutorial(false);
     setWinReason(null);
-  }, []);
+  }, [commitGame]);
 
   // Re-seat the local session on a mutated state and push it through the normal update
   // path — the one place the dev console reaches into session ownership.
@@ -404,7 +400,7 @@ export function useHotseat(): Hotseat {
     },
     [applyUpdate],
   );
-  const dev = useDevConsole({ getState: () => gameRef.current, applyDevMutation });
+  const dev = useDevConsole({ getState: getGame, applyDevMutation });
 
   const toggleTutorial = useCallback(
     () =>
@@ -427,7 +423,7 @@ export function useHotseat(): Hotseat {
     setOnline(false);
     setYourSeat(null);
     setRanking(null);
-    setGame(null);
+    commitGame(null);
     setSelectedFrom(null);
     setSelection(null);
     setEngagement(null);
@@ -435,7 +431,7 @@ export function useHotseat(): Hotseat {
     setAutoAttacking(false);
     setLog([]);
     setWinReason(null);
-  }, []);
+  }, [commitGame]);
 
   // Enter online multiplayer: open a server connection and wire an online session.
   // The server pushes fog-projected views (driving applyUpdate); intents are sent,
@@ -469,7 +465,7 @@ export function useHotseat(): Hotseat {
 
     (async () => {
       while (true) {
-        const cur = gameRef.current;
+        const cur = getGame();
         if (!cur || cur.winner) break;
         const id = cur.pendingDecision ? cur.pendingDecision.player : cur.activePlayer;
         if (cur.players.find((p) => p.id === id)?.kind !== "cpu") break; // a human must act
@@ -478,7 +474,7 @@ export function useHotseat(): Hotseat {
         setThinking(false);
         if (!action) break;
         await sleep(delayFor(action));
-        if (gameRef.current?.winner) break;
+        if (getGame()?.winner) break;
         if (!applyAndStore(action)) break; // became illegal (state moved) — avoid a busy loop
       }
       setThinking(false);
@@ -578,7 +574,7 @@ export function useHotseat(): Hotseat {
       if (!selectedFrom) return;
       // Committing to the attack lifts any Misinformation on the target for us
       // (persists even if we retreat before rolling).
-      if (gameRef.current?.misinformation[to]) applyAndStore({ type: "revealMisinformation", territory: to });
+      if (getGame()?.misinformation[to]) applyAndStore({ type: "revealMisinformation", territory: to });
       setEngagement({ from: selectedFrom, to, role: "attacker" });
       setLastCombat(null);
       setCombatNote(null);
@@ -598,7 +594,7 @@ export function useHotseat(): Hotseat {
 
   // --- combat controls ---
   const rollOnce = useCallback(() => {
-    const g = gameRef.current;
+    const g = getGame();
     const eng = engagementRef.current;
     if (!g || !eng || g.pendingOccupation || g.pendingDecision || g.winner) return;
     const from = g.territories[eng.from];
@@ -610,9 +606,9 @@ export function useHotseat(): Hotseat {
     // Local only: resolve a CPU defender's reaction immediately so it doesn't interrupt
     // the attacker (a human defender is prompted). Online, the server does this.
     if (!online) {
-      const pd = gameRef.current?.pendingDecision;
-      if (pd && gameRef.current!.players.find((p) => p.id === pd.player)?.kind === "cpu")
-        applyAndStore(decideReaction(gameRef.current!));
+      const pd = getGame()?.pendingDecision;
+      if (pd && getGame()!.players.find((p) => p.id === pd.player)?.kind === "cpu")
+        applyAndStore(decideReaction(getGame()!));
     }
   }, [applyAndStore, online]);
 
@@ -630,7 +626,7 @@ export function useHotseat(): Hotseat {
   // Resolve a human defender's decision window (Minefield now, Tactical Retreat later).
   const resolveDecision = useCallback(
     (play: boolean, to?: TerritoryId) => {
-      const g = gameRef.current;
+      const g = getGame();
       if (!g?.pendingDecision) return;
       if (g.players.find((p) => p.id === g.pendingDecision!.player)?.kind !== "human") return;
       applyAndStore({ type: "resolveDecision", play, to });
@@ -646,7 +642,7 @@ export function useHotseat(): Hotseat {
   }, []);
 
   const canContinue = () => {
-    const g = gameRef.current;
+    const g = getGame();
     const eng = engagementRef.current;
     return (
       !!g && !!eng && !g.winner && !g.pendingOccupation && !g.pendingDecision &&
@@ -669,7 +665,7 @@ export function useHotseat(): Hotseat {
   }, [rollOnce, stopAuto, online]);
 
   const closeEngagement = useCallback(() => {
-    if (gameRef.current?.pendingOccupation) return; // must resolve a capture first
+    if (getGame()?.pendingOccupation) return; // must resolve a capture first
     autoRef.current = false;
     setAutoAttacking(false);
     setEngagement(null);
@@ -699,7 +695,7 @@ export function useHotseat(): Hotseat {
   const endTurnNow = useMemo(
     () =>
       guardHuman(() => {
-        const g = gameRef.current;
+        const g = getGame();
         if (!g) return;
         if (g.phase === "attack" && !g.pendingOccupation) {
           applyAndStore({ type: "endAttack" });
