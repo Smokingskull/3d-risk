@@ -6,7 +6,7 @@ name: Deploy (staging)
 # production (/srv/3drisk, main) to a separate staging site.
 on:
   push:
-    branches: [feature/protocol-validation]
+    branches: [main]
     paths-ignore:
       - "**.md"
   workflow_dispatch:
