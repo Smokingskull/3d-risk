@@ -22,6 +22,7 @@ import { ActionOutcome } from "./ActionOutcome.js";
 import { useHotseat } from "./game/useHotseat.js";
 import { scenarioById } from "./scenarios/index.js";
 import { setTutorialEnabled } from "./settings.js";
+import { Footer } from "./Footer.js";
 
 const _right = new THREE.Vector3();
 const _up = new THREE.Vector3();
@@ -173,6 +174,7 @@ export function App() {
       <>
         {!inRoom && <Home onStart={hs.start} onLoadScenario={hs.loadState} onPlayOnline={hs.goOnline} />}
         {hs.online && <OnlineLobby hs={hs} />}
+        <Footer />
       </>
     );
   }
@@ -273,6 +275,7 @@ export function App() {
 
         <OrbitControls makeDefault enablePan={false} minDistance={1.6} maxDistance={8} rotateSpeed={0.6} zoomSpeed={0.7} />
       </Canvas>
+      <Footer />
     </>
   );
 }

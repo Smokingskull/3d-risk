@@ -2243,3 +2243,20 @@ button.start:hover:not(:disabled) {
   flex: 1;
   min-width: 0;
 }
+
+/* ---- app footer: copyright + version/build, small white text, every screen ---- */
+.app-footer {
+  position: fixed;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  font-family: var(--font-body);
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  color: rgba(255, 255, 255, 0.55);
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
