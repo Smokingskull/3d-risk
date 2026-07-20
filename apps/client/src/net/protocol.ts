@@ -5,6 +5,10 @@
  */
 import type { Action, Difficulty, GameEvent, GameState } from "@risk3d/engine";
 
+/** Wire protocol version, sent to the server as a `?v=` query param on connect.
+ *  Must match apps/server/src/protocol.ts PROTOCOL_VERSION. */
+export const PROTOCOL_VERSION = 1;
+
 export interface SeatInfo {
   id: string;
   name: string;

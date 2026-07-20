@@ -5,6 +5,10 @@
  */
 import type { Action, Difficulty, GameEvent, GameState } from "@risk3d/engine";
 
+/** Wire protocol version. A client declares it as a `?v=` query param on connect;
+ *  the server rejects a known-mismatched version. Bump on any incompatible change. */
+export const PROTOCOL_VERSION = 1;
+
 /** A seat's public lobby info. A "human" seat with no `connected` is an open slot. */
 export interface SeatInfo {
   id: string; // engine player id, e.g. "p1"

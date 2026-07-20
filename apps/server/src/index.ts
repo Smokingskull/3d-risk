@@ -11,8 +11,8 @@
 import { randomUUID } from "node:crypto";
 import { createServer } from "node:http";
 import { WebSocketServer } from "ws";
-import type { ClientMsg } from "./protocol.js";
 import { chat, createRoom, devForceEnd, disconnect, handleIntent, joinRoom, reconnect, resolveDrop, setSeat, startGame, type Conn } from "./rooms.js";
+import { protocolVersionError, validateClientMsg } from "./validate.js";
 
 const PORT = Number(process.env.PORT ?? 8787);
 
@@ -27,20 +27,35 @@ const server = createServer((req, res) => {
 });
 
 const wss = new WebSocketServer({ server });
-wss.on("connection", (ws) => {
+wss.on("connection", (ws, req) => {
   const conn: Conn = {
     id: randomUUID(),
     send: (msg) => {
       if (ws.readyState === ws.OPEN) ws.send(JSON.stringify(msg));
     },
   };
+  // Connect-time protocol handshake: reject a client that declares a mismatched version.
+  const versionErr = protocolVersionError(req.url);
+  if (versionErr) {
+    conn.send({ type: "error", reason: versionErr });
+    ws.close();
+    return;
+  }
   ws.on("message", (raw) => {
-    let m: ClientMsg;
+    let parsed: unknown;
     try {
-      m = JSON.parse(String(raw));
+      parsed = JSON.parse(String(raw));
     } catch {
+      conn.send({ type: "error", reason: "invalid JSON" });
       return;
     }
+    // Every inbound frame is untrusted — validate its shape before dispatching.
+    const result = validateClientMsg(parsed);
+    if (!result.ok) {
+      conn.send({ type: "error", reason: result.reason });
+      return;
+    }
+    const m = result.msg;
     switch (m.type) {
       case "create":
         createRoom(conn, m.name, m.players, m.campaign ?? true, m.actionCards ?? false);
@@ -127,7 +142,7 @@ const CLIENT_HTML = /* html */ `<!doctype html>
 </div>
 
 <script>
-  const ws = new WebSocket((location.protocol === "https:" ? "wss://" : "ws://") + location.host);
+  const ws = new WebSocket((location.protocol === "https:" ? "wss://" : "ws://") + location.host + "?v=1");
   let you = null, room = null, state = null, token = null;
   const $ = (id) => document.getElementById(id);
   const send = (m) => ws.send(JSON.stringify(m));

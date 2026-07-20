@@ -4,7 +4,7 @@
  * lobby) and the game session both consume one connection.
  */
 import type { Action, Difficulty } from "@risk3d/engine";
-import type { ClientMsg, ServerMsg } from "./protocol.js";
+import { PROTOCOL_VERSION, type ClientMsg, type ServerMsg } from "./protocol.js";
 
 export interface Connection {
   /** Subscribe to server messages. Returns an unsubscribe fn. */
@@ -31,7 +31,9 @@ export function serverUrl(): string {
 }
 
 export function connect(url = serverUrl()): Connection {
-  const ws = new WebSocket(url);
+  // Declare our protocol version so the server can reject a mismatch on connect.
+  const sep = url.includes("?") ? "&" : "?";
+  const ws = new WebSocket(`${url}${sep}v=${PROTOCOL_VERSION}`);
   const listeners = new Set<(msg: ServerMsg) => void>();
   const outbox: string[] = [];
 
