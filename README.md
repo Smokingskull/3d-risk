@@ -7,10 +7,11 @@ A web-based 3D-globe take on the board game RISK.
 ```
 packages/engine    Pure, deterministic TypeScript rules engine (shared by client, server, AI)
 apps/client        Vite + React + React-Three-Fiber front end (the 3D globe)
+apps/server        Authoritative Node WebSocket server (bare `ws`) for online multiplayer
 ```
 
-Future packages (see the build order below): `apps/server` (Colyseus authoritative
-multiplayer), and an AI module inside `packages/engine`.
+The AI lives inside `packages/engine` (`src/ai/`). All three packages are built; see the
+build order below.
 
 ## Getting started
 
@@ -176,7 +177,10 @@ edit the manifest and rerun. Load it via `getBoard("classic")` from `@risk3d/eng
 3. **AI** — heuristic → MCTS in a Web Worker; single-player vs CPU. _(done: easy/medium/hard
    deterministic policies + exact combat odds, run in a Web Worker; MCTS + adaptive
    opponent-modelling still to come)_
-4. **Server** — Colyseus authoritative multiplayer; mixed local + remote sessions.
+4. **Server** — authoritative online multiplayer; mixed local + remote sessions. _(done: a
+   bare-`ws` Node server — **not** Colyseus — reusing the engine: rooms/lobby, per-viewer
+   fog-of-war, CPU seats, reconnect/pause, chat, reveal + ranking; plus runtime message
+   validation, a protocol version, and an optional idle turn timeout)_
 
 ### AI
 

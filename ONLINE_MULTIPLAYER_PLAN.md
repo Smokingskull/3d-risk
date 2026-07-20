@@ -1,11 +1,16 @@
 # Online Multiplayer — Design Plan
 
-**Status:** proposal / not started. This is the last major roadmap item, gated on the
-single-player game being complete (it now is: 42-territory board, campaigns, action cards,
-Easy/Medium/Hard + Joshua AI). Nothing here is built yet — networking is greenfield.
+**Status:** MVP shipped (2026-07) and deployed at `wss://mp.3drisk.iainwilson.uk`. The
+authoritative `ws` server (`apps/server`, **not** Colyseus) reuses the engine and provides
+rooms/lobby, per-viewer fog-of-war, CPU seats, reconnect/pause with owner end-or-replace,
+chat (with the Joshua easter egg), and reveal + ranking on game over. Runtime message
+validation, a protocol version handshake, and an optional idle turn timeout have since been
+added. The **Stretch** track (accounts, SQLite persistence of in-progress games, spectators,
+a turn clock) remains for later. This document is kept as the design record; §9 is the
+authoritative scope.
 
-**Scope is decided** (MVP + Stretch) — see §9 for the confirmed answers. The sections below have
-been updated to match; §9 is the authoritative record of what's in/out.
+**Scope is decided** (MVP + Stretch) — see §9 for the confirmed answers. The sections below
+describe the design; §9 is the authoritative record of what's in/out.
 
 ---
 
@@ -122,7 +127,7 @@ loader (tsx/esbuild). Small task, flag it early.
 ## 5. Components
 
 ### 5a. Server (`apps/server`, new workspace)
-- **Lobby/rooms:** create room → 6-char code; join by code; assign seats (human/CPU + difficulty);
+- **Lobby/rooms:** create room → 4-char code (unambiguous alphabet); join by code; assign seats (human/CPU + difficulty);
   the **room owner** (creator) starts. One `GameState` per room, held **in memory** (a `Map` of
   room→state); rooms are cleaned up on game end / all-left.
 - **Game host:** receives an intent, checks it's from the seat whose turn/decision it is, runs
