@@ -6,7 +6,7 @@ name: Deploy (staging)
 # production (/srv/3drisk, main) to a separate staging site.
 on:
   push:
-    branches: [main]
+    branches: [feature/declarative-reactions]
     paths-ignore:
       - "**.md"
   workflow_dispatch:
