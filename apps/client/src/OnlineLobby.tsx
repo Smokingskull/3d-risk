@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Difficulty } from "@risk3d/engine";
 import type { Hotseat } from "./game/useHotseat.js";
-import type { LobbyInfo } from "./net/protocol.js";
+import type { LobbyInfo } from "@risk3d/protocol";
 import { seatColor } from "./players.js";
 import { Button, Dialog, Field, Segmented } from "./ui/index.js";
 

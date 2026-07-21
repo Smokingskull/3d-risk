@@ -15,6 +15,7 @@
     "@react-three/drei": "^10.0.6",
     "@react-three/fiber": "^9.1.2",
     "@risk3d/engine": "workspace:*",
+    "@risk3d/protocol": "workspace:*",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "three": "^0.180.0"

@@ -1,7 +1,9 @@
 /**
- * Wire protocol for the multiplayer server (rooms/lobby + hosting slice).
- * All messages are JSON. The client sends *intents*; the server is authoritative
- * and replies with lobby state and per-viewer game views (fog applied).
+ * Wire protocol for the multiplayer server (rooms/lobby + hosting slice). All messages
+ * are JSON. The client sends *intents*; the server is authoritative and replies with
+ * lobby state and per-viewer game views (fog applied).
+ *
+ * Shared by both apps/client and apps/server so the two ends can never drift.
  */
 import type { Action, Difficulty, GameEvent, GameState } from "@risk3d/engine";
 

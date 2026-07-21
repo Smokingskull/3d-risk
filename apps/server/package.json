@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@risk3d/engine": "workspace:*",
+    "@risk3d/protocol": "workspace:*",
     "ws": "^8.18.0"
   },
   "devDependencies": {

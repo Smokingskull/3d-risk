@@ -26,7 +26,7 @@ import {
   type GameEvent,
   type GameState,
 } from "@risk3d/engine";
-import type { LobbyInfo, SeatInfo, ServerMsg } from "./protocol.js";
+import type { LobbyInfo, SeatInfo, ServerMsg } from "@risk3d/protocol";
 
 const PALETTE = ["#e6194b", "#3cb44b", "#4363d8", "#f58231", "#911eb4", "#42d4f4"];
 const CPU_DELAY = 350; // ms between CPU actions (casual pacing)

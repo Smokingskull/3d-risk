@@ -4,7 +4,7 @@
  * lobby) and the game session both consume one connection.
  */
 import type { Action, Difficulty } from "@risk3d/engine";
-import { PROTOCOL_VERSION, type ClientMsg, type ServerMsg } from "./protocol.js";
+import { PROTOCOL_VERSION, type ClientMsg, type ServerMsg } from "@risk3d/protocol";
 
 export interface Connection {
   /** Subscribe to server messages. Returns an unsubscribe fn. */

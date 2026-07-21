@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { originAllowed, protocolVersionError, validateClientMsg } from "./validate.js";
-import { PROTOCOL_VERSION } from "./protocol.js";
+import { PROTOCOL_VERSION } from "@risk3d/protocol";
 
 describe("validateClientMsg — well-formed messages", () => {
   const good: unknown[] = [

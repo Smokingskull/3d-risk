@@ -7,7 +7,7 @@
  * purely about *shape*.
  */
 import { ACTION_CARD_TYPES, type ActionCardType, type Difficulty } from "@risk3d/engine";
-import { PROTOCOL_VERSION, type ClientMsg } from "./protocol.js";
+import { PROTOCOL_VERSION, type ClientMsg } from "@risk3d/protocol";
 
 const DIFFICULTIES: Difficulty[] = ["easy", "medium", "hard", "joshua"];
 

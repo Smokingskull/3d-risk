@@ -11,7 +11,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { GameState } from "@risk3d/engine";
-import type { ServerMsg } from "./protocol.js";
+import type { ServerMsg } from "@risk3d/protocol";
 import {
   chat,
   createRoom,
