@@ -4,9 +4,18 @@
  */
 import type { Action } from "../actions.js";
 import { validSetsInHand } from "../cards.js";
-import { applyAction, perceivedArmies, reinforcementsFor, territoriesOf } from "../game.js";
+import { applyAction, perceivedArmies, territoriesOf } from "../game.js";
 import type { ActionCardType, GameState, PlayerId, TerritoryId } from "../types.js";
 import { conquestProbability } from "./battleOdds.js";
+import {
+  AIRSTRIKE_MIN_DEFENDERS,
+  campaignBonus,
+  chooseFortify,
+  chooseMisinformation,
+  chooseOccupy,
+  enemyNeighbours,
+  isBorder,
+} from "./boardHelpers.js";
 import { createSearchAI } from "./search.js";
 
 export type Difficulty = "easy" | "medium" | "hard" | "joshua";
@@ -34,37 +43,14 @@ const KNOBS: Record<Difficulty, Knobs> = {
   joshua: { attackThreshold: 0.5, fortify: true, eagerTrade: true, continentAware: true, useCards: "all" },
 };
 
-/** Defender armies at which an Air Strike is worth spending before attacking. */
-const AIRSTRIKE_MIN_DEFENDERS = 4;
-
-// --- board helpers ----------------------------------------------------------
-
-function enemyNeighbours(s: GameState, me: PlayerId, t: TerritoryId): TerritoryId[] {
-  return s.board.territories[t].neighbours.filter((n) => s.territories[n].owner !== me);
-}
-
-function isBorder(s: GameState, me: PlayerId, t: TerritoryId): boolean {
-  return enemyNeighbours(s, me, t).length > 0;
-}
+// --- helpers (enemyNeighbours / isBorder / campaignBonus / chooseFortify /
+//     chooseMisinformation / chooseOccupy / AIRSTRIKE_MIN_DEFENDERS live in
+//     boardHelpers.ts, shared with the search AI) ------------------------------
 
 function mustTrade(s: GameState): boolean {
   if (!s.options.cardsEnabled) return false;
   const p = s.players.find((pl) => pl.id === s.activePlayer)!;
   return p.cards.length >= 5;
-}
-
-/** 0..1 bonus for attacking `to` when it advances the active player's campaign
- * objective: capturing the target country, taking territory in the target
- * continent, or hitting the assassination target's land. */
-function campaignAttackBonus(s: GameState, me: PlayerId, to: TerritoryId): number {
-  const c = s.players.find((p) => p.id === me)?.campaign;
-  if (!c) return 0;
-  if (c.kind === "country") {
-    if (to === c.territory) return 1;
-    return s.board.territories[to].neighbours.includes(c.territory) ? 0.3 : 0;
-  }
-  if (c.kind === "continent") return s.board.territories[to].continent === c.continent ? 1 : 0;
-  return s.territories[to].owner === c.target ? 1 : 0; // assassination
 }
 
 /** How valuable taking `to` is toward completing its continent (0..bonus·2). */
@@ -91,7 +77,7 @@ function chooseReinforceTarget(s: GameState, me: PlayerId, k: Knobs): TerritoryI
     let bestScore = -Infinity;
     for (const t of borders) {
       const en = enemyNeighbours(s, me, t);
-      const campScore = Math.max(0, ...en.map((n) => campaignAttackBonus(s, me, n)));
+      const campScore = Math.max(0, ...en.map((n) => campaignBonus(s, me, n)));
       const weakest = Math.min(...en.map((n) => perceivedArmies(s, me, n)));
       const score = 10 * campScore - weakest;
       if (score > bestScore) {
@@ -135,7 +121,7 @@ function chooseAttack(s: GameState, me: PlayerId, k: Knobs): AttackChoice | null
     if (armies < 2) continue;
     for (const to of enemyNeighbours(s, me, from)) {
       const odds = conquestProbability(armies, perceivedArmies(s, me, to));
-      const camp = campaignAttackBonus(s, me, to);
+      const camp = campaignBonus(s, me, to);
       // Pursue campaign targets even at moderate odds (but not hopeless ones).
       const threshold = camp > 0 ? Math.min(k.attackThreshold, 0.45) : k.attackThreshold;
       if (odds < threshold) continue;
@@ -145,62 +131,6 @@ function chooseAttack(s: GameState, me: PlayerId, k: Knobs): AttackChoice | null
     }
   }
   return best;
-}
-
-function chooseFortify(s: GameState, me: PlayerId, forceAnywhere = false): Action | null {
-  const owned = territoriesOf(s, me);
-  const anywhere = forceAnywhere || s.fortifyAnywhere;
-  // Interior territories (no enemy neighbours) with spare armies are "trapped".
-  const interiors = owned
-    .filter((t) => s.territories[t].armies >= 2 && !isBorder(s, me, t))
-    .sort((a, b) => s.territories[b].armies - s.territories[a].armies);
-
-  for (const from of interiors) {
-    // Reachable owned border, most threatened first. Troop Transport (anywhere)
-    // lets an interior stack reinforce a border it isn't connected to.
-    const targets = owned
-      .filter((t) => t !== from && isBorder(s, me, t) && (anywhere || pathThroughOwned(s, me, from, t)))
-      .sort(
-        (a, b) =>
-          enemyArmyPressure(s, me, b) - enemyArmyPressure(s, me, a),
-      );
-    if (targets.length > 0)
-      return { type: "fortify", from, to: targets[0], count: s.territories[from].armies - 1 };
-  }
-  return null;
-}
-
-/** Pick a weak border to bluff as strong with Misinformation (max inflation). */
-function chooseMisinformation(s: GameState, me: PlayerId): { territory: TerritoryId; fake: number } | null {
-  const borders = territoriesOf(s, me).filter((t) => isBorder(s, me, t));
-  if (borders.length === 0) return null;
-  const swing = reinforcementsFor(s, me);
-  if (swing <= 0) return null;
-  // The weakest border facing the most enemy pressure benefits most from looking strong.
-  const target = borders.sort(
-    (a, b) =>
-      s.territories[a].armies - enemyArmyPressure(s, me, a) - (s.territories[b].armies - enemyArmyPressure(s, me, b)),
-  )[0];
-  return { territory: target, fake: s.territories[target].armies + swing };
-}
-
-function enemyArmyPressure(s: GameState, me: PlayerId, t: TerritoryId): number {
-  return enemyNeighbours(s, me, t).reduce((sum, n) => sum + s.territories[n].armies, 0);
-}
-
-function pathThroughOwned(s: GameState, me: PlayerId, from: TerritoryId, to: TerritoryId): boolean {
-  const seen = new Set([from]);
-  const stack = [from];
-  while (stack.length) {
-    const cur = stack.pop()!;
-    if (cur === to) return true;
-    for (const n of s.board.territories[cur].neighbours)
-      if (!seen.has(n) && s.territories[n].owner === me) {
-        seen.add(n);
-        stack.push(n);
-      }
-  }
-  return false;
 }
 
 // --- controller -------------------------------------------------------------
@@ -230,13 +160,7 @@ export function createAI(difficulty: Difficulty): AIController {
       }
 
       if (s.phase === "attack") {
-        if (s.pendingOccupation) {
-          const { from, to, min, max } = s.pendingOccupation;
-          // Push forward, but keep a garrison if the source still borders enemies.
-          const sourceStillBorders = enemyNeighbours(s, me, from).some((n) => n !== to);
-          const count = sourceStillBorders ? Math.max(min, Math.ceil(max / 2)) : max;
-          return { type: "occupy", count: Math.min(max, Math.max(min, count)) };
-        }
+        if (s.pendingOccupation) return chooseOccupy(s, me);
         const attack = chooseAttack(s, me, k);
         if (!attack) return { type: "endAttack" };
         // Soften a well-defended target with an Air Strike first (medium+hard).
