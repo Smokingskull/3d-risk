@@ -181,10 +181,6 @@ export function useHotseat(): Hotseat {
   const connRef = useRef<Connection | null>(null);
   const engagementRef = useRef<Engagement | null>(null);
   engagementRef.current = engagement;
-  // Ref so the stable applyUpdate can tell hotseat apart (it needs `online`, which is
-  // React state, not a ref) when deciding whether to open the read-only defence view.
-  const onlineRef = useRef(false);
-  onlineRef.current = online;
   const autoRef = useRef(false);
 
   // Whether the CPU step-loop is currently running (prevents re-entry).
@@ -212,9 +208,6 @@ export function useHotseat(): Hotseat {
     : (activePlayer?.kind === "human" ? activePlayer.id : lastHumanRef.current) ??
       game?.players.find((p) => p.kind === "human")?.id ??
       null;
-  // Ref so applyAndStore (stable callback) can read the current viewer.
-  const viewerIdRef = useRef<PlayerId | null>(null);
-  viewerIdRef.current = viewerId;
 
   // The seat this screen represents (see Hotseat.localSeat). Solo/online: the single
   // permanent human (the sole human seat / your seat). Hotseat (multiple humans on one
@@ -227,115 +220,131 @@ export function useHotseat(): Hotseat {
       : activePlayer?.kind === "human"
         ? activePlayer.id
         : null;
-  // Ref for stable callbacks (the defence-view detection reads this in applyUpdate).
-  const localSeatRef = useRef<PlayerId | null>(null);
-  localSeatRef.current = localSeat;
 
-  // React to an advanced state (from a local apply now, or a server push later):
-  // sync the ref immediately (so rapid synchronous callers — the auto-attack loop,
-  // CPU replay — never read stale state), record events, and surface any reactive-
-  // card outcome popups. Shared by every source of state change.
+  // Queue of (state, events) batches awaiting the reaction effect below. A queue (not
+  // just the latest) so a synchronous double-apply — rollOnce firing an attack then a
+  // CPU defender's reaction — never drops a batch's popups/combat feedback.
+  const reactionQueue = useRef<{ state: GameState; events: GameEvent[] }[]>([]);
+  const [reactionTick, setReactionTick] = useState(0);
+
+  // Advance the game (from a local apply now, or a server push later): commit the state,
+  // record events, derive the win reason, and queue the batch for the reaction effect.
+  // Stable identity (depends only on commitGame) so the CPU loop / callbacks don't churn.
   const applyUpdate = useCallback((state: GameState, events: GameEvent[]) => {
     commitGame(state);
-    // Full chronological history, kept for the end-of-game transcript (shown from
-    // the victory/defeat screen, not live in the GAME box).
+    // Full chronological history, kept for the end-of-game transcript (shown from the
+    // victory/defeat screen, not live in the GAME box).
     setLog((prev) => prev.concat(events));
     const won = events.find((e) => e.type === "gameWon");
     if (won && won.type === "gameWon") setWinReason(won.reason ?? null);
-    // Surface a reactive card's outcome popup — but ONLY to a human who was
-    // actually involved (they played the card, or it was used against them).
-    // CPU-vs-CPU card play produces no popup for the watching human.
-    const viewer = viewerIdRef.current;
-    const nameOf = (id: string) => state.players.find((p) => p.id === id)?.name ?? id;
-    const mined = events.find((e) => e.type === "occupied" && e.mineLoss !== undefined);
-    if (mined && mined.type === "occupied") {
-      const attacker = state.territories[mined.to].owner ?? "";
-      const layer = mined.minedBy;
-      const n = mined.mineLoss ?? 0;
-      if (viewer === layer) {
-        setActionOutcome({
-          card: "minefield",
-          text: n
-            ? `Your minefield destroyed ${n} of ${nameOf(attacker)}'s ${n === 1 ? "army" : "armies"} as they took ${mined.to}.`
-            : `${nameOf(attacker)} took ${mined.to} — your minefield caught nothing (only 1 army moved in).`,
-        });
-      } else if (viewer === attacker) {
-        setActionOutcome({
-          card: "minefield",
-          text: n
-            ? `You took ${mined.to}, but a minefield destroyed ${n} of your ${n === 1 ? "army" : "armies"} moving in.`
-            : `You took ${mined.to} — the minefield caught nothing (you moved in just 1 army).`,
-        });
-      }
-    }
-    // Air Strike against the human viewer (e.g. a CPU striking them). The human
-    // attacker who plays it gets the combat-modal note instead (see playActionCard).
-    const air = events.find((e) => e.type === "airStrikeResolved");
-    if (air && air.type === "airStrikeResolved") {
-      const defender = state.territories[air.target]?.owner;
-      if (viewer === defender && viewer !== air.player) {
-        setActionOutcome(
-          air.nullifiedBy
-            ? { card: "antiAircraft", text: `Your Anti-Aircraft nullified an Air Strike on ${air.target}.` }
-            : { card: "airStrike", text: `An Air Strike hit your ${air.target} — ${air.removed} ${air.removed === 1 ? "army" : "armies"} lost.` },
-        );
-      }
-    }
-    const retreat = events.find((e) => e.type === "tacticalRetreat");
-    if (retreat && retreat.type === "tacticalRetreat") {
-      const n = retreat.count;
-      if (viewer === retreat.player) {
-        setActionOutcome({
-          card: "tacticalRetreat",
-          text: `You pulled ${n} ${n === 1 ? "army" : "armies"} back to ${retreat.to}, ceding ${retreat.from} to ${nameOf(retreat.capturedBy)}.`,
-        });
-      } else if (viewer === retreat.capturedBy) {
-        setActionOutcome({
-          card: "tacticalRetreat",
-          text: `${nameOf(retreat.player)} retreated ${n} ${n === 1 ? "army" : "armies"} to ${retreat.to} — you take ${retreat.from}.`,
-        });
-      }
-    }
-    // Combat-modal feedback, derived from events here so it works whether the state
-    // advanced from a local apply or a server push (online). Two cases:
-    //  - our own attack (engagement role "attacker") — animate each exchange;
-    //  - an attack *on us* (solo + online only) — open a read-only defence view and
-    //    animate it as each incoming exchange arrives (per-event pacing).
-    const eng = engagementRef.current;
-    const atk = events.find((e) => e.type === "attacked") as AttackedEvent | undefined;
-    if (atk) {
-      const local = localSeatRef.current;
-      const humanCount = state.players.filter((p) => p.kind === "human").length;
-      const hotseat = !onlineRef.current && humanCount > 1;
-      const ourOffence = eng?.role === "attacker" && atk.from === eng.from && atk.to === eng.to;
-      // The defender owned the target before the attack; on a conquest the live owner
-      // has already flipped, so read the previous owner from the conquest event.
-      const conq = events.find(
-        (e): e is Extract<GameEvent, { type: "territoryConquered" }> => e.type === "territoryConquered" && e.to === atk.to,
-      );
-      const defender = conq ? conq.previousOwner : state.territories[atk.to]?.owner ?? null;
-      const incoming = !hotseat && local != null && atk.player !== local && defender === local;
-      if (ourOffence) {
-        setLastCombat(atk);
-        setCombatSeq((s) => s + 1);
-      } else if (incoming) {
-        setEngagement({ from: atk.from, to: atk.to, role: "defender" });
-        setLastCombat(atk);
-        setCombatSeq((s) => s + 1);
-      } else if (eng?.role === "defender") {
-        // The attacker moved on to someone else — our defence episode is over.
-        setEngagement(null);
-        setLastCombat(null);
-      }
-    }
-    const airHit = events.find((e) => e.type === "airStrikeResolved");
-    if (airHit && airHit.type === "airStrikeResolved" && viewer === airHit.player)
-      setCombatNote(
-        airHit.nullifiedBy
-          ? "Air Strike nullified by Anti-Aircraft!"
-          : `Air Strike hit — ${airHit.removed} ${airHit.removed === 1 ? "army" : "armies"} destroyed.`,
-      );
+    reactionQueue.current.push({ state, events });
+    setReactionTick((t) => t + 1);
   }, [commitGame]);
+
+  // Turn queued event batches into UI reactions — reactive-card outcome popups and
+  // combat-modal feedback. Runs after render (not inside the stable applyUpdate), so it
+  // reads the live viewerId/localSeat/online directly instead of via state-shadow refs.
+  // engagement is still read through engagementRef (owned by the combat loop). Draining
+  // to empty makes a re-run (e.g. React StrictMode) a harmless no-op.
+  useEffect(() => {
+    if (reactionQueue.current.length === 0) return;
+    const batches = reactionQueue.current;
+    reactionQueue.current = [];
+    for (const { state, events } of batches) {
+      // Surface a reactive card's outcome popup — but ONLY to a human who was actually
+      // involved (they played the card, or it was used against them). CPU-vs-CPU card
+      // play produces no popup for the watching human.
+      const viewer = viewerId;
+      const nameOf = (id: string) => state.players.find((p) => p.id === id)?.name ?? id;
+      const mined = events.find((e) => e.type === "occupied" && e.mineLoss !== undefined);
+      if (mined && mined.type === "occupied") {
+        const attacker = state.territories[mined.to].owner ?? "";
+        const layer = mined.minedBy;
+        const n = mined.mineLoss ?? 0;
+        if (viewer === layer) {
+          setActionOutcome({
+            card: "minefield",
+            text: n
+              ? `Your minefield destroyed ${n} of ${nameOf(attacker)}'s ${n === 1 ? "army" : "armies"} as they took ${mined.to}.`
+              : `${nameOf(attacker)} took ${mined.to} — your minefield caught nothing (only 1 army moved in).`,
+          });
+        } else if (viewer === attacker) {
+          setActionOutcome({
+            card: "minefield",
+            text: n
+              ? `You took ${mined.to}, but a minefield destroyed ${n} of your ${n === 1 ? "army" : "armies"} moving in.`
+              : `You took ${mined.to} — the minefield caught nothing (you moved in just 1 army).`,
+          });
+        }
+      }
+      // Air Strike against the human viewer (e.g. a CPU striking them). The human
+      // attacker who plays it gets the combat-modal note instead (see playActionCard).
+      const air = events.find((e) => e.type === "airStrikeResolved");
+      if (air && air.type === "airStrikeResolved") {
+        const defender = state.territories[air.target]?.owner;
+        if (viewer === defender && viewer !== air.player) {
+          setActionOutcome(
+            air.nullifiedBy
+              ? { card: "antiAircraft", text: `Your Anti-Aircraft nullified an Air Strike on ${air.target}.` }
+              : { card: "airStrike", text: `An Air Strike hit your ${air.target} — ${air.removed} ${air.removed === 1 ? "army" : "armies"} lost.` },
+          );
+        }
+      }
+      const retreat = events.find((e) => e.type === "tacticalRetreat");
+      if (retreat && retreat.type === "tacticalRetreat") {
+        const n = retreat.count;
+        if (viewer === retreat.player) {
+          setActionOutcome({
+            card: "tacticalRetreat",
+            text: `You pulled ${n} ${n === 1 ? "army" : "armies"} back to ${retreat.to}, ceding ${retreat.from} to ${nameOf(retreat.capturedBy)}.`,
+          });
+        } else if (viewer === retreat.capturedBy) {
+          setActionOutcome({
+            card: "tacticalRetreat",
+            text: `${nameOf(retreat.player)} retreated ${n} ${n === 1 ? "army" : "armies"} to ${retreat.to} — you take ${retreat.from}.`,
+          });
+        }
+      }
+      // Combat-modal feedback, derived from events so it works whether the state advanced
+      // from a local apply or a server push. Two cases: our own attack (engagement role
+      // "attacker") — animate each exchange; or an attack *on us* (solo + online only) —
+      // open a read-only defence view and animate each incoming exchange.
+      const eng = engagementRef.current;
+      const atk = events.find((e) => e.type === "attacked") as AttackedEvent | undefined;
+      if (atk) {
+        const local = localSeat;
+        const humanCount = state.players.filter((p) => p.kind === "human").length;
+        const hotseat = !online && humanCount > 1;
+        const ourOffence = eng?.role === "attacker" && atk.from === eng.from && atk.to === eng.to;
+        // The defender owned the target before the attack; on a conquest the live owner
+        // has already flipped, so read the previous owner from the conquest event.
+        const conq = events.find(
+          (e): e is Extract<GameEvent, { type: "territoryConquered" }> => e.type === "territoryConquered" && e.to === atk.to,
+        );
+        const defender = conq ? conq.previousOwner : state.territories[atk.to]?.owner ?? null;
+        const incoming = !hotseat && local != null && atk.player !== local && defender === local;
+        if (ourOffence) {
+          setLastCombat(atk);
+          setCombatSeq((s) => s + 1);
+        } else if (incoming) {
+          setEngagement({ from: atk.from, to: atk.to, role: "defender" });
+          setLastCombat(atk);
+          setCombatSeq((s) => s + 1);
+        } else if (eng?.role === "defender") {
+          // The attacker moved on to someone else — our defence episode is over.
+          setEngagement(null);
+          setLastCombat(null);
+        }
+      }
+      const airHit = events.find((e) => e.type === "airStrikeResolved");
+      if (airHit && airHit.type === "airStrikeResolved" && viewer === airHit.player)
+        setCombatNote(
+          airHit.nullifiedBy
+            ? "Air Strike nullified by Anti-Aircraft!"
+            : `Air Strike hit — ${airHit.removed} ${airHit.removed === 1 ? "army" : "armies"} destroyed.`,
+        );
+    }
+  }, [reactionTick, viewerId, localSeat, online]);
 
   // Single apply path for a *human* action: delegate the state advance to the
   // session (local apply today; the server later), then react to the result.
